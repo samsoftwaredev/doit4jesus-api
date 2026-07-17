@@ -1,0 +1,1 @@
+DROP TABLE prayer_locations, exam_consciousness, badge_definitions, churches, friend_requests, global_prayer_sessions, groups, leaderboard_config, leaderboard_history, leaderboards_weekly, notification_settings, push_subscriptions, rosary_stats, scripture_completions, user_milestones, user_xp, xp_events, xp_levels_config, xp_rules, youtube CASCADE

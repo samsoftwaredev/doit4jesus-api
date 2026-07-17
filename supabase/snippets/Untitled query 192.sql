@@ -1,0 +1,2 @@
+ALTER TABLE user_badges DROP CONSTRAINT user_badges_badge_key_fkey;
+ALTER TABLE badge_definitions DROP CONSTRAINT badge_definitions_badge_key_key;

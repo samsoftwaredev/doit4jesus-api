@@ -1,0 +1,1 @@
+EXECUTE FUNCTION platform.set_updated_at();
