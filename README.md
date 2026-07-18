@@ -1,232 +1,166 @@
-# DoIt4Jesus 🙏
+# Holy Competition API
 
-A modern web application helping Catholics pray the rosary, track their prayer journey, and connect with a faith-based community.
+Production-oriented API scaffold for the supplied PostgreSQL/Supabase schema, implemented with Next.js 16 App Router Route Handlers and deployable to Vercel.
 
-## 🌟 Features
+## What is included
 
-- **Interactive Rosary Prayer** - Audio-guided rosary with beautiful visuals
-- **Prayer Tracking** - Track your daily rosary streaks and statistics
-- **Social Features** - Connect with friends, join prayer groups, and pray together
-- **Live Events** - Participate in live rosary prayer sessions
-- **Multi-language Support** - Available in English and Spanish
-- **Responsive Design** - Works seamlessly on desktop and mobile devices
+- Supabase Auth with browser cookies and Bearer JWT support.
+- Next.js 16 `proxy.ts` session refresh.
+- User-scoped Supabase clients so PostgreSQL RLS remains authoritative.
+- Zod request validation and consistent JSON error responses.
+- Idempotent activity recording.
+- Transactional XP, level, challenge-progress, prayer-event, notification, and outbox updates.
+- REST endpoints for profiles, progression, activities, challenges, badges, leaderboards, prayer maps, and notifications.
+- SQL migrations that connect `app.users` to `auth.users` and add RLS policies.
+- OpenAPI contract at `/openapi.yaml`.
 
-## 🛠 Tech Stack
+## Critical schema correction
 
-- **Framework:** [Next.js 15](https://nextjs.org/) (React 18)
-- **Language:** TypeScript
-- **UI Library:** [Material-UI (MUI) v5](https://mui.com/)
-- **Styling:** SASS/SCSS + Emotion
-- **Database:** [Supabase](https://supabase.com/) (PostgreSQL)
-- **Authentication:** Supabase Auth + Google OAuth
-- **Deployment:** [Vercel](https://vercel.com/)
-- **Analytics:** Vercel Analytics + Speed Insights
+Supabase Auth must own passwords and authentication credentials. `app.users.id` is changed to reference `auth.users.id`; `password_hash` is removed. All domain tables can continue referencing `app.users`, preserving the original model while sharing the Auth UUID.
 
-## 📦 Project Structure
+The first migration refuses to continue when legacy `app.users` IDs do not exist in `auth.users`. Do not bypass this check. Migrate or remap those users first.
 
-```
-doit4jesus-app/
-├── classes/           # Core classes (Rosary, SupabaseDB, YouTube)
-├── components/        # React components (70+ components)
-├── constants/         # App constants and configuration
-├── context/           # React Context providers
-├── data/             # Static data and content
-├── interfaces/        # TypeScript interfaces and types
-├── locales/          # i18n translations (EN/ES)
-├── pages/            # Next.js pages and routing
-│   ├── app/          # Protected app pages (dashboard, events, etc.)
-│   └── ...           # Public pages (landing, login, etc.)
-├── public/           # Static assets
-├── services/         # API service functions
-├── styles/           # Global styles and SASS variables
-├── utils/            # Utility functions and helpers
-└── __test__/         # Test files
+## Setup
 
-```
+### 1. Create and seed the Supabase database
 
-## 🚀 Getting Started
-
-### Prerequisites
-
-- Node.js >= 16.16.0
-- npm >= 8.11.0
-- Docker Desktop (for local database)
-- Supabase CLI (optional, for local development)
-
-### Installation
-
-1. **Clone the repository**
-
-   ```bash
-   git clone https://github.com/samsoftwaredev/doit4jesus-app.git
-   cd doit4jesus-app
-   ```
-
-2. **Install dependencies**
-
-   ```bash
-   npm install
-   ```
-
-3. **Set up environment variables**
-
-   Create a `.env.local` file in the root directory:
-
-   ```env
-   NEXT_PUBLIC_SUPABASE_PROJECT_URL=your_supabase_url
-   NEXT_PUBLIC_SUPABASE_PROJECT_KEY=your_supabase_anon_key
-   NEXT_PUBLIC_GOOGLE_AUTH_KEY=your_google_oauth_client_id
-   ```
-
-4. **Run the development server**
-
-   ```bash
-   npm run dev
-   ```
-
-   Open [http://localhost:3000](http://localhost:3000) in your browser.
-
-## 🗄️ Database Setup
-
-### Using Supabase Cloud
-
-1. Create a project at [supabase.com](https://supabase.com)
-2. Copy your project URL and anon key to `.env.local`
-3. Run migrations (if available) or set up tables manually
-
-### Running Database Locally
-
-1. **Install Docker Desktop** and **Supabase CLI**
-
-2. **Start local Supabase instance**
-
-   ```bash
-   supabase start --ignore-health-check
-   ```
-
-   > **Note:** The `--ignore-health-check` flag is required for local development. See [Supabase docs](https://supabase.com/docs/reference/cli/supabase-start) for details.
-
-3. **Generate TypeScript types from database schema**
-
-   ```bash
-   npm run db-ts
-   ```
-
-   This generates type definitions in:
-   - `interfaces/database.ts` (for frontend)
-   - `supabase/functions/*/types.ts` (for edge functions)
-
-## 🧪 Testing
-
-Run all tests:
+Apply the supplied baseline schema first, including level definitions and activity/point-rule seeds. Then apply:
 
 ```bash
-npm test
+supabase db push
 ```
 
-Watch mode for development:
+The migrations in this repository assume the baseline tables already exist.
+
+### 2. Expose only the required schemas
+
+In Supabase **Project Settings → API → Exposed schemas**, add:
+
+```text
+app, competition, prayer, api
+```
+
+Do **not** expose `platform`. It contains idempotency and outbox internals.
+
+### 3. Configure environment variables
+
+Copy `.env.example` to `.env.local`:
 
 ```bash
-npm run test:watch
+cp .env.example .env.local
 ```
 
-Generate coverage report:
+Required for public/user requests:
+
+```text
+NEXT_PUBLIC_SUPABASE_URL
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+```
+
+`SUPABASE_SERVICE_ROLE_KEY` is server-only and is not used by the public API routes. Keep it only for trusted workers or administrative jobs.
+
+### 4. Install and run
 
 ```bash
-npm run test-coverage
+npm install
+npm run typecheck
+npm run dev
 ```
 
-## 📝 Development Workflow
+Health endpoint:
 
-### Branch Naming Conventions
+```text
+GET http://localhost:3000/api/v1/health
+```
 
-Before creating a pull request, create a branch following these conventions:
+### 5. Configure Auth redirects
 
-- **Features:** `feature/feature-name` (e.g., `feature/login-system`)
-- **Bug Fixes:** `fix/bug-description` (e.g., `fix/header-styling`)
-- **Hotfixes:** `hotfix/critical-issue` (e.g., `hotfix/security-patch`)
-- **Releases:** `release/version` (e.g., `release/v1.0.1`)
-- **Documentation:** `docs/topic` (e.g., `docs/api-endpoints`)
+Add the local and deployed callback URLs in Supabase Auth settings:
 
-### Pre-commit Hooks
+```text
+http://localhost:3000/auth/callback
+https://YOUR_DOMAIN/auth/callback
+```
 
-This project uses Husky for pre-commit hooks:
+## Authentication
 
-- **Linting:** ESLint auto-fixes code style issues
-- **Formatting:** Prettier formats code
-- **Testing:** Runs tests on staged files
+Browser clients can use Supabase Auth normally; `@supabase/ssr` stores and refreshes the session in cookies.
 
-### Code Quality
+Native or external clients can send:
+
+```http
+Authorization: Bearer <SUPABASE_ACCESS_TOKEN>
+```
+
+Never send the service-role key to a browser or native application.
+
+## API surface
+
+| Method | Route | Purpose |
+|---|---|---|
+| GET | `/api/v1/health` | Health check |
+| GET/PATCH | `/api/v1/me` | Current profile |
+| GET | `/api/v1/progress` | XP and current/next level |
+| GET | `/api/v1/levels` | Level definitions |
+| GET/POST | `/api/v1/activities` | Activity history and transactional recording |
+| GET | `/api/v1/challenges` | Challenge assignments |
+| POST | `/api/v1/challenges/:assignmentId/claim` | Claim completed challenge reward |
+| GET | `/api/v1/badges` | Badge catalog, earned badges, and progress |
+| GET | `/api/v1/leaderboards` | Period/scope leaderboard |
+| GET | `/api/v1/prayer-map` | Aggregated privacy-filtered markers |
+| GET | `/api/v1/notifications` | Notification inbox |
+| PATCH | `/api/v1/notifications/:notificationId/read` | Mark notification read |
+
+## Record an activity
+
+Every POST requires an idempotency key. Retrying the same request with the same key returns the original activity instead of awarding points twice.
 
 ```bash
-# Lint and fix code
-npm run lint
-
-# Format code with Prettier
-npm run lint-stage
-
-# Type check
-npm run compile
+curl -X POST 'http://localhost:3000/api/v1/activities' \
+  -H 'Authorization: Bearer YOUR_ACCESS_TOKEN' \
+  -H 'Content-Type: application/json' \
+  -H 'Idempotency-Key: 01J-ROSARY-2026-07-18-USER-REQUEST' \
+  -d '{
+    "activityCode": "ROSARY",
+    "occurredAt": "2026-07-18T13:00:00Z",
+    "completedAt": "2026-07-18T13:22:00Z",
+    "durationSeconds": 1320,
+    "quantity": 1,
+    "countryCode": "US"
+  }'
 ```
 
-## 🚢 Deployment
+The database function atomically:
 
-### Vercel (Recommended)
+1. Inserts the spiritual activity.
+2. Applies active point rules and daily/weekly limits.
+3. Writes the append-only point ledger.
+4. Updates cached user progression and level.
+5. Advances matching active challenges.
+6. Creates a prayer event when applicable.
+7. Creates notifications and outbox events.
 
-1. Push your code to GitHub
-2. Import project in [Vercel](https://vercel.com)
-3. Add environment variables in Vercel dashboard
-4. Deploy!
+## Deploy to Vercel
 
-Vercel will automatically deploy on every push to `main`.
+1. Import the repository into Vercel.
+2. Add the same environment variables.
+3. Use the Node.js runtime default for Route Handlers.
+4. Add the deployed `/auth/callback` URL to Supabase Auth.
+5. Deploy and call `/api/v1/health`.
 
-### Manual Build
+## Production work still needed
 
-```bash
-# Build for production
-npm run build
+This scaffold is the correct API foundation, not the entire game backend. Before a broad launch, add:
 
-# Start production server
-npm start
+- Vercel/Supabase-compatible rate limiting.
+- Automated tests against a local Supabase instance.
+- Challenge assignment and expiration jobs.
+- Outbox processing with retry/dead-letter behavior.
+- Leaderboard and prayer-map projection jobs.
+- Rebuild/reset logic for cached weekly and yearly counters.
+- Abuse controls for self-reported activities and high-value rewards.
+- Moderation and privacy rules for usernames, avatars, and shared badges.
 
-# Export static site (if applicable)
-npm run export
-```
+## Type generation
 
-## 📜 Available Scripts
-
-| Command                 | Description                             |
-| ----------------------- | --------------------------------------- |
-| `npm run dev`           | Start development server                |
-| `npm run build`         | Build for production                    |
-| `npm start`             | Start production server                 |
-| `npm run lint`          | Lint and fix code                       |
-| `npm test`              | Run tests once                          |
-| `npm run test:watch`    | Run tests in watch mode                 |
-| `npm run test-coverage` | Generate coverage report                |
-| `npm run db-ts`         | Generate TypeScript types from database |
-| `npm run export`        | Export static site                      |
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch (`feature/amazing-feature`)
-3. Commit your changes
-4. Push to your branch
-5. Open a Pull Request
-
-Please ensure:
-
-- Code passes all tests
-- Code follows ESLint and Prettier rules
-- Commit messages are clear and descriptive
-
-## 🙏 Acknowledgments
-
-- Built with faith and dedication
-- Inspired by the Catholic tradition of praying the rosary
-- Thanks to all contributors and users
-
----
-
-**Made with ❤️ and prayers**
+`src/lib/supabase/types.ts` contains the minimum types needed by this scaffold. Replace it with types generated from your actual Supabase project after applying all migrations so schema drift fails during CI.

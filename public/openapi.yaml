@@ -1,0 +1,252 @@
+openapi: 3.1.0
+info:
+  title: Holy Competition API
+  version: 1.0.0
+  description: >-
+    REST API implemented with Next.js 16 Route Handlers and Supabase Auth.
+    Browser clients may authenticate with Supabase SSR cookies; native clients
+    may send a Supabase access token as a Bearer token.
+servers:
+  - url: https://api.example.com
+  - url: http://localhost:3000
+security:
+  - supabaseBearer: []
+paths:
+  /api/v1/health:
+    get:
+      security: []
+      summary: Service health
+      responses:
+        '200':
+          description: Healthy
+  /api/v1/me:
+    get:
+      summary: Get current profile
+      responses:
+        '200': { description: Current profile }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+    patch:
+      summary: Update current profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateProfile' }
+      responses:
+        '200': { description: Updated profile }
+        '409': { description: Username conflict }
+        '422': { $ref: '#/components/responses/ValidationError' }
+  /api/v1/progress:
+    get:
+      summary: Get XP and level progress
+      responses:
+        '200': { description: Progress summary }
+  /api/v1/levels:
+    get:
+      summary: List active level definitions
+      responses:
+        '200': { description: Active levels }
+  /api/v1/activities:
+    get:
+      summary: List the current user's activities
+      parameters:
+        - in: query
+          name: limit
+          schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+        - in: query
+          name: before
+          description: ISO timestamp cursor from the previous response.
+          schema: { type: string, format: date-time }
+        - in: query
+          name: activityCode
+          schema: { type: string }
+      responses:
+        '200': { description: Activity page }
+    post:
+      summary: Record an activity and apply its transactional effects
+      parameters:
+        - in: header
+          name: Idempotency-Key
+          required: true
+          schema: { type: string, maxLength: 150 }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RecordActivity' }
+      responses:
+        '201': { description: Activity recorded }
+        '200': { description: Idempotent replay of an existing result }
+        '422': { $ref: '#/components/responses/ValidationError' }
+  /api/v1/challenges:
+    get:
+      summary: List challenge assignments
+      parameters:
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [active, completed, expired, cancelled, all]
+            default: active
+      responses:
+        '200': { description: Challenge assignments with definitions }
+  /api/v1/challenges/{assignmentId}/claim:
+    post:
+      summary: Claim a completed challenge reward
+      parameters:
+        - in: path
+          name: assignmentId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: Reward claim result }
+        '404': { description: Assignment not found }
+        '409': { description: Assignment is not completed }
+  /api/v1/badges:
+    get:
+      summary: List badge definitions, earned badges, and progress
+      responses:
+        '200': { description: Badge catalog for the current user }
+  /api/v1/leaderboards:
+    get:
+      summary: Get leaderboard entries
+      parameters:
+        - in: query
+          name: periodType
+          schema:
+            type: string
+            enum: [daily, weekly, monthly, yearly, season]
+            default: weekly
+        - in: query
+          name: periodCode
+          schema: { type: string }
+        - in: query
+          name: scopeType
+          schema:
+            type: string
+            enum: [global, country, city]
+            default: global
+        - in: query
+          name: scopeReference
+          schema: { type: string, default: global }
+        - in: query
+          name: limit
+          schema: { type: integer, minimum: 1, maximum: 100, default: 50 }
+        - in: query
+          name: offset
+          schema: { type: integer, minimum: 0, default: 0 }
+      responses:
+        '200': { description: Ranked entries }
+  /api/v1/prayer-map:
+    get:
+      summary: Get privacy-filtered prayer-map markers
+      parameters:
+        - in: query
+          name: level
+          required: true
+          schema: { type: string, enum: [country, city] }
+        - in: query
+          name: from
+          required: true
+          schema: { type: string, format: date-time }
+        - in: query
+          name: to
+          required: true
+          schema: { type: string, format: date-time }
+        - in: query
+          name: countryCode
+          schema: { type: string, minLength: 2, maxLength: 2 }
+      responses:
+        '200': { description: Aggregated map markers }
+  /api/v1/notifications:
+    get:
+      summary: List current-user notifications
+      parameters:
+        - in: query
+          name: unreadOnly
+          schema: { type: boolean, default: false }
+        - in: query
+          name: limit
+          schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+      responses:
+        '200': { description: Notifications }
+  /api/v1/notifications/{notificationId}/read:
+    patch:
+      summary: Mark one notification as read
+      parameters:
+        - in: path
+          name: notificationId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '204': { description: Marked as read }
+components:
+  securitySchemes:
+    supabaseBearer:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  responses:
+    Unauthorized:
+      description: Missing or invalid Supabase Auth session
+    ValidationError:
+      description: Request validation failed
+  schemas:
+    UpdateProfile:
+      type: object
+      additionalProperties: false
+      properties:
+        displayName: { type: string, minLength: 2, maxLength: 80 }
+        username:
+          anyOf:
+            - { type: string, minLength: 3, maxLength: 30, pattern: '^[a-zA-Z0-9_]+$' }
+            - { type: 'null' }
+        avatarUrl:
+          anyOf:
+            - { type: string, format: uri }
+            - { type: 'null' }
+        title:
+          anyOf:
+            - { type: string, maxLength: 100 }
+            - { type: 'null' }
+        preferredLanguage: { type: string, minLength: 2, maxLength: 10 }
+        timezone: { type: string }
+        cityId:
+          anyOf:
+            - { type: string, format: uuid }
+            - { type: 'null' }
+        countryCode:
+          anyOf:
+            - { type: string, minLength: 2, maxLength: 2 }
+            - { type: 'null' }
+        leaderboardVisibility:
+          type: string
+          enum: [public, friends, private]
+        prayerMapVisibility:
+          type: string
+          enum: [aggregated, hidden]
+    RecordActivity:
+      type: object
+      additionalProperties: false
+      required: [activityCode, occurredAt]
+      properties:
+        activityCode: { type: string, maxLength: 50 }
+        occurredAt: { type: string, format: date-time }
+        completedAt:
+          anyOf:
+            - { type: string, format: date-time }
+            - { type: 'null' }
+        durationSeconds:
+          anyOf:
+            - { type: integer, minimum: 0, maximum: 86400 }
+            - { type: 'null' }
+        quantity: { type: integer, minimum: 1, maximum: 100, default: 1 }
+        cityId:
+          anyOf:
+            - { type: string, format: uuid }
+            - { type: 'null' }
+        countryCode:
+          anyOf:
+            - { type: string, minLength: 2, maxLength: 2 }
+            - { type: 'null' }
+        metadata: { type: object, additionalProperties: true }
