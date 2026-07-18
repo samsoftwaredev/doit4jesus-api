@@ -1,0 +1,392 @@
+{
+  "info": {
+    "name": "Holy Competition API",
+    "_postman_id": "holy-competition-api-v1",
+    "description": "REST API for the Holy Competition app. Built with Next.js Route Handlers and Supabase Auth.\n\n**Authentication**\nAll endpoints (except `/health`) require a valid Supabase JWT.\nSet the `accessToken` collection variable to your Supabase `access_token` and every request will include it automatically as a Bearer token.\n\n**Base URL**\nSwitch the `baseUrl` variable between `http://localhost:3000` (local) and your production URL.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "description": "Base URL of the API. Change to your production URL when needed."
+    },
+    {
+      "key": "accessToken",
+      "value": "",
+      "description": "Supabase access_token (JWT). Paste the value returned by supabase.auth.getSession()."
+    },
+    {
+      "key": "notificationId",
+      "value": "00000000-0000-0000-0000-000000000000",
+      "description": "UUID of a notification to mark as read."
+    },
+    {
+      "key": "assignmentId",
+      "value": "00000000-0000-0000-0000-000000000000",
+      "description": "UUID of a challenge assignment to claim."
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{accessToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "Health",
+      "description": "Service liveness check — no authentication required.",
+      "item": [
+        {
+          "name": "Service health",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "health"]
+            },
+            "description": "Returns 200 when the API is reachable. No auth token required. Use this as a liveness probe."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Profile (me)",
+      "description": "Read and update the authenticated user's profile.",
+      "item": [
+        {
+          "name": "Get current profile",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "me"]
+            },
+            "description": "Returns the full profile for the authenticated user including display name, username, avatar, timezone, city, country, and visibility settings."
+          }
+        },
+        {
+          "name": "Update current profile",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"displayName\": \"Samuel Ruiz\",\n  \"username\": \"samsoftwaredev\",\n  \"avatarUrl\": \"https://example.com/avatar.png\",\n  \"title\": \"Prayer Warrior\",\n  \"preferredLanguage\": \"en\",\n  \"timezone\": \"America/Los_Angeles\",\n  \"cityId\": null,\n  \"countryCode\": \"US\",\n  \"leaderboardVisibility\": \"public\",\n  \"prayerMapVisibility\": \"aggregated\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "me"]
+            },
+            "description": "Partially updates the user's profile. Send only the fields you want to change — at least one field is required.\n\n**Fields**\n- `displayName` (string, 2–80 chars)\n- `username` (string, 3–30 chars, letters/numbers/underscores, nullable)\n- `avatarUrl` (URL string, nullable)\n- `title` (string, max 100 chars, nullable)\n- `preferredLanguage` (string, 2–10 chars, e.g. `\"en\"`)\n- `timezone` (IANA timezone string, e.g. `\"America/Los_Angeles\"`)\n- `cityId` (UUID, nullable)\n- `countryCode` (2-letter ISO code, e.g. `\"US\"`, nullable)\n- `leaderboardVisibility` (`\"public\"` | `\"friends\"` | `\"private\"`)\n- `prayerMapVisibility` (`\"aggregated\"` | `\"hidden\"`)\n\nReturns **409** if the username is already taken."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Progress & Levels",
+      "description": "XP progress, level breakdown, and the full level definition catalog.",
+      "item": [
+        {
+          "name": "Get XP and level progress",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/progress",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "progress"]
+            },
+            "description": "Returns the user's total XP, lifetime/weekly/yearly points, current and next level definitions, percentage progress through the current level, and XP thresholds."
+          }
+        },
+        {
+          "name": "List active level definitions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/levels",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "levels"]
+            },
+            "description": "Returns all active level definitions ordered by `level_number` ascending. Each entry contains the level name, minimum XP required, and any associated perks."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Activities",
+      "description": "Record and browse spiritual activities (prayer, Bible reading, fasting, etc.).",
+      "item": [
+        {
+          "name": "List activities",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/activities?limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "activities"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "description": "Number of results per page. Min 1, max 100. Default 20."
+                },
+                {
+                  "key": "before",
+                  "value": "",
+                  "description": "ISO 8601 timestamp cursor. Pass `nextCursor` from a previous response to paginate.",
+                  "disabled": true
+                },
+                {
+                  "key": "activityCode",
+                  "value": "",
+                  "description": "Filter by activity type (e.g. PRAYER, BIBLE_READING). Case-insensitive.",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Returns the authenticated user's spiritual activities in reverse chronological order.\n\nPagination uses a cursor-based approach:\n1. Check `meta.hasMore` in the response.\n2. If `true`, pass `meta.nextCursor` as the `before` query parameter in the next request."
+          }
+        },
+        {
+          "name": "Record an activity",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}",
+                "description": "A unique string (max 150 chars) per submission. Reusing the same key replays the original result without double-counting. Required."
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"activityCode\": \"PRAYER\",\n  \"occurredAt\": \"2026-07-18T08:00:00-07:00\",\n  \"completedAt\": \"2026-07-18T08:30:00-07:00\",\n  \"durationSeconds\": 1800,\n  \"quantity\": 1,\n  \"cityId\": null,\n  \"countryCode\": \"US\",\n  \"metadata\": {}\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/activities",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "activities"]
+            },
+            "description": "Records a spiritual activity and atomically applies XP, points, badge progress, challenge progress, and leaderboard updates via a Supabase RPC.\n\n**Required fields**\n- `activityCode` (string, 1–50 chars) — e.g. `PRAYER`, `BIBLE_READING`, `FASTING`\n- `occurredAt` (ISO 8601 with offset) — when the activity happened\n- `quantity` (integer, 1–100) — default `1`\n\n**Optional fields**\n- `completedAt` (ISO 8601 with offset, nullable)\n- `durationSeconds` (integer, 0–86400, nullable)\n- `cityId` (UUID, nullable)\n- `countryCode` (2-letter ISO, nullable)\n- `metadata` (object) — arbitrary extra data\n\n**Idempotency-Key header** (required) — generate a UUID per submission. If you retry with the same key, the server returns `200` with the cached result instead of `201`.\n\nReturns **201** for a new record, **200** for an idempotent replay."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Challenges",
+      "description": "Browse assigned challenges and claim rewards for completed ones.",
+      "item": [
+        {
+          "name": "List challenge assignments",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/challenges?status=active",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "challenges"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "active",
+                  "description": "Filter by assignment status. One of: active | completed | expired | cancelled | all. Default: active."
+                }
+              ]
+            },
+            "description": "Returns the current user's challenge assignments joined with their challenge definitions. Each item includes a computed `progressPercentage` (0–100)."
+          }
+        },
+        {
+          "name": "Claim challenge reward",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/challenges/{{assignmentId}}/claim",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "challenges", "{{assignmentId}}", "claim"]
+            },
+            "description": "Claims the reward for a completed challenge assignment. The assignment must be in `completed` status.\n\nSet the `assignmentId` collection variable (or path parameter) to the UUID of the assignment.\n\nReturns **404** if the assignment does not exist, **409** if it is not yet completed."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Badges",
+      "description": "Full badge catalog with earned badges and progress for the current user.",
+      "item": [
+        {
+          "name": "List badges (definitions + earned + progress)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/badges",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "badges"]
+            },
+            "description": "Returns all active badge definitions enriched with:\n- `earned` — array of times the user has earned this badge (may be empty)\n- `progress` — the user's current progress toward the badge, or `null` if not started\n\nBadges are ordered by category."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Leaderboards",
+      "description": "Ranked leaderboard entries scoped by time period and geography.",
+      "item": [
+        {
+          "name": "Get leaderboard entries",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/leaderboards?periodType=weekly&scopeType=global&scopeReference=global&limit=50&offset=0",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "leaderboards"],
+              "query": [
+                {
+                  "key": "periodType",
+                  "value": "weekly",
+                  "description": "Time window: daily | weekly | monthly | yearly | season. Default: weekly."
+                },
+                {
+                  "key": "periodCode",
+                  "value": "",
+                  "description": "Specific period code (e.g. 2026-W29). Omit to use the current active/finalized period.",
+                  "disabled": true
+                },
+                {
+                  "key": "scopeType",
+                  "value": "global",
+                  "description": "Geographic scope: global | country | city. Default: global."
+                },
+                {
+                  "key": "scopeReference",
+                  "value": "global",
+                  "description": "Scope identifier. Use \"global\" for global scope, a 2-letter ISO code for country (e.g. \"US\"), or a city UUID."
+                },
+                {
+                  "key": "limit",
+                  "value": "50",
+                  "description": "Entries per page (1–100). Default: 50."
+                },
+                {
+                  "key": "offset",
+                  "value": "0",
+                  "description": "Pagination offset (0–10000). Default: 0."
+                }
+              ]
+            },
+            "description": "Returns ranked leaderboard entries for the requested period and scope. Each entry is enriched with a `profile` (display name, username, avatar, title) and an `isCurrentUser` flag.\n\nThe response also includes the matched `period` object and pagination metadata (`total`, `limit`, `offset`).\n\n**Example — country leaderboard for the US**\n`?periodType=weekly&scopeType=country&scopeReference=US`"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Prayer Map",
+      "description": "Aggregated, privacy-filtered geographic markers showing where users are praying.",
+      "item": [
+        {
+          "name": "Get prayer map markers",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/prayer-map?level=country&from=2026-07-01T00:00:00Z&to=2026-07-31T23:59:59Z",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "prayer-map"],
+              "query": [
+                {
+                  "key": "level",
+                  "value": "country",
+                  "description": "Aggregation level: country | city. Required."
+                },
+                {
+                  "key": "from",
+                  "value": "2026-07-01T00:00:00Z",
+                  "description": "Start of the time window (ISO 8601). Required."
+                },
+                {
+                  "key": "to",
+                  "value": "2026-07-31T23:59:59Z",
+                  "description": "End of the time window (ISO 8601). Required."
+                },
+                {
+                  "key": "countryCode",
+                  "value": "",
+                  "description": "Filter to a single country (2-letter ISO code, e.g. US). Optional.",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Returns aggregated prayer map markers. Markers with fewer than **5 unique users** are suppressed to protect privacy.\n\nEach marker contains coordinates (country or city level), a `prayer_count`, and `unique_users`.\n\nResponse metadata includes the `level`, `from`, `to`, and the `privacyThreshold` (always 5)."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Notifications",
+      "description": "In-app notifications for the authenticated user.",
+      "item": [
+        {
+          "name": "List notifications",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/notifications?limit=20&unreadOnly=false",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "notifications"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "description": "Number of results (1–100). Default: 20."
+                },
+                {
+                  "key": "unreadOnly",
+                  "value": "false",
+                  "description": "Pass true to return only notifications where read_at is null."
+                }
+              ]
+            },
+            "description": "Returns the most recent notifications for the authenticated user, ordered newest-first. Pass `unreadOnly=true` to see only unread items."
+          }
+        },
+        {
+          "name": "Mark notification as read",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/notifications/{{notificationId}}/read",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "notifications", "{{notificationId}}", "read"]
+            },
+            "description": "Sets `read_at` to the current timestamp for the given notification. The notification must belong to the authenticated user.\n\nSet the `notificationId` collection variable to the UUID of the notification.\n\nReturns **204 No Content** on success, **404** if the notification is not found."
+          }
+        }
+      ]
+    }
+  ]
+}
