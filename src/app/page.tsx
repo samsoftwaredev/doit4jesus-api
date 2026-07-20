@@ -24,7 +24,7 @@ export default function HomePage() {
       </Box>
     )
   }
-
+  
   return (
     <Box
       component="main"

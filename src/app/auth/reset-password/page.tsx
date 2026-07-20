@@ -9,8 +9,8 @@ import Container from '@mui/material/Container'
 import Paper from '@mui/material/Paper'
 import Stack from '@mui/material/Stack'
 import TextField from '@mui/material/TextField'
-import Typography from '@mui/material/Typography'
-import { createClient } from '@/lib/supabase/client'
+import Typography from '@mui/material/Typography' 
+import { supabaseClient } from '@/app/classes/supabaseClient'
 
 export default function ResetPasswordPage() {
   const router = useRouter()
@@ -29,8 +29,7 @@ export default function ResetPasswordPage() {
     setLoading(true)
     setError(null)
 
-    const supabase = createClient()
-    const { error } = await supabase.auth.updateUser({ password })
+    const { error } = await supabaseClient.auth.updateUser({ password })
 
     if (error) {
       setError(error.message)
@@ -39,7 +38,7 @@ export default function ResetPasswordPage() {
     }
 
     // Sign out so the user logs in fresh with the new password
-    await supabase.auth.signOut()
+    await supabaseClient.auth.signOut()
     router.push('/auth/login')
   }
 

@@ -12,6 +12,7 @@ import Paper from '@mui/material/Paper'
 import Stack from '@mui/material/Stack'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
+import { supabaseClient } from '@/app/classes/supabaseClient'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -25,14 +26,13 @@ export default function LoginPage() {
     setLoading(true)
     setError(null)
 
-    // const supabase = createClient()
-    // const { error } = await supabase.auth.signInWithPassword({ email, password })
+    const { error } = await supabaseClient.auth.signInWithPassword({ email, password })
 
-    // if (error) {
-    //   setError(error.message)
-    //   setLoading(false)
-    //   return
-    // }
+    if (error) {
+      setError(error.message)
+      setLoading(false)
+      return
+    }
 
     router.push('/dashboard')
     router.refresh()

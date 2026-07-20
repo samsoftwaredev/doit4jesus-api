@@ -11,6 +11,7 @@ import Paper from '@mui/material/Paper'
 import Stack from '@mui/material/Stack'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
+import { supabaseClient } from '@/app/classes/supabaseClient'
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('')
@@ -23,16 +24,15 @@ export default function ForgotPasswordPage() {
     setLoading(true)
     setError(null)
 
-    // const supabase = createClient()
-    // const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    //   redirectTo: `${window.location.origin}/auth/callback?type=recovery`,
-    // })
+    const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/auth/callback?type=recovery`,
+    })
 
-    // if (error) {
-    //   setError(error.message)
-    //   setLoading(false)
-    //   return
-    // }
+    if (error) {
+      setError(error.message)
+      setLoading(false)
+      return
+    }
 
     setSuccess(true)
     setLoading(false)

@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useEffect, useState } from 'react'
 import type { User } from '@supabase/supabase-js'
+import { supabaseClient } from '@/app/classes/supabaseClient'
 
 type UserContextValue = {
   user: User | null
@@ -32,25 +33,24 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   }
 
   useEffect(() => {
-    // const supabase = createClient()
 
-    // // onAuthStateChange fires immediately with INITIAL_SESSION
-    // const {
-    //   data: { subscription },
-    // } = supabase.auth.onAuthStateChange(async (_event, session) => {
-    //   const currentUser = session?.user ?? null
-    //   setUser(currentUser)
+    // onAuthStateChange fires immediately with INITIAL_SESSION
+    const {
+      data: { subscription },
+    } = supabaseClient.auth.onAuthStateChange(async (_event, session) => {
+      const currentUser = session?.user ?? null
+      setUser(currentUser)
 
-    //   if (currentUser) {
-    //     await fetchProfile()
-    //   } else {
-    //     setProfile(null)
-    //   }
+      if (currentUser) {
+        await fetchProfile()
+      } else {
+        setProfile(null)
+      }
 
-    //   setIsLoading(false)
-    // })
+      setIsLoading(false)
+    })
 
-    // return () => subscription.unsubscribe()
+    return () => subscription.unsubscribe()
   }, [])
 
   return (

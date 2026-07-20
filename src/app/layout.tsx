@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import ThemeRegistry from '@/lib/theme/ThemeRegistry'
 import { UserProvider } from '@/context/UserContext'
+import TopNav from '@/components/TopNav'
 
 export const metadata = {
   title: 'DoIt4Jesus',
@@ -12,7 +13,10 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
     <html lang="en">
       <body>
         <ThemeRegistry>
-          <UserProvider>{children}</UserProvider>
+          <UserProvider>
+            <TopNav />
+            {children}
+          </UserProvider>
         </ThemeRegistry>
       </body>
     </html>

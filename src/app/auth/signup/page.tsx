@@ -11,6 +11,7 @@ import Paper from '@mui/material/Paper'
 import Stack from '@mui/material/Stack'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
+import { supabaseClient } from '@/app/classes/supabaseClient'
 
 export default function SignupPage() {
   const [email, setEmail] = useState('')
@@ -30,20 +31,19 @@ export default function SignupPage() {
     setLoading(true)
     setError(null)
 
-    // const supabase = createClient()
-    // const { error } = await supabase.auth.signUp({
-    //   email,
-    //   password,
-    //   options: {
-    //     emailRedirectTo: `${window.location.origin}/auth/callback`,
-    //   },
-    // })
+    const { error } = await supabaseClient.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
+      },
+    })
 
-    // if (error) {
-    //   setError(error.message)
-    //   setLoading(false)
-    //   return
-    // }
+    if (error) {
+      setError(error.message)
+      setLoading(false)
+      return
+    }
 
     setSuccess(true)
     setLoading(false)
