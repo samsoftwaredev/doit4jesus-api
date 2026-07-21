@@ -45,7 +45,7 @@ export async function GET(request: Request) {
     const { data: profiles, error: profileError } = userIds.length
       ? await supabase
           .schema('app')
-          .from('user_profiles')
+          .from('leaderboard_profiles')
           .select('user_id,display_name,username,avatar_url,title')
           .in('user_id', userIds)
       : { data: [], error: null }

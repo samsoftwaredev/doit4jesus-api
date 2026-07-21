@@ -7,7 +7,7 @@ type EmptySchema = {
 }
 
 export type Database = {
-  app: EmptySchema & {
+  app: Omit<EmptySchema, 'Views'> & {
     Tables: {
       user_profiles: {
         Row: {
@@ -54,6 +54,18 @@ export type Database = {
         }
         Insert: never
         Update: { read_at?: string | null }
+        Relationships: []
+      }
+    }
+    Views: {
+      leaderboard_profiles: {
+        Row: {
+          user_id: string
+          display_name: string
+          username: string | null
+          avatar_url: string | null
+          title: string | null
+        }
         Relationships: []
       }
     }
