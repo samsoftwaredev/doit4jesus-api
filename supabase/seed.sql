@@ -300,11 +300,16 @@ insert into competition.level_definitions (
   is_active
 )
 values
-  (1, 'beginner', 'Beginner', 'Take the first steps in a life of prayer.', 0, '/levels/beginner-icon.png', '/levels/beginner.png', 'title', true),
-  (2, 'disciple', 'Disciple', 'Build a steady rhythm of prayer and Scripture.', 250, '/levels/disciple-icon.png', '/levels/disciple.png', 'title', true),
-  (3, 'missionary', 'Missionary', 'Put faith into action through service.', 750, '/levels/missionary-icon.png', '/levels/missionary.png', 'title', true),
-  (4, 'apostle', 'Apostle', 'Inspire others through faithful witness.', 1500, '/levels/apostle-icon.png', '/levels/apostle.png', 'title', true),
-  (5, 'saint_in_training', 'Saint in Training', 'Persevere in heroic daily faithfulness.', 3000, '/levels/saint-icon.png', '/levels/saint.png', 'title', true)
+  (1, 'awakened', 'Awakened', 'Begins recognizing the battle.', 0, '/levels/awakened-icon.png', '/levels/awakened.png', 'title', true),
+  (2, 'seeker', 'Seeker', 'Starts building daily habits.', 250, '/levels/seeker-icon.png', '/levels/seeker.png', 'title', true),
+  (3, 'disciple', 'Disciple', 'Follows a consistent rule of life.', 750, '/levels/disciple-icon.png', '/levels/disciple.png', 'title', true),
+  (4, 'fighter', 'Fighter', 'Resists recurring temptations.', 1500, '/levels/fighter-icon.png', '/levels/fighter.png', 'title', true),
+  (5, 'guardian', 'Guardian', 'Protects his environment and relationships.', 3000, '/levels/guardian-icon.png', '/levels/guardian.png', 'title', true),
+  (6, 'servant', 'Servant', 'Regularly serves others.', 5000, '/levels/servant-icon.png', '/levels/servant.png', 'title', true),
+  (7, 'brother', 'Brother', 'Supports other men.', 7500, '/levels/brother-icon.png', '/levels/brother.png', 'title', true),
+  (8, 'leader', 'Leader', 'Leads by example.', 11000, '/levels/leader-icon.png', '/levels/leader.png', 'title', true),
+  (9, 'witness', 'Witness', 'Lives the faith publicly and consistently.', 16000, '/levels/witness-icon.png', '/levels/witness.png', 'title', true),
+  (10, 'persevering_disciple', 'Persevering Disciple', 'Continues faithfully over time.', 22000, '/levels/persevering-disciple-icon.png', '/levels/persevering-disciple.png', 'title', true)
 on conflict (level_number) do update
 set
   code = excluded.code,
@@ -337,7 +342,13 @@ values
   ('80000000-0000-4000-8000-000000000001', 'FIRST_ROSARY', 'First Rosary', 'Pray your first complete rosary.', 'prayer', 'common', '/badges/first-rosary.png', '/badges/locked.png', 'activity_count', 1, '{"activityCode":"ROSARY"}'::jsonb, 25, false, true, true),
   ('80000000-0000-4000-8000-000000000002', 'SCRIPTURE_SEEKER', 'Scripture Seeker', 'Complete five Scripture reading sessions.', 'scripture', 'uncommon', '/badges/scripture-seeker.png', '/badges/locked.png', 'activity_count', 5, '{"activityCode":"SCRIPTURE"}'::jsonb, 50, false, true, true),
   ('80000000-0000-4000-8000-000000000003', 'PRAYER_STREAK', 'Prayer Streak', 'Pray on seven consecutive days.', 'discipline', 'rare', '/badges/prayer-streak.png', '/badges/locked.png', 'daily_streak', 7, '{"days":7}'::jsonb, 100, false, true, true),
-  ('80000000-0000-4000-8000-000000000004', 'COMMUNITY_HELPER', 'Community Helper', 'Complete three acts of service.', 'service', 'uncommon', '/badges/community-helper.png', '/badges/locked.png', 'activity_count', 3, '{"activityCode":"SERVICE"}'::jsonb, 50, false, true, true)
+  ('80000000-0000-4000-8000-000000000004', 'COMMUNITY_HELPER', 'Community Helper', 'Complete three acts of service.', 'service', 'uncommon', '/badges/community-helper.png', '/badges/locked.png', 'activity_count', 3, '{"activityCode":"SERVICE"}'::jsonb, 50, false, true, true),
+  ('80000000-0000-4000-8000-000000000005', 'BELT_OF_TRUTH', 'Belt of Truth', 'Wear the Belt of Truth by practicing honesty and integrity each day.', 'discipline', 'uncommon', '/badges/belt-of-truth.png', '/badges/locked.png', 'daily_streak', 7, '{"virtue":"truth","requirements":[{"type":"daily_honesty_reflection","value":7}]}'::jsonb, 75, false, true, true),
+  ('80000000-0000-4000-8000-000000000006', 'SHIELD_OF_FAITH', 'Shield of Faith', 'Unlock the Shield of Faith through sustained prayer, Scripture, and trust during difficulty.', 'prayer', 'rare', '/badges/shield-of-faith.png', '/badges/locked.png', 'all_requirements', 3, '{"virtue":"faith","requirements":[{"type":"prayer_days","value":7,"description":"Seven days of prayer"},{"type":"scripture_plan_completed","value":1,"description":"One completed Scripture plan"},{"type":"trust_act_during_difficulty","value":1,"description":"One act of trust during difficulty"}]}'::jsonb, 150, false, true, true),
+  ('80000000-0000-4000-8000-000000000007', 'SWORD_OF_THE_SPIRIT', 'Sword of the Spirit', 'Unlock the Sword of the Spirit by storing God’s word in your heart.', 'scripture', 'rare', '/badges/sword-of-the-spirit.png', '/badges/locked.png', 'activity_count', 10, '{"virtue":"wisdom","requirements":[{"type":"scripture_reading_sessions","value":10}]}'::jsonb, 125, false, true, true),
+  ('80000000-0000-4000-8000-000000000008', 'HELMET_OF_SALVATION', 'Helmet of Salvation', 'Unlock the Helmet of Salvation by renewing hope and guarding your mind.', 'discipline', 'rare', '/badges/helmet-of-salvation.png', '/badges/locked.png', 'daily_streak', 14, '{"virtue":"hope","requirements":[{"type":"daily_prayer_streak","value":14}]}'::jsonb, 125, false, true, true),
+  ('80000000-0000-4000-8000-000000000009', 'BOOTS_OF_READINESS', 'Boots of Readiness', 'Unlock the Boots of Readiness by being ready to serve and bring peace.', 'service', 'uncommon', '/badges/boots-of-readiness.png', '/badges/locked.png', 'activity_count', 5, '{"virtue":"readiness","requirements":[{"type":"service_acts","value":5}]}'::jsonb, 100, false, true, true),
+  ('80000000-0000-4000-8000-000000000010', 'BREASTPLATE_OF_RIGHTEOUSNESS', 'Breastplate of Righteousness', 'Unlock the Breastplate of Righteousness through consistent righteous choices.', 'discipline', 'epic', '/badges/breastplate-of-righteousness.png', '/badges/locked.png', 'daily_streak', 21, '{"virtue":"righteousness","requirements":[{"type":"daily_rule_of_life_streak","value":21}]}'::jsonb, 200, false, true, true)
 on conflict (id) do update
 set
   code = excluded.code,
@@ -614,6 +625,7 @@ insert into competition.user_badge_progress (
 values
   ('9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002', '80000000-0000-4000-8000-000000000002', 2, 5),
   ('9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002', '80000000-0000-4000-8000-000000000003', 3, 7),
+  ('9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002', '80000000-0000-4000-8000-000000000006', 1, 3),
   ('11111111-1111-4111-8111-111111111111', '80000000-0000-4000-8000-000000000002', 4, 5),
   ('22222222-2222-4222-8222-222222222222', '80000000-0000-4000-8000-000000000004', 1, 3)
 on conflict (user_id, badge_id) do update
