@@ -366,6 +366,301 @@ set
   is_shareable = excluded.is_shareable,
   is_active = excluded.is_active;
 
+-- ---------------------------------------------------------------------------
+-- Fictional spiritual-battle game configuration
+-- ---------------------------------------------------------------------------
+
+insert into competition.game_balance_config (
+  id,
+  schema_version,
+  virtue_min,
+  virtue_max,
+  default_virtue_value,
+  demon_default_max_hp,
+  attack_penalty_min,
+  attack_penalty_max,
+  challenge_reward_min,
+  challenge_reward_max,
+  rules
+)
+values (
+  true,
+  '1.0.0',
+  0,
+  100,
+  50,
+  100,
+  2,
+  8,
+  3,
+  10,
+  jsonb_build_array(
+    'The server calculates all virtue changes, demon damage, XP, and rewards.',
+    'Virtues cannot drop below 0 or rise above 100.',
+    'A missed challenge should create only a small, recoverable penalty.',
+    'A completed defense increases the associated virtue and damages the demon.',
+    'Defeating a demon grants a final bonus to its primary counter-virtue.',
+    'Saints are thematic mentors and examples, not magical power-ups.'
+  )
+)
+on conflict (id) do update
+set
+  schema_version = excluded.schema_version,
+  virtue_min = excluded.virtue_min,
+  virtue_max = excluded.virtue_max,
+  default_virtue_value = excluded.default_virtue_value,
+  demon_default_max_hp = excluded.demon_default_max_hp,
+  attack_penalty_min = excluded.attack_penalty_min,
+  attack_penalty_max = excluded.attack_penalty_max,
+  challenge_reward_min = excluded.challenge_reward_min,
+  challenge_reward_max = excluded.challenge_reward_max,
+  rules = excluded.rules;
+
+insert into competition.virtue_definitions (
+  code,
+  name,
+  description,
+  default_value,
+  icon,
+  is_active
+)
+values
+  ('FAITH', 'Faith', 'Trust in God and willingness to remain close to Him.', 50, 'shield-cross', true),
+  ('DISCIPLINE', 'Discipline', 'Choosing the good even when motivation is low.', 50, 'belt', true),
+  ('COURAGE', 'Courage', 'Facing fear, discomfort, responsibility, and difficult truth.', 50, 'sword', true),
+  ('WISDOM', 'Wisdom', 'Recognizing truth and choosing the next good action.', 50, 'open-book', true),
+  ('CHARITY', 'Charity', 'Loving others through patience, mercy, service, and truth.', 50, 'sacred-heart', true),
+  ('PURITY', 'Purity', 'Seeing people with dignity and guarding the heart and imagination.', 50, 'lily-shield', true),
+  ('PERSEVERANCE', 'Perseverance', 'Returning and continuing after difficulty or failure.', 50, 'boots', true),
+  ('HUMILITY', 'Humility', 'Living truthfully without self-exaltation or self-contempt.', 50, 'kneeling-knight', true)
+on conflict (code) do update
+set
+  name = excluded.name,
+  description = excluded.description,
+  default_value = excluded.default_value,
+  icon = excluded.icon,
+  is_active = excluded.is_active;
+
+insert into competition.saint_definitions (id, code, name, description, is_active)
+values
+  ('a1000000-0000-4000-8000-000000000001', 'IGNATIUS_OF_LOYOLA', 'St. Ignatius of Loyola', 'A mentor of discernment and ordered attention.', true),
+  ('a1000000-0000-4000-8000-000000000002', 'JOSEPH', 'St. Joseph', 'A mentor of steady work, responsibility, and quiet service.', true),
+  ('a1000000-0000-4000-8000-000000000003', 'FRANCIS_DE_SALES', 'St. Francis de Sales', 'A mentor of gentleness and patient speech.', true),
+  ('a1000000-0000-4000-8000-000000000004', 'THERESE_OF_LISIEUX', 'St. Therese of Lisieux', 'A mentor of hidden love and the little way.', true),
+  ('a1000000-0000-4000-8000-000000000005', 'BENEDICT', 'St. Benedict', 'A mentor of moderation, order, and rhythm.', true),
+  ('a1000000-0000-4000-8000-000000000006', 'FRANCIS_OF_ASSISI', 'St. Francis of Assisi', 'A mentor of gratitude, simplicity, and joy in others good.', true),
+  ('a1000000-0000-4000-8000-000000000007', 'JOAN_OF_ARC', 'St. Joan of Arc', 'A mentor of courageous obedience despite fear.', true),
+  ('a1000000-0000-4000-8000-000000000008', 'PETER', 'St. Peter', 'A mentor of repentance and returning after failure.', true),
+  ('a1000000-0000-4000-8000-000000000009', 'PHILIP_NERI', 'St. Philip Neri', 'A mentor of joyful charity and practical wisdom.', true),
+  ('a1000000-0000-4000-8000-000000000010', 'LAWRENCE', 'St. Lawrence', 'A mentor of generosity and love of people over possessions.', true),
+  ('a1000000-0000-4000-8000-000000000011', 'MARIA_GORETTI', 'St. Maria Goretti', 'A mentor of purity, dignity, forgiveness, and courage.', true)
+on conflict (id) do update
+set
+  code = excluded.code,
+  name = excluded.name,
+  description = excluded.description,
+  is_active = excluded.is_active;
+
+insert into competition.demon_definitions (
+  id,
+  code,
+  name,
+  title,
+  description,
+  category,
+  silly_personality,
+  saint_mentor_id,
+  saint_mentor_reason,
+  max_hp,
+  safety_note,
+  is_active
+)
+values
+  ('b1000000-0000-4000-8000-000000000001', 'SCROLLZILLA', 'Scrollzilla', 'The Endless Scroller', 'A tiny red nuisance with enormous thumbs who feeds on notifications, short videos, and bedtime procrastination.', 'DISTRACTION', 'Carries three phones but never remembers where any of them are.', 'a1000000-0000-4000-8000-000000000001', 'Discernment and ordered attention expose Scrollzilla tricks.', 100, null, true),
+  ('b1000000-0000-4000-8000-000000000002', 'SNOOZLEUMP', 'Snoozleump', 'The Blanket Commander', 'A sleepy blob that declares every responsibility can safely wait until tomorrow.', 'SLOTH', 'Wears a pillow as a crown and snores during his own speeches.', 'a1000000-0000-4000-8000-000000000002', 'Steady work, responsibility, and quiet service weaken Snoozleump.', 100, null, true),
+  ('b1000000-0000-4000-8000-000000000003', 'GRUMBLEPUFF', 'Grumblepuff', 'The Complaint Cloud', 'A smoky little grouch who turns minor inconvenience into a five-act tragedy.', 'ANGER', 'Gets angry when soup is too hot and angrier when it gets cold.', 'a1000000-0000-4000-8000-000000000003', 'Gentleness and patient speech directly counter reactive anger.', 100, null, true),
+  ('b1000000-0000-4000-8000-000000000004', 'BRAGGLESNOUT', 'Bragglesnout', 'The Tiny Trumpeter', 'A purple horned show-off who announces every good deed with imaginary trumpets.', 'PRIDE', 'Awards himself trophies for attending meetings he scheduled.', 'a1000000-0000-4000-8000-000000000004', 'Her little way of hidden love defeats the need to be impressive.', 100, null, true),
+  ('b1000000-0000-4000-8000-000000000005', 'SNACKASAURUS', 'Snackasaurus', 'The Bottomless Muncher', 'A round demon who insists every emotion requires a snack and every snack requires another snack.', 'GLUTTONY', 'Keeps emergency cupcakes in an emergency cupcake.', 'a1000000-0000-4000-8000-000000000005', 'Moderation, order, and rhythm make excess lose its power.', 100, null, true),
+  ('b1000000-0000-4000-8000-000000000006', 'PEEKABOOZE', 'Peekabooze', 'The Comparison Gremlin', 'A green gremlin who peeks at everyone else life and edits out all their struggles.', 'ENVY', 'Owns binoculars that only point toward other peoples blessings.', 'a1000000-0000-4000-8000-000000000006', 'Gratitude, simplicity, and joy in others good expose envy.', 100, null, true),
+  ('b1000000-0000-4000-8000-000000000007', 'WOBBLEKNEES', 'Wobbleknees', 'The Cowardly Catastrophizer', 'A nervous demon who predicts twelve disasters before breakfast and hides behind a very small shield.', 'FEAR', 'Screams whenever his own cape touches him.', 'a1000000-0000-4000-8000-000000000007', 'Courageous obedience despite fear defeats his exaggerations.', 100, null, true),
+  ('b1000000-0000-4000-8000-000000000008', 'WHISPERWHOMP', 'Whisperwhomp', 'The Discouragement Mumbler', 'A shadowy fuzzball who whispers that past failure proves future effort is pointless.', 'DISCOURAGEMENT', 'Practices dramatic sighing in front of a mirror.', 'a1000000-0000-4000-8000-000000000008', 'His repentance and return after failure show that falling is not the end.', 100, null, true),
+  ('b1000000-0000-4000-8000-000000000009', 'GOSSIPGOB', 'Gossipgob', 'The Rumor Collector', 'A long-eared goblin who collects half-stories and adds three dramatic details for free.', 'GOSSIP', 'Begins every sentence with I probably should not say this, but.', 'a1000000-0000-4000-8000-000000000009', 'Joy, charity, and practical wisdom expose careless speech.', 100, null, true),
+  ('b1000000-0000-4000-8000-000000000010', 'SHINYGRAB', 'Shinygrab', 'The Checkout Goblin', 'A gold-eyed goblin who thinks every limited-time offer is a spiritual emergency.', 'GREED', 'Buys storage boxes to organize the storage boxes he already bought.', 'a1000000-0000-4000-8000-000000000010', 'Generosity and love of people over possessions defeat Shinygrab.', 100, null, true),
+  ('b1000000-0000-4000-8000-000000000011', 'FOGGLES', 'Foggles', 'The Confusion Puff', 'A blue floating eyeball surrounded by fog who makes every simple decision feel like a doctoral thesis.', 'CONFUSION', 'Needs a flowchart to decide whether to make a flowchart.', 'a1000000-0000-4000-8000-000000000001', 'Discernment, clarity, and ordered choices disperse the fog.', 100, null, true),
+  ('b1000000-0000-4000-8000-000000000012', 'SNEAKYPEEKY', 'Sneakypeeky', 'The Screen-Corner Creeper', 'A pink winged imp who hides harmful content behind boredom, secrecy, and just one look.', 'IMPURITY', 'Wears sunglasses indoors because he thinks it makes him invisible.', 'a1000000-0000-4000-8000-000000000011', 'Purity, dignity, forgiveness, and courage stand against objectification and secrecy.', 100, 'For repeated compulsive behavior, encourage confidential support from a trusted adult, priest, counselor, or qualified professional; software is not treatment.', true)
+on conflict (id) do update
+set
+  code = excluded.code,
+  name = excluded.name,
+  title = excluded.title,
+  description = excluded.description,
+  category = excluded.category,
+  silly_personality = excluded.silly_personality,
+  saint_mentor_id = excluded.saint_mentor_id,
+  saint_mentor_reason = excluded.saint_mentor_reason,
+  max_hp = excluded.max_hp,
+  safety_note = excluded.safety_note,
+  is_active = excluded.is_active;
+
+insert into competition.demon_virtue_affinities (demon_id, virtue_code, affinity_type)
+values
+  ('b1000000-0000-4000-8000-000000000001', 'DISCIPLINE', 'primary'), ('b1000000-0000-4000-8000-000000000001', 'WISDOM', 'secondary'), ('b1000000-0000-4000-8000-000000000001', 'PERSEVERANCE', 'secondary'),
+  ('b1000000-0000-4000-8000-000000000002', 'DISCIPLINE', 'primary'), ('b1000000-0000-4000-8000-000000000002', 'PERSEVERANCE', 'secondary'), ('b1000000-0000-4000-8000-000000000002', 'CHARITY', 'secondary'),
+  ('b1000000-0000-4000-8000-000000000003', 'CHARITY', 'primary'), ('b1000000-0000-4000-8000-000000000003', 'COURAGE', 'secondary'), ('b1000000-0000-4000-8000-000000000003', 'WISDOM', 'secondary'),
+  ('b1000000-0000-4000-8000-000000000004', 'HUMILITY', 'primary'), ('b1000000-0000-4000-8000-000000000004', 'CHARITY', 'secondary'), ('b1000000-0000-4000-8000-000000000004', 'WISDOM', 'secondary'),
+  ('b1000000-0000-4000-8000-000000000005', 'DISCIPLINE', 'primary'), ('b1000000-0000-4000-8000-000000000005', 'WISDOM', 'secondary'), ('b1000000-0000-4000-8000-000000000005', 'PERSEVERANCE', 'secondary'),
+  ('b1000000-0000-4000-8000-000000000006', 'CHARITY', 'primary'), ('b1000000-0000-4000-8000-000000000006', 'HUMILITY', 'secondary'), ('b1000000-0000-4000-8000-000000000006', 'FAITH', 'secondary'),
+  ('b1000000-0000-4000-8000-000000000007', 'COURAGE', 'primary'), ('b1000000-0000-4000-8000-000000000007', 'FAITH', 'secondary'), ('b1000000-0000-4000-8000-000000000007', 'PERSEVERANCE', 'secondary'),
+  ('b1000000-0000-4000-8000-000000000008', 'PERSEVERANCE', 'primary'), ('b1000000-0000-4000-8000-000000000008', 'FAITH', 'secondary'), ('b1000000-0000-4000-8000-000000000008', 'COURAGE', 'secondary'),
+  ('b1000000-0000-4000-8000-000000000009', 'CHARITY', 'primary'), ('b1000000-0000-4000-8000-000000000009', 'WISDOM', 'secondary'), ('b1000000-0000-4000-8000-000000000009', 'HUMILITY', 'secondary'),
+  ('b1000000-0000-4000-8000-000000000010', 'CHARITY', 'primary'), ('b1000000-0000-4000-8000-000000000010', 'DISCIPLINE', 'secondary'), ('b1000000-0000-4000-8000-000000000010', 'WISDOM', 'secondary'),
+  ('b1000000-0000-4000-8000-000000000011', 'WISDOM', 'primary'), ('b1000000-0000-4000-8000-000000000011', 'FAITH', 'secondary'), ('b1000000-0000-4000-8000-000000000011', 'COURAGE', 'secondary'),
+  ('b1000000-0000-4000-8000-000000000012', 'PURITY', 'primary'), ('b1000000-0000-4000-8000-000000000012', 'COURAGE', 'secondary'), ('b1000000-0000-4000-8000-000000000012', 'DISCIPLINE', 'secondary')
+on conflict (demon_id, virtue_code) do update
+set affinity_type = excluded.affinity_type;
+
+insert into competition.demon_attacks (id, demon_id, code, name, description, target_virtue_code, virtue_decrease)
+values
+  ('c1000000-0000-4000-8000-000000000001', 'b1000000-0000-4000-8000-000000000001', 'LATE_NIGHT_SCROLLING', 'One More Video', 'Keeps the user scrolling after bedtime.', 'DISCIPLINE', 6),
+  ('c1000000-0000-4000-8000-000000000002', 'b1000000-0000-4000-8000-000000000001', 'NOTIFICATION_STORM', 'Notification Confetti', 'Interrupts prayer, work, and family time.', 'WISDOM', 4),
+  ('c1000000-0000-4000-8000-000000000003', 'b1000000-0000-4000-8000-000000000001', 'AVOID_THE_TASK', 'Productive-Looking Procrastination', 'Makes distraction feel useful while the real task remains untouched.', 'PERSEVERANCE', 5),
+  ('c1000000-0000-4000-8000-000000000004', 'b1000000-0000-4000-8000-000000000002', 'SNOOZE_AGAIN', 'The Sacred Snooze Button', 'Encourages repeated delays after waking.', 'DISCIPLINE', 5),
+  ('c1000000-0000-4000-8000-000000000005', 'b1000000-0000-4000-8000-000000000002', 'TOMORROW_TRAP', 'Tomorrow Is Definitely Better', 'Pushes necessary work into an imaginary perfect future.', 'PERSEVERANCE', 6),
+  ('c1000000-0000-4000-8000-000000000006', 'b1000000-0000-4000-8000-000000000002', 'SERVICE_AVOIDANCE', 'Someone Else Will Do It', 'Makes service feel inconvenient and optional.', 'CHARITY', 4),
+  ('c1000000-0000-4000-8000-000000000007', 'b1000000-0000-4000-8000-000000000003', 'SHARP_REPLY', 'Instant Keyboard Thunder', 'Pushes the user to respond harshly before understanding.', 'CHARITY', 6),
+  ('c1000000-0000-4000-8000-000000000008', 'b1000000-0000-4000-8000-000000000003', 'RESENTMENT_LOOP', 'Replay the Offense', 'Repeats an offense mentally until it feels larger.', 'WISDOM', 5),
+  ('c1000000-0000-4000-8000-000000000009', 'b1000000-0000-4000-8000-000000000003', 'AVOID_HARD_CONVERSATION', 'Silent Volcano', 'Avoids honest conversation while resentment builds.', 'COURAGE', 4),
+  ('c1000000-0000-4000-8000-000000000010', 'b1000000-0000-4000-8000-000000000004', 'NEED_TO_BE_RIGHT', 'Actually, Technically', 'Turns every conversation into a contest.', 'HUMILITY', 6),
+  ('c1000000-0000-4000-8000-000000000011', 'b1000000-0000-4000-8000-000000000004', 'SEEK_PRAISE', 'Applause Vacuum', 'Makes good actions feel worthless unless others notice.', 'CHARITY', 4),
+  ('c1000000-0000-4000-8000-000000000012', 'b1000000-0000-4000-8000-000000000004', 'REFUSE_CORRECTION', 'Armor of Excuses', 'Rejects useful correction before considering it.', 'WISDOM', 5),
+  ('c1000000-0000-4000-8000-000000000013', 'b1000000-0000-4000-8000-000000000005', 'EMOTIONAL_EATING', 'Sad Snack Summoning', 'Uses food to avoid processing emotion.', 'WISDOM', 5),
+  ('c1000000-0000-4000-8000-000000000014', 'b1000000-0000-4000-8000-000000000005', 'SECOND_PORTION', 'The Plate Refill Spell', 'Pushes the user past reasonable satisfaction.', 'DISCIPLINE', 5),
+  ('c1000000-0000-4000-8000-000000000015', 'b1000000-0000-4000-8000-000000000005', 'ALL_OR_NOTHING', 'Diet Drama', 'Turns one imperfect choice into giving up completely.', 'PERSEVERANCE', 4),
+  ('c1000000-0000-4000-8000-000000000016', 'b1000000-0000-4000-8000-000000000006', 'SOCIAL_COMPARISON', 'Highlight-Reel Vision', 'Compares ordinary life to selected images of others.', 'HUMILITY', 5),
+  ('c1000000-0000-4000-8000-000000000017', 'b1000000-0000-4000-8000-000000000006', 'RESENT_SUCCESS', 'Why Them', 'Turns another person success into resentment.', 'CHARITY', 6),
+  ('c1000000-0000-4000-8000-000000000018', 'b1000000-0000-4000-8000-000000000006', 'FORGOTTEN_BLESSINGS', 'Blessing Blindfold', 'Hides what is already good in the user life.', 'FAITH', 4),
+  ('c1000000-0000-4000-8000-000000000019', 'b1000000-0000-4000-8000-000000000007', 'AVOID_FIRST_STEP', 'Maybe Never Is Safer', 'Makes the first step feel more dangerous than avoidance.', 'COURAGE', 6),
+  ('c1000000-0000-4000-8000-000000000020', 'b1000000-0000-4000-8000-000000000007', 'WORST_CASE_LOOP', 'Disaster Slideshow', 'Cycles through imagined worst-case outcomes.', 'FAITH', 5),
+  ('c1000000-0000-4000-8000-000000000021', 'b1000000-0000-4000-8000-000000000007', 'QUIT_EARLY', 'Emergency Exit Everywhere', 'Encourages quitting before enough effort has been made.', 'PERSEVERANCE', 5),
+  ('c1000000-0000-4000-8000-000000000022', 'b1000000-0000-4000-8000-000000000008', 'FAILURE_DEFINES_YOU', 'The Permanent Label', 'Treats one failure as the user complete identity.', 'PERSEVERANCE', 7),
+  ('c1000000-0000-4000-8000-000000000023', 'b1000000-0000-4000-8000-000000000008', 'GOD_IS_DISTANT', 'He Is Not Listening', 'Tempts the user to abandon prayer when consolation is absent.', 'FAITH', 6),
+  ('c1000000-0000-4000-8000-000000000024', 'b1000000-0000-4000-8000-000000000008', 'DO_NOT_TRY', 'Pre-Defeated', 'Convincingly loses battles before they begin.', 'COURAGE', 5),
+  ('c1000000-0000-4000-8000-000000000025', 'b1000000-0000-4000-8000-000000000009', 'SHARE_RUMOR', 'Pass It Along', 'Encourages sharing information that is unverified or unnecessary.', 'WISDOM', 5),
+  ('c1000000-0000-4000-8000-000000000026', 'b1000000-0000-4000-8000-000000000009', 'MOCK_PERSON', 'Comedy at Their Expense', 'Uses another person weakness to gain attention.', 'CHARITY', 7),
+  ('c1000000-0000-4000-8000-000000000027', 'b1000000-0000-4000-8000-000000000009', 'MORAL_SUPERIORITY', 'Concerned-Looking Pride', 'Disguises judgment as concern.', 'HUMILITY', 5),
+  ('c1000000-0000-4000-8000-000000000028', 'b1000000-0000-4000-8000-000000000010', 'IMPULSE_PURCHASE', 'Buy Now, Discern Never', 'Turns a desire into an immediate purchase.', 'DISCIPLINE', 6),
+  ('c1000000-0000-4000-8000-000000000029', 'b1000000-0000-4000-8000-000000000010', 'POSSESSION_IDENTITY', 'You Are What You Own', 'Connects personal worth to possessions and status.', 'WISDOM', 5),
+  ('c1000000-0000-4000-8000-000000000030', 'b1000000-0000-4000-8000-000000000010', 'HOARD_USEFUL_ITEMS', 'Maybe Someday Mountain', 'Keeps useful goods away from people who need them.', 'CHARITY', 5),
+  ('c1000000-0000-4000-8000-000000000031', 'b1000000-0000-4000-8000-000000000011', 'OVERTHINK_DECISION', 'Infinite Option Parade', 'Adds unnecessary options until no action feels possible.', 'WISDOM', 7),
+  ('c1000000-0000-4000-8000-000000000032', 'b1000000-0000-4000-8000-000000000011', 'SEEK_ENDLESS_SIGNS', 'One More Sign', 'Avoids reasonable decisions by demanding absolute certainty.', 'FAITH', 5),
+  ('c1000000-0000-4000-8000-000000000033', 'b1000000-0000-4000-8000-000000000011', 'FEAR_COMMITMENT', 'Decision Doorway Freeze', 'Makes commitment feel more dangerous than indecision.', 'COURAGE', 5),
+  ('c1000000-0000-4000-8000-000000000034', 'b1000000-0000-4000-8000-000000000012', 'TRIGGERING_CONTENT', 'Just One Look', 'Presents harmful or objectifying content as harmless curiosity.', 'PURITY', 8),
+  ('c1000000-0000-4000-8000-000000000035', 'b1000000-0000-4000-8000-000000000012', 'SECRECY', 'Nobody Has to Know', 'Uses isolation and shame to prevent seeking help.', 'COURAGE', 6),
+  ('c1000000-0000-4000-8000-000000000036', 'b1000000-0000-4000-8000-000000000012', 'LATE_NIGHT_WEAKNESS', 'Midnight Ambush', 'Targets tiredness, privacy, and unstructured screen use.', 'DISCIPLINE', 6)
+on conflict (id) do update
+set
+  demon_id = excluded.demon_id,
+  code = excluded.code,
+  name = excluded.name,
+  description = excluded.description,
+  target_virtue_code = excluded.target_virtue_code,
+  virtue_decrease = excluded.virtue_decrease;
+
+insert into competition.demon_defenses (id, demon_id, code, name, challenge, reward_virtue_code, virtue_increase, demon_damage)
+values
+  ('d1000000-0000-4000-8000-000000000001', 'b1000000-0000-4000-8000-000000000001', 'PHONE_SIX_FEET_AWAY', 'The Six-Foot Exile', 'Place the phone at least six feet away for 30 minutes or before sleep.', 'DISCIPLINE', 7, 30),
+  ('d1000000-0000-4000-8000-000000000002', 'b1000000-0000-4000-8000-000000000001', 'FOCUS_MODE', 'Silence the Bells', 'Enable Focus Mode and complete one uninterrupted 25-minute session.', 'WISDOM', 5, 25),
+  ('d1000000-0000-4000-8000-000000000003', 'b1000000-0000-4000-8000-000000000001', 'SCRIPTURE_BEFORE_SCREEN', 'Word Before World', 'Read the daily Gospel before opening social media.', 'PERSEVERANCE', 6, 25),
+  ('d1000000-0000-4000-8000-000000000004', 'b1000000-0000-4000-8000-000000000002', 'MAKE_BED', 'First Victory', 'Get up and make the bed immediately.', 'DISCIPLINE', 4, 20),
+  ('d1000000-0000-4000-8000-000000000005', 'b1000000-0000-4000-8000-000000000002', 'TWENTY_MINUTE_TASK', 'Twenty-Minute Charge', 'Work on the most avoided task for 20 focused minutes.', 'PERSEVERANCE', 7, 30),
+  ('d1000000-0000-4000-8000-000000000006', 'b1000000-0000-4000-8000-000000000002', 'HIDDEN_SERVICE', 'Quiet Hands', 'Complete one useful act of service without seeking recognition.', 'CHARITY', 6, 25),
+  ('d1000000-0000-4000-8000-000000000007', 'b1000000-0000-4000-8000-000000000003', 'TEN_MINUTE_PAUSE', 'Lower the Drawbridge', 'Wait 10 minutes before responding and reread your message.', 'CHARITY', 6, 25),
+  ('d1000000-0000-4000-8000-000000000008', 'b1000000-0000-4000-8000-000000000003', 'PRAY_FOR_PERSON', 'Reverse the Flame', 'Pray sincerely for the person who upset you.', 'WISDOM', 5, 25),
+  ('d1000000-0000-4000-8000-000000000009', 'b1000000-0000-4000-8000-000000000003', 'CALM_CONVERSATION', 'Speak the Truth Gently', 'Have one direct, respectful conversation instead of avoiding or exploding.', 'COURAGE', 7, 30),
+  ('d1000000-0000-4000-8000-000000000010', 'b1000000-0000-4000-8000-000000000004', 'ADMIT_MISTAKE', 'Drop the Trophy', 'Admit one mistake clearly without adding an excuse.', 'HUMILITY', 8, 35),
+  ('d1000000-0000-4000-8000-000000000011', 'b1000000-0000-4000-8000-000000000004', 'HIDDEN_KINDNESS', 'Invisible Victory', 'Perform one act of kindness and tell no one.', 'CHARITY', 6, 25),
+  ('d1000000-0000-4000-8000-000000000012', 'b1000000-0000-4000-8000-000000000004', 'LISTEN_FULLY', 'Close the Trumpet', 'Listen without interrupting or preparing your reply.', 'WISDOM', 5, 25),
+  ('d1000000-0000-4000-8000-000000000013', 'b1000000-0000-4000-8000-000000000005', 'WATER_AND_WAIT', 'The Ten-Minute Truce', 'Drink water and wait 10 minutes before deciding whether to eat.', 'WISDOM', 5, 20),
+  ('d1000000-0000-4000-8000-000000000014', 'b1000000-0000-4000-8000-000000000005', 'MINDFUL_PORTION', 'One Plate Pact', 'Choose a reasonable portion and eat without a screen.', 'DISCIPLINE', 7, 30),
+  ('d1000000-0000-4000-8000-000000000015', 'b1000000-0000-4000-8000-000000000005', 'RETURN_NEXT_MEAL', 'No Drama Reset', 'After an imperfect choice, return to moderation at the next meal.', 'PERSEVERANCE', 6, 25),
+  ('d1000000-0000-4000-8000-000000000016', 'b1000000-0000-4000-8000-000000000006', 'SOCIAL_FAST', 'Close the Binoculars', 'Take a 24-hour break from the app that triggers comparison.', 'HUMILITY', 6, 25),
+  ('d1000000-0000-4000-8000-000000000017', 'b1000000-0000-4000-8000-000000000006', 'CONGRATULATE_PERSON', 'Celebrate Their Victory', 'Congratulate someone sincerely and specifically.', 'CHARITY', 7, 30),
+  ('d1000000-0000-4000-8000-000000000018', 'b1000000-0000-4000-8000-000000000006', 'FIVE_BLESSINGS', 'Open the Blessing Book', 'Write five concrete blessings from today.', 'FAITH', 5, 25),
+  ('d1000000-0000-4000-8000-000000000019', 'b1000000-0000-4000-8000-000000000007', 'ONE_BRAVE_STEP', 'One Step Forward', 'Take one concrete step toward the responsibility you have avoided.', 'COURAGE', 8, 35),
+  ('d1000000-0000-4000-8000-000000000020', 'b1000000-0000-4000-8000-000000000007', 'OUR_FATHER_SLOWLY', 'Trust the Father', 'Pray the Our Father slowly and identify the next controllable action.', 'FAITH', 6, 25),
+  ('d1000000-0000-4000-8000-000000000021', 'b1000000-0000-4000-8000-000000000007', 'FINISH_SMALL_COMMITMENT', 'Hold the Line', 'Finish one small commitment before changing direction.', 'PERSEVERANCE', 6, 25),
+  ('d1000000-0000-4000-8000-000000000022', 'b1000000-0000-4000-8000-000000000008', 'RETURN_TODAY', 'Begin Again', 'Resume one abandoned good habit today for at least five minutes.', 'PERSEVERANCE', 9, 35),
+  ('d1000000-0000-4000-8000-000000000023', 'b1000000-0000-4000-8000-000000000008', 'PSALM_OF_HOPE', 'Answer the Whisper', 'Read a Psalm of hope and write one sentence of truth.', 'FAITH', 6, 25),
+  ('d1000000-0000-4000-8000-000000000024', 'b1000000-0000-4000-8000-000000000008', 'ASK_FOR_SUPPORT', 'Call Reinforcements', 'Ask a trusted person for prayer, encouragement, or accountability.', 'COURAGE', 7, 30),
+  ('d1000000-0000-4000-8000-000000000025', 'b1000000-0000-4000-8000-000000000009', 'VERIFY_OR_SILENCE', 'Lock the Rumor Chest', 'Do not repeat the story unless it is true, necessary, and charitable.', 'WISDOM', 6, 25),
+  ('d1000000-0000-4000-8000-000000000026', 'b1000000-0000-4000-8000-000000000009', 'SPEAK_GOOD', 'Replace It with Honor', 'Say one sincere good thing about the person instead.', 'CHARITY', 7, 30),
+  ('d1000000-0000-4000-8000-000000000027', 'b1000000-0000-4000-8000-000000000009', 'EXAMINE_MOTIVE', 'Check the Mirror', 'Write why you wanted to share the information before speaking.', 'HUMILITY', 6, 25),
+  ('d1000000-0000-4000-8000-000000000028', 'b1000000-0000-4000-8000-000000000010', 'WAIT_24_HOURS', 'The Discernment Delay', 'Wait 24 hours before making a nonessential purchase.', 'DISCIPLINE', 7, 30),
+  ('d1000000-0000-4000-8000-000000000029', 'b1000000-0000-4000-8000-000000000010', 'NEED_TEST', 'Need, Use, Cost', 'Write what happens if you do not buy it, how often it will be used, and its full cost.', 'WISDOM', 6, 25),
+  ('d1000000-0000-4000-8000-000000000030', 'b1000000-0000-4000-8000-000000000010', 'GIVE_ITEM', 'Open the Storehouse', 'Donate or give away one useful item in good condition.', 'CHARITY', 7, 30),
+  ('d1000000-0000-4000-8000-000000000031', 'b1000000-0000-4000-8000-000000000011', 'FACTS_VALUES_NEXT_STEP', 'Clear the Fog', 'Write the known facts, the value involved, and the next reasonable step.', 'WISDOM', 8, 35),
+  ('d1000000-0000-4000-8000-000000000032', 'b1000000-0000-4000-8000-000000000011', 'PRAY_AND_DECIDE', 'Pray, Then Move', 'Pray briefly, choose among morally good options, and set a deadline.', 'FAITH', 6, 25),
+  ('d1000000-0000-4000-8000-000000000033', 'b1000000-0000-4000-8000-000000000011', 'SMALL_COMMITMENT', 'Cross the Threshold', 'Make one small reversible commitment today.', 'COURAGE', 6, 25),
+  ('d1000000-0000-4000-8000-000000000034', 'b1000000-0000-4000-8000-000000000012', 'LEAVE_TRIGGER', 'Exit the Room', 'Immediately close the content and physically leave the triggering environment.', 'PURITY', 8, 35),
+  ('d1000000-0000-4000-8000-000000000035', 'b1000000-0000-4000-8000-000000000012', 'CONTACT_ACCOUNTABILITY', 'Break the Secrecy', 'Contact a trusted accountability person with a simple request for support.', 'COURAGE', 7, 30),
+  ('d1000000-0000-4000-8000-000000000036', 'b1000000-0000-4000-8000-000000000012', 'DEVICE_BOUNDARY', 'Guard the Gate', 'Move the device out of the private space and enable content restrictions.', 'DISCIPLINE', 7, 30)
+on conflict (id) do update
+set
+  demon_id = excluded.demon_id,
+  code = excluded.code,
+  name = excluded.name,
+  challenge = excluded.challenge,
+  reward_virtue_code = excluded.reward_virtue_code,
+  virtue_increase = excluded.virtue_increase,
+  demon_damage = excluded.demon_damage;
+
+insert into competition.demon_defeat_rewards (demon_id, virtue_code, virtue_increase, xp_reward)
+values
+  ('b1000000-0000-4000-8000-000000000001', 'DISCIPLINE', 10, 100),
+  ('b1000000-0000-4000-8000-000000000002', 'DISCIPLINE', 10, 100),
+  ('b1000000-0000-4000-8000-000000000003', 'CHARITY', 10, 110),
+  ('b1000000-0000-4000-8000-000000000004', 'HUMILITY', 10, 120),
+  ('b1000000-0000-4000-8000-000000000005', 'DISCIPLINE', 9, 100),
+  ('b1000000-0000-4000-8000-000000000006', 'CHARITY', 10, 105),
+  ('b1000000-0000-4000-8000-000000000007', 'COURAGE', 10, 115),
+  ('b1000000-0000-4000-8000-000000000008', 'PERSEVERANCE', 12, 125),
+  ('b1000000-0000-4000-8000-000000000009', 'CHARITY', 10, 110),
+  ('b1000000-0000-4000-8000-000000000010', 'CHARITY', 10, 110),
+  ('b1000000-0000-4000-8000-000000000011', 'WISDOM', 11, 120),
+  ('b1000000-0000-4000-8000-000000000012', 'PURITY', 12, 130)
+on conflict (demon_id) do update
+set
+  virtue_code = excluded.virtue_code,
+  virtue_increase = excluded.virtue_increase,
+  xp_reward = excluded.xp_reward;
+
+insert into competition.badge_requirement_definitions (
+  id,
+  badge_id,
+  requirement_type,
+  required_value,
+  description,
+  rules,
+  display_order
+)
+values
+  ('e1000000-0000-4000-8000-000000000001', '80000000-0000-4000-8000-000000000005', 'daily_honesty_reflection', 7, 'Complete seven daily honesty reflections.', '{"virtue":"truth"}'::jsonb, 1),
+  ('e1000000-0000-4000-8000-000000000002', '80000000-0000-4000-8000-000000000006', 'prayer_days', 7, 'Seven days of prayer.', '{"virtue":"faith"}'::jsonb, 1),
+  ('e1000000-0000-4000-8000-000000000003', '80000000-0000-4000-8000-000000000006', 'scripture_plan_completed', 1, 'One completed Scripture plan.', '{"virtue":"faith"}'::jsonb, 2),
+  ('e1000000-0000-4000-8000-000000000004', '80000000-0000-4000-8000-000000000006', 'trust_act_during_difficulty', 1, 'One act of trust during difficulty.', '{"virtue":"faith"}'::jsonb, 3),
+  ('e1000000-0000-4000-8000-000000000005', '80000000-0000-4000-8000-000000000007', 'scripture_reading_sessions', 10, 'Complete ten Scripture reading sessions.', '{"virtue":"wisdom"}'::jsonb, 1),
+  ('e1000000-0000-4000-8000-000000000006', '80000000-0000-4000-8000-000000000008', 'daily_prayer_streak', 14, 'Maintain a fourteen-day prayer streak.', '{"virtue":"hope"}'::jsonb, 1),
+  ('e1000000-0000-4000-8000-000000000007', '80000000-0000-4000-8000-000000000009', 'service_acts', 5, 'Complete five acts of service.', '{"virtue":"readiness"}'::jsonb, 1),
+  ('e1000000-0000-4000-8000-000000000008', '80000000-0000-4000-8000-000000000010', 'daily_rule_of_life_streak', 21, 'Maintain a twenty-one-day rule-of-life streak.', '{"virtue":"righteousness"}'::jsonb, 1)
+on conflict (id) do update
+set
+  badge_id = excluded.badge_id,
+  requirement_type = excluded.requirement_type,
+  required_value = excluded.required_value,
+  description = excluded.description,
+  rules = excluded.rules,
+  display_order = excluded.display_order;
+
 insert into competition.point_rules (
   id,
   code,
@@ -532,6 +827,167 @@ set
   lifetime_points = excluded.lifetime_points,
   last_activity_at = excluded.last_activity_at,
   version = excluded.version;
+
+insert into competition.user_virtues (user_id, virtue_code, current_value, version)
+values
+  ('9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002', 'FAITH', 62, 1),
+  ('9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002', 'DISCIPLINE', 66, 3),
+  ('9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002', 'COURAGE', 52, 1),
+  ('9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002', 'WISDOM', 57, 1),
+  ('9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002', 'CHARITY', 55, 1),
+  ('9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002', 'PURITY', 50, 1),
+  ('9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002', 'PERSEVERANCE', 54, 1),
+  ('9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002', 'HUMILITY', 50, 1),
+  ('11111111-1111-4111-8111-111111111111', 'FAITH', 65, 1),
+  ('11111111-1111-4111-8111-111111111111', 'DISCIPLINE', 60, 1),
+  ('11111111-1111-4111-8111-111111111111', 'COURAGE', 62, 2),
+  ('11111111-1111-4111-8111-111111111111', 'WISDOM', 65, 2),
+  ('11111111-1111-4111-8111-111111111111', 'CHARITY', 74, 3),
+  ('11111111-1111-4111-8111-111111111111', 'PURITY', 52, 1),
+  ('11111111-1111-4111-8111-111111111111', 'PERSEVERANCE', 58, 1),
+  ('11111111-1111-4111-8111-111111111111', 'HUMILITY', 56, 1),
+  ('22222222-2222-4222-8222-222222222222', 'FAITH', 52, 1),
+  ('22222222-2222-4222-8222-222222222222', 'DISCIPLINE', 55, 1),
+  ('22222222-2222-4222-8222-222222222222', 'COURAGE', 50, 1),
+  ('22222222-2222-4222-8222-222222222222', 'WISDOM', 54, 1),
+  ('22222222-2222-4222-8222-222222222222', 'CHARITY', 55, 1),
+  ('22222222-2222-4222-8222-222222222222', 'PURITY', 50, 1),
+  ('22222222-2222-4222-8222-222222222222', 'PERSEVERANCE', 52, 1),
+  ('22222222-2222-4222-8222-222222222222', 'HUMILITY', 52, 1)
+on conflict (user_id, virtue_code) do update
+set
+  current_value = excluded.current_value,
+  version = excluded.version;
+
+insert into competition.user_demon_encounters (
+  id,
+  user_id,
+  demon_id,
+  status,
+  max_hp,
+  current_hp,
+  started_at,
+  ended_at,
+  defeated_at,
+  version,
+  metadata
+)
+values
+  ('f1000000-0000-4000-8000-000000000001', '9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002', 'b1000000-0000-4000-8000-000000000001', 'active', 100, 70, now() - interval '1 day', null, null, 3, '{"difficulty":"normal"}'::jsonb),
+  ('f1000000-0000-4000-8000-000000000002', '11111111-1111-4111-8111-111111111111', 'b1000000-0000-4000-8000-000000000003', 'defeated', 100, 0, now() - interval '5 days', now() - interval '1 day', now() - interval '1 day', 5, '{"difficulty":"normal"}'::jsonb),
+  ('f1000000-0000-4000-8000-000000000003', '22222222-2222-4222-8222-222222222222', 'b1000000-0000-4000-8000-000000000002', 'active', 100, 80, now() - interval '6 hours', null, null, 1, '{"difficulty":"easy"}'::jsonb)
+on conflict (id) do update
+set
+  user_id = excluded.user_id,
+  demon_id = excluded.demon_id,
+  status = excluded.status,
+  max_hp = excluded.max_hp,
+  current_hp = excluded.current_hp,
+  started_at = excluded.started_at,
+  ended_at = excluded.ended_at,
+  defeated_at = excluded.defeated_at,
+  version = excluded.version,
+  metadata = excluded.metadata;
+
+insert into competition.user_demon_defense_assignments (
+  id,
+  encounter_id,
+  defense_id,
+  assignment_sequence,
+  status,
+  assigned_at,
+  completed_at,
+  metadata
+)
+values
+  ('f2000000-0000-4000-8000-000000000001', 'f1000000-0000-4000-8000-000000000001', 'd1000000-0000-4000-8000-000000000001', 1, 'completed', now() - interval '20 hours', now() - interval '18 hours', '{"verified":true}'::jsonb),
+  ('f2000000-0000-4000-8000-000000000002', 'f1000000-0000-4000-8000-000000000001', 'd1000000-0000-4000-8000-000000000002', 1, 'assigned', now() - interval '2 hours', null, '{}'::jsonb),
+  ('f2000000-0000-4000-8000-000000000003', 'f1000000-0000-4000-8000-000000000002', 'd1000000-0000-4000-8000-000000000007', 1, 'completed', now() - interval '4 days', now() - interval '4 days', '{"verified":true}'::jsonb),
+  ('f2000000-0000-4000-8000-000000000004', 'f1000000-0000-4000-8000-000000000002', 'd1000000-0000-4000-8000-000000000008', 1, 'completed', now() - interval '3 days', now() - interval '3 days', '{"verified":true}'::jsonb),
+  ('f2000000-0000-4000-8000-000000000005', 'f1000000-0000-4000-8000-000000000002', 'd1000000-0000-4000-8000-000000000009', 1, 'completed', now() - interval '2 days', now() - interval '2 days', '{"verified":true}'::jsonb),
+  ('f2000000-0000-4000-8000-000000000006', 'f1000000-0000-4000-8000-000000000003', 'd1000000-0000-4000-8000-000000000004', 1, 'completed', now() - interval '5 hours', now() - interval '5 hours', '{"verified":true}'::jsonb),
+  ('f2000000-0000-4000-8000-000000000007', 'f1000000-0000-4000-8000-000000000003', 'd1000000-0000-4000-8000-000000000005', 1, 'assigned', now() - interval '2 hours', null, '{}'::jsonb)
+on conflict (id) do update
+set
+  encounter_id = excluded.encounter_id,
+  defense_id = excluded.defense_id,
+  assignment_sequence = excluded.assignment_sequence,
+  status = excluded.status,
+  assigned_at = excluded.assigned_at,
+  completed_at = excluded.completed_at,
+  metadata = excluded.metadata;
+
+insert into competition.virtue_events (
+  id,
+  user_id,
+  virtue_code,
+  encounter_id,
+  source_type,
+  source_id,
+  previous_value,
+  delta,
+  resulting_value,
+  idempotency_key,
+  metadata,
+  occurred_at
+)
+values
+  ('f3000000-0000-4000-8000-000000000001', '9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002', 'DISCIPLINE', 'f1000000-0000-4000-8000-000000000001', 'demon_attack', 'c1000000-0000-4000-8000-000000000001', 65, -6, 59, 'seed-virtue-scrollzilla-attack', '{"attackCode":"LATE_NIGHT_SCROLLING"}'::jsonb, now() - interval '20 hours'),
+  ('f3000000-0000-4000-8000-000000000002', '9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002', 'DISCIPLINE', 'f1000000-0000-4000-8000-000000000001', 'demon_defense', 'f2000000-0000-4000-8000-000000000001', 59, 7, 66, 'seed-virtue-scrollzilla-defense', '{"defenseCode":"PHONE_SIX_FEET_AWAY"}'::jsonb, now() - interval '18 hours'),
+  ('f3000000-0000-4000-8000-000000000003', '11111111-1111-4111-8111-111111111111', 'CHARITY', 'f1000000-0000-4000-8000-000000000002', 'demon_defense', 'f2000000-0000-4000-8000-000000000003', 58, 6, 64, 'seed-virtue-grumblepuff-pause', '{"defenseCode":"TEN_MINUTE_PAUSE"}'::jsonb, now() - interval '4 days'),
+  ('f3000000-0000-4000-8000-000000000004', '11111111-1111-4111-8111-111111111111', 'WISDOM', 'f1000000-0000-4000-8000-000000000002', 'demon_defense', 'f2000000-0000-4000-8000-000000000004', 60, 5, 65, 'seed-virtue-grumblepuff-prayer', '{"defenseCode":"PRAY_FOR_PERSON"}'::jsonb, now() - interval '3 days'),
+  ('f3000000-0000-4000-8000-000000000005', '11111111-1111-4111-8111-111111111111', 'COURAGE', 'f1000000-0000-4000-8000-000000000002', 'demon_defense', 'f2000000-0000-4000-8000-000000000005', 55, 7, 62, 'seed-virtue-grumblepuff-conversation', '{"defenseCode":"CALM_CONVERSATION"}'::jsonb, now() - interval '2 days'),
+  ('f3000000-0000-4000-8000-000000000006', '11111111-1111-4111-8111-111111111111', 'CHARITY', 'f1000000-0000-4000-8000-000000000002', 'demon_defeat', 'f1000000-0000-4000-8000-000000000002', 64, 10, 74, 'seed-virtue-grumblepuff-defeat', '{"xpReward":110}'::jsonb, now() - interval '1 day'),
+  ('f3000000-0000-4000-8000-000000000007', '22222222-2222-4222-8222-222222222222', 'DISCIPLINE', 'f1000000-0000-4000-8000-000000000003', 'demon_defense', 'f2000000-0000-4000-8000-000000000006', 51, 4, 55, 'seed-virtue-snoozleump-bed', '{"defenseCode":"MAKE_BED"}'::jsonb, now() - interval '5 hours')
+on conflict (id) do update
+set
+  user_id = excluded.user_id,
+  virtue_code = excluded.virtue_code,
+  encounter_id = excluded.encounter_id,
+  source_type = excluded.source_type,
+  source_id = excluded.source_id,
+  previous_value = excluded.previous_value,
+  delta = excluded.delta,
+  resulting_value = excluded.resulting_value,
+  idempotency_key = excluded.idempotency_key,
+  metadata = excluded.metadata,
+  occurred_at = excluded.occurred_at;
+
+insert into competition.demon_battle_events (
+  id,
+  encounter_id,
+  event_type,
+  attack_id,
+  defense_assignment_id,
+  virtue_event_id,
+  previous_hp,
+  demon_damage,
+  resulting_hp,
+  idempotency_key,
+  metadata,
+  occurred_at
+)
+values
+  ('f4000000-0000-4000-8000-000000000001', 'f1000000-0000-4000-8000-000000000001', 'attack', 'c1000000-0000-4000-8000-000000000001', null, 'f3000000-0000-4000-8000-000000000001', 100, 0, 100, 'seed-battle-scrollzilla-attack', '{"attackCode":"LATE_NIGHT_SCROLLING"}'::jsonb, now() - interval '20 hours'),
+  ('f4000000-0000-4000-8000-000000000002', 'f1000000-0000-4000-8000-000000000001', 'defense_completed', null, 'f2000000-0000-4000-8000-000000000001', 'f3000000-0000-4000-8000-000000000002', 100, 30, 70, 'seed-battle-scrollzilla-defense', '{"defenseCode":"PHONE_SIX_FEET_AWAY"}'::jsonb, now() - interval '18 hours'),
+  ('f4000000-0000-4000-8000-000000000003', 'f1000000-0000-4000-8000-000000000002', 'defense_completed', null, 'f2000000-0000-4000-8000-000000000003', 'f3000000-0000-4000-8000-000000000003', 80, 25, 55, 'seed-battle-grumblepuff-pause', '{"defenseCode":"TEN_MINUTE_PAUSE"}'::jsonb, now() - interval '4 days'),
+  ('f4000000-0000-4000-8000-000000000004', 'f1000000-0000-4000-8000-000000000002', 'defense_completed', null, 'f2000000-0000-4000-8000-000000000004', 'f3000000-0000-4000-8000-000000000004', 55, 25, 30, 'seed-battle-grumblepuff-prayer', '{"defenseCode":"PRAY_FOR_PERSON"}'::jsonb, now() - interval '3 days'),
+  ('f4000000-0000-4000-8000-000000000005', 'f1000000-0000-4000-8000-000000000002', 'defense_completed', null, 'f2000000-0000-4000-8000-000000000005', 'f3000000-0000-4000-8000-000000000005', 30, 30, 0, 'seed-battle-grumblepuff-conversation', '{"defenseCode":"CALM_CONVERSATION"}'::jsonb, now() - interval '2 days'),
+  ('f4000000-0000-4000-8000-000000000006', 'f1000000-0000-4000-8000-000000000002', 'demon_defeated', null, null, 'f3000000-0000-4000-8000-000000000006', 0, 0, 0, 'seed-battle-grumblepuff-defeat', '{"xpReward":110}'::jsonb, now() - interval '1 day'),
+  ('f4000000-0000-4000-8000-000000000007', 'f1000000-0000-4000-8000-000000000003', 'defense_completed', null, 'f2000000-0000-4000-8000-000000000006', 'f3000000-0000-4000-8000-000000000007', 100, 20, 80, 'seed-battle-snoozleump-bed', '{"defenseCode":"MAKE_BED"}'::jsonb, now() - interval '5 hours')
+on conflict (id) do update
+set
+  encounter_id = excluded.encounter_id,
+  event_type = excluded.event_type,
+  attack_id = excluded.attack_id,
+  defense_assignment_id = excluded.defense_assignment_id,
+  virtue_event_id = excluded.virtue_event_id,
+  previous_hp = excluded.previous_hp,
+  demon_damage = excluded.demon_damage,
+  resulting_hp = excluded.resulting_hp,
+  idempotency_key = excluded.idempotency_key,
+  metadata = excluded.metadata,
+  occurred_at = excluded.occurred_at;
 
 insert into competition.user_challenge_assignments (
   id,
@@ -903,6 +1359,45 @@ set
   available_at = excluded.available_at,
   processed_at = excluded.processed_at,
   last_error = excluded.last_error;
+
+-- Every seeded account must be able to exercise the spiritual-battle UI: its
+-- virtue dashboard, a demon encounter, a defense, and the resulting history.
+do $$
+declare
+  seed_user_id uuid;
+  expected_virtue_count integer;
+begin
+  select count(*) into expected_virtue_count
+  from competition.virtue_definitions
+  where is_active;
+
+  for seed_user_id in
+    values
+      ('9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002'::uuid),
+      ('11111111-1111-4111-8111-111111111111'::uuid),
+      ('22222222-2222-4222-8222-222222222222'::uuid)
+  loop
+    if (select count(*) from competition.user_virtues where user_id = seed_user_id) <> expected_virtue_count
+      or not exists (select 1 from competition.user_demon_encounters where user_id = seed_user_id)
+      or not exists (
+        select 1
+        from competition.user_demon_defense_assignments assignment
+        join competition.user_demon_encounters encounter on encounter.id = assignment.encounter_id
+        where encounter.user_id = seed_user_id
+      )
+      or not exists (select 1 from competition.virtue_events where user_id = seed_user_id)
+      or not exists (
+        select 1
+        from competition.demon_battle_events battle_event
+        join competition.user_demon_encounters encounter on encounter.id = battle_event.encounter_id
+        where encounter.user_id = seed_user_id
+      )
+    then
+      raise exception 'Seeded user % is missing spiritual-battle data', seed_user_id;
+    end if;
+  end loop;
+end
+$$;
 
 -- Keep the seed honest as the schema evolves. A newly added application table
 -- must receive seed data before a reset can succeed.
