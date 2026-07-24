@@ -46,6 +46,100 @@ paths:
       summary: List active level definitions
       responses:
         '200': { description: Active levels }
+  /api/v1/virtues:
+    get:
+      summary: Get active virtue definitions and the current user's values
+      responses:
+        '200': { description: Virtue dashboard data }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+  /api/v1/demons:
+    get:
+      summary: List active demon catalog entries
+      description: Includes each demon's saint mentor and virtue affinities.
+      responses:
+        '200': { description: Demon catalog }
+  /api/v1/demons/{demonCode}:
+    get:
+      summary: Get one demon's battle definition
+      parameters:
+        - in: path
+          name: demonCode
+          required: true
+          schema: { type: string, maxLength: 100 }
+      responses:
+        '200': { description: Demon attacks, defenses, affinities, mentor, and defeat reward }
+        '404': { description: Demon not found }
+  /api/v1/encounters:
+    get:
+      summary: List current-user demon encounters
+      parameters:
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [active, defeated, abandoned, expired, all]
+            default: all
+        - in: query
+          name: limit
+          schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+        - in: query
+          name: before
+          description: Started-at cursor from the prior response.
+          schema: { type: string, format: date-time }
+      responses:
+        '200': { description: Encounter page with demon summaries }
+    post:
+      summary: Start a demon encounter
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/StartEncounter' }
+      responses:
+        '201': { description: Encounter and first defense assignment created }
+        '200': { description: Idempotent replay of a prior encounter start }
+        '409': { description: The selected demon already has an active encounter }
+  /api/v1/encounters/{encounterId}:
+    get:
+      summary: Get one current-user encounter and battle timeline
+      parameters:
+        - $ref: '#/components/parameters/EncounterId'
+        - in: query
+          name: timelineLimit
+          schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+        - in: query
+          name: timelineBefore
+          description: Battle-event timestamp cursor from the prior response.
+          schema: { type: string, format: date-time }
+      responses:
+        '200': { description: Encounter, assigned defenses, and timeline page }
+        '404': { description: Encounter not found or not owned by the current user }
+  /api/v1/encounters/{encounterId}/defenses/{assignmentId}/complete:
+    post:
+      summary: Complete an assigned demon defense
+      description: >-
+        The server validates ownership and assignment status, then calculates
+        virtue changes, damage, defeat rewards, and notifications atomically.
+      parameters:
+        - $ref: '#/components/parameters/EncounterId'
+        - $ref: '#/components/parameters/AssignmentId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200': { description: Authoritative battle result }
+        '404': { description: Encounter or defense assignment not found }
+        '409': { description: Encounter or assignment is no longer active }
+  /api/v1/encounters/{encounterId}/abandon:
+    post:
+      summary: Abandon an active demon encounter
+      parameters:
+        - $ref: '#/components/parameters/EncounterId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200': { description: Encounter abandoned and open defenses cancelled }
+        '404': { description: Encounter not found }
+        '409': { description: Encounter is no longer active }
   /api/v1/activities:
     get:
       summary: List the current user's activities
@@ -65,10 +159,7 @@ paths:
     post:
       summary: Record an activity and apply its transactional effects
       parameters:
-        - in: header
-          name: Idempotency-Key
-          required: true
-          schema: { type: string, maxLength: 150 }
+        - $ref: '#/components/parameters/IdempotencyKey'
       requestBody:
         required: true
         content:
@@ -98,13 +189,14 @@ paths:
           name: assignmentId
           required: true
           schema: { type: string, format: uuid }
+        - $ref: '#/components/parameters/IdempotencyKey'
       responses:
         '200': { description: Reward claim result }
         '404': { description: Assignment not found }
         '409': { description: Assignment is not completed }
   /api/v1/badges:
     get:
-      summary: List badge definitions, earned badges, and progress
+      summary: List badge definitions, earned badges, aggregate progress, and individual unlock requirements
       responses:
         '200': { description: Badge catalog for the current user }
   /api/v1/leaderboards:
@@ -168,6 +260,10 @@ paths:
         - in: query
           name: limit
           schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+        - in: query
+          name: before
+          description: Created-at cursor from the prior response.
+          schema: { type: string, format: date-time }
       responses:
         '200': { description: Notifications }
   /api/v1/notifications/{notificationId}/read:
@@ -186,12 +282,35 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
+  parameters:
+    IdempotencyKey:
+      in: header
+      name: Idempotency-Key
+      required: true
+      description: A unique client-generated key. Repeating the same request returns the original result without duplicate rewards.
+      schema: { type: string, minLength: 1, maxLength: 150 }
+    EncounterId:
+      in: path
+      name: encounterId
+      required: true
+      schema: { type: string, format: uuid }
+    AssignmentId:
+      in: path
+      name: assignmentId
+      required: true
+      schema: { type: string, format: uuid }
   responses:
     Unauthorized:
       description: Missing or invalid Supabase Auth session
     ValidationError:
       description: Request validation failed
   schemas:
+    StartEncounter:
+      type: object
+      additionalProperties: false
+      required: [demonCode]
+      properties:
+        demonCode: { type: string, minLength: 1, maxLength: 100 }
     UpdateProfile:
       type: object
       additionalProperties: false

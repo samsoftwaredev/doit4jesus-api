@@ -2,7 +2,7 @@
   "info": {
     "name": "Holy Competition API",
     "_postman_id": "holy-competition-api-v1",
-    "description": "REST API for the Holy Competition app. Built with Next.js Route Handlers and Supabase Auth.\n\n**Authentication**\nAll endpoints (except `/health`) require a valid Supabase JWT.\nSet the `accessToken` collection variable to your Supabase `access_token` and every request will include it automatically as a Bearer token.\n\n**Base URL**\nSwitch the `baseUrl` variable between `http://localhost:3000` (local) and your production URL.",
+    "description": "REST API for the Holy Competition app. Built with Next.js Route Handlers and Supabase Auth.\n\n**Authentication**\nAll endpoints (except `/health`) require a valid Supabase JWT.\nSet the `accessToken` collection variable to your Supabase `access_token` and every request will include it automatically as a Bearer token.\n\n**Idempotency**\nEvery reward-bearing POST requires an `Idempotency-Key`. Keep the same key when retrying a request; use a new key for a new action.\n\n**Base URL**\nSwitch the `baseUrl` variable between `http://localhost:3000` (local) and your production URL.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -25,6 +25,21 @@
       "key": "assignmentId",
       "value": "00000000-0000-0000-0000-000000000000",
       "description": "UUID of a challenge assignment to claim."
+    },
+    {
+      "key": "demonCode",
+      "value": "SCROLLZILLA",
+      "description": "Code of the demon to inspect or encounter."
+    },
+    {
+      "key": "encounterId",
+      "value": "00000000-0000-0000-0000-000000000000",
+      "description": "UUID of a demon encounter. Set this from a start or list-encounters response."
+    },
+    {
+      "key": "defenseAssignmentId",
+      "value": "00000000-0000-0000-0000-000000000000",
+      "description": "UUID of a defense assignment within an encounter."
     }
   ],
   "auth": {
@@ -130,6 +145,183 @@
       ]
     },
     {
+      "name": "Virtues",
+      "description": "The authenticated user's current virtue values alongside the active virtue catalog.",
+      "item": [
+        {
+          "name": "Get virtues",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/virtues",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "virtues"]
+            },
+            "description": "Returns every active virtue definition together with the current user's value, initialization state, and last update time. Values are read-only through this endpoint."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Demons",
+      "description": "Read-only demon catalog and individual battle definitions.",
+      "item": [
+        {
+          "name": "List demons",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/demons",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "demons"]
+            },
+            "description": "Returns active demons with their saint mentor and primary/secondary virtue affinities. This is catalog data; it does not reveal another user's battle state."
+          }
+        },
+        {
+          "name": "Get demon battle definition",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/demons/{{demonCode}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "demons", "{{demonCode}}"]
+            },
+            "description": "Returns one demon's attacks, defenses, virtue affinities, saint mentor, and defeat reward. Set `demonCode`, for example `SCROLLZILLA`."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Demon Encounters",
+      "description": "Start, inspect, complete, and abandon the authenticated user's demon encounters. The server calculates all virtue, damage, XP, badge, and notification outcomes.",
+      "item": [
+        {
+          "name": "List encounters",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/encounters?status=all&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "encounters"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "all",
+                  "description": "active | defeated | abandoned | expired | all. Default: all."
+                },
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "description": "Number of encounters per page. Min 1, max 100."
+                },
+                {
+                  "key": "before",
+                  "value": "",
+                  "description": "Started-at cursor from `meta.nextCursor`.",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Lists the current user's encounters with demon summaries. Copy an encounter ID into `encounterId` to inspect it or perform an action."
+          }
+        },
+        {
+          "name": "Start encounter",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}",
+                "description": "Required. Reuse this value only to retry the same start request."
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"demonCode\": \"{{demonCode}}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/encounters",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "encounters"]
+            },
+            "description": "Creates an active encounter and its first assigned defense. Save `data.encounter.id` as `encounterId` and `data.assignment.id` as `defenseAssignmentId`. A second active encounter with the same demon returns 409."
+          }
+        },
+        {
+          "name": "Get encounter detail",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/encounters/{{encounterId}}?timelineLimit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "encounters", "{{encounterId}}"],
+              "query": [
+                {
+                  "key": "timelineLimit",
+                  "value": "20",
+                  "description": "Battle timeline events per page. Min 1, max 100."
+                },
+                {
+                  "key": "timelineBefore",
+                  "value": "",
+                  "description": "Occurred-at cursor from `meta.nextTimelineCursor`.",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Returns one owned encounter, its demon, assigned defenses, and a cursor-paginated battle timeline."
+          }
+        },
+        {
+          "name": "Complete assigned defense",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}",
+                "description": "Required. Retrying with this key returns the original authoritative battle result."
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/encounters/{{encounterId}}/defenses/{{defenseAssignmentId}}/complete",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "encounters", "{{encounterId}}", "defenses", "{{defenseAssignmentId}}", "complete"]
+            },
+            "description": "Completes an owned, assigned defense. The RPC validates state, updates the virtue and HP, records immutable events, applies a defeat reward if appropriate, and creates notifications. No client-provided reward values are accepted."
+          }
+        },
+        {
+          "name": "Abandon encounter",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}",
+                "description": "Required. Reuse this value only to retry the same abandon request."
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/encounters/{{encounterId}}/abandon",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "encounters", "{{encounterId}}", "abandon"]
+            },
+            "description": "Ends an active owned encounter and cancels its uncompleted defense assignments. This action has no XP or virtue reward."
+          }
+        }
+      ]
+    },
+    {
       "name": "Activities",
       "description": "Record and browse spiritual activities (prayer, Bible reading, fasting, etc.).",
       "item": [
@@ -187,7 +379,7 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "activities"]
             },
-            "description": "Records a spiritual activity and atomically applies XP, points, badge progress, challenge progress, and leaderboard updates via a Supabase RPC.\n\n**Required fields**\n- `activityCode` (string, 1–50 chars) — e.g. `PRAYER`, `BIBLE_READING`, `FASTING`\n- `occurredAt` (ISO 8601 with offset) — when the activity happened\n- `quantity` (integer, 1–100) — default `1`\n\n**Optional fields**\n- `completedAt` (ISO 8601 with offset, nullable)\n- `durationSeconds` (integer, 0–86400, nullable)\n- `cityId` (UUID, nullable)\n- `countryCode` (2-letter ISO, nullable)\n- `metadata` (object) — arbitrary extra data\n\n**Idempotency-Key header** (required) — generate a UUID per submission. If you retry with the same key, the server returns `200` with the cached result instead of `201`.\n\nReturns **201** for a new record, **200** for an idempotent replay."
+            "description": "Records a spiritual activity through a transactional RPC. The server, not the client, calculates XP, challenge updates, equipment-requirement progress, and any mapped defense completion.\n\n**Required fields**\n- `activityCode` (string, 1–50 chars) — e.g. `PRAYER`, `SCRIPTURE`, `SERVICE`, `TRUST_ACT`\n- `occurredAt` (ISO 8601 with offset) — when the activity happened\n- `quantity` (integer, 1–100) — default `1`\n\n**Optional fields**\n- `completedAt` (ISO 8601 with offset, nullable)\n- `durationSeconds` (integer, 0–86400, nullable)\n- `cityId` (UUID, nullable)\n- `countryCode` (2-letter ISO, nullable)\n- `metadata` (object) — factual context used by server-defined rules; for example `{\"planCompleted\": true}` for a completed Scripture plan or `{\"duringDifficulty\": true}` for an act of trust\n\nDo not send `virtueIncrease`, `demonDamage`, `xpAward`, `badgeEarned`, or `defenseCompleted`; those values are rejected by the request schema and calculated server-side.\n\nThe response contains `progressUpdates`, `battleUpdates`, `newBadges`, and `xp` in addition to the activity.\n\n**Idempotency-Key header** (required) — generate a UUID per submission. If you retry with the same key, the server returns `200` with the original result instead of repeating rewards."
           }
         }
       ]
@@ -220,13 +412,19 @@
           "name": "Claim challenge reward",
           "request": {
             "method": "POST",
-            "header": [],
+            "header": [
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}",
+                "description": "Required. Retry the same claim with this key to return the original reward result."
+              }
+            ],
             "url": {
               "raw": "{{baseUrl}}/api/v1/challenges/{{assignmentId}}/claim",
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "challenges", "{{assignmentId}}", "claim"]
             },
-            "description": "Claims the reward for a completed challenge assignment. The assignment must be in `completed` status.\n\nSet the `assignmentId` collection variable (or path parameter) to the UUID of the assignment.\n\nReturns **404** if the assignment does not exist, **409** if it is not yet completed."
+            "description": "Claims the server-calculated reward for a completed challenge assignment. The assignment must be in `completed` status and may only be claimed once.\n\nSet the `assignmentId` collection variable (or path parameter) to the UUID of the assignment. The required `Idempotency-Key` prevents retrying clients from receiving duplicate XP or badges.\n\nReturns **404** if the assignment does not exist, **409** if it is incomplete or already claimed."
           }
         }
       ]
@@ -245,7 +443,7 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "badges"]
             },
-            "description": "Returns all active badge definitions enriched with:\n- `earned` — array of times the user has earned this badge (may be empty)\n- `progress` — the user's current progress toward the badge, or `null` if not started\n\nBadges are ordered by category."
+            "description": "Returns all active badge definitions enriched with:\n- `earned` — array of times the user has earned this badge (may be empty)\n- `progress` — aggregate badge progress, or `null` if not started\n- `requirements` — individual unlock requirements with current/required values, completion state, and completion timestamp\n\nEquipment badges use `requirements` to show each part of an unlock. For example, Shield of Faith separately shows prayer days, completed Scripture plans, and acts of trust during difficulty."
           }
         }
       ]
@@ -367,10 +565,16 @@
                   "key": "unreadOnly",
                   "value": "false",
                   "description": "Pass true to return only notifications where read_at is null."
+                },
+                {
+                  "key": "before",
+                  "value": "",
+                  "description": "Created-at cursor from `meta.nextCursor` for the next page.",
+                  "disabled": true
                 }
               ]
             },
-            "description": "Returns the most recent notifications for the authenticated user, ordered newest-first. Pass `unreadOnly=true` to see only unread items."
+            "description": "Returns the most recent notifications for the authenticated user, ordered newest-first, with cursor pagination metadata. Pass `unreadOnly=true` to see only unread items.\n\nBattle notification types include `demon_defense_assigned`, `demon_defense_completed`, `demon_defeated`, `demon_encounter_abandoned`, and `equipment_unlocked`. Use each notification's `action_url` and structured `payload` to navigate to the relevant encounter, defense, or badge."
           }
         },
         {

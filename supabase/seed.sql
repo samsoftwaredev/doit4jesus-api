@@ -277,7 +277,10 @@ values
   ('PRAYER', 'Personal Prayer', 'Complete a personal prayer session.', 'prayer', true, false, true, true),
   ('ADORATION', 'Eucharistic Adoration', 'Spend time in Eucharistic adoration.', 'prayer', true, false, true, true),
   ('SERVICE', 'Act of Service', 'Serve a neighbor or the community.', 'service', false, true, true, true),
-  ('FASTING', 'Fasting', 'Offer a voluntary fast or sacrifice.', 'sacrifice', true, false, true, true)
+  ('FASTING', 'Fasting', 'Offer a voluntary fast or sacrifice.', 'sacrifice', true, false, true, true),
+  ('HONESTY_REFLECTION', 'Honesty Reflection', 'Reflect honestly on one choice and its impact.', 'discipline', false, false, true, true),
+  ('TRUST_ACT', 'Act of Trust', 'Record a concrete act of trust during difficulty.', 'discipline', false, false, true, true),
+  ('RULE_OF_LIFE', 'Rule of Life', 'Complete the daily commitments in your rule of life.', 'discipline', false, false, true, true)
 on conflict (code) do update
 set
   name = excluded.name,
@@ -661,6 +664,45 @@ set
   rules = excluded.rules,
   display_order = excluded.display_order;
 
+insert into competition.badge_requirement_activity_rules (
+  badge_requirement_id,
+  activity_code,
+  progress_mode,
+  metadata_filter
+)
+values
+  ('e1000000-0000-4000-8000-000000000001', 'HONESTY_REFLECTION', 'distinct_days', '{}'::jsonb),
+  ('e1000000-0000-4000-8000-000000000002', 'PRAYER', 'distinct_days', '{}'::jsonb),
+  ('e1000000-0000-4000-8000-000000000003', 'SCRIPTURE', 'activity_quantity', '{"planCompleted":true}'::jsonb),
+  ('e1000000-0000-4000-8000-000000000004', 'TRUST_ACT', 'activity_quantity', '{"duringDifficulty":true}'::jsonb),
+  ('e1000000-0000-4000-8000-000000000005', 'SCRIPTURE', 'activity_quantity', '{}'::jsonb),
+  ('e1000000-0000-4000-8000-000000000006', 'PRAYER', 'consecutive_days', '{}'::jsonb),
+  ('e1000000-0000-4000-8000-000000000007', 'SERVICE', 'activity_quantity', '{}'::jsonb),
+  ('e1000000-0000-4000-8000-000000000008', 'RULE_OF_LIFE', 'consecutive_days', '{}'::jsonb)
+on conflict (badge_requirement_id) do update
+set
+  activity_code = excluded.activity_code,
+  progress_mode = excluded.progress_mode,
+  metadata_filter = excluded.metadata_filter;
+
+insert into competition.demon_defense_activity_rules (
+  defense_id,
+  activity_code,
+  metadata_filter
+)
+values
+  ('d1000000-0000-4000-8000-000000000003', 'SCRIPTURE', '{}'::jsonb),
+  ('d1000000-0000-4000-8000-000000000006', 'SERVICE', '{}'::jsonb),
+  ('d1000000-0000-4000-8000-000000000008', 'PRAYER', '{}'::jsonb),
+  ('d1000000-0000-4000-8000-000000000023', 'SCRIPTURE', '{}'::jsonb),
+  ('d1000000-0000-4000-8000-000000000020', 'PRAYER', '{}'::jsonb),
+  ('d1000000-0000-4000-8000-000000000030', 'SERVICE', '{}'::jsonb),
+  ('d1000000-0000-4000-8000-000000000032', 'PRAYER', '{}'::jsonb)
+on conflict (defense_id) do update
+set
+  activity_code = excluded.activity_code,
+  metadata_filter = excluded.metadata_filter;
+
 insert into competition.point_rules (
   id,
   code,
@@ -679,7 +721,10 @@ values
   ('30000000-0000-4000-8000-000000000003', 'PERSONAL_PRAYER', 'PRAYER', 'Personal prayer', 'Points for personal prayer.', 15, 5, 30, now() - interval '1 year', true),
   ('30000000-0000-4000-8000-000000000004', 'ADORATION_SESSION', 'ADORATION', 'Adoration session', 'Points for Eucharistic adoration.', 40, 2, 8, now() - interval '1 year', true),
   ('30000000-0000-4000-8000-000000000005', 'SERVICE_ACT', 'SERVICE', 'Act of service', 'Points for serving another person.', 60, 3, 12, now() - interval '1 year', true),
-  ('30000000-0000-4000-8000-000000000006', 'FASTING_OFFERING', 'FASTING', 'Fasting offering', 'Points for a voluntary fast.', 35, 1, 3, now() - interval '1 year', true)
+  ('30000000-0000-4000-8000-000000000006', 'FASTING_OFFERING', 'FASTING', 'Fasting offering', 'Points for a voluntary fast.', 35, 1, 3, now() - interval '1 year', true),
+  ('30000000-0000-4000-8000-000000000007', 'HONESTY_REFLECTION', 'HONESTY_REFLECTION', 'Honesty reflection', 'Points for a truthful daily reflection.', 10, 1, 7, now() - interval '1 year', true),
+  ('30000000-0000-4000-8000-000000000008', 'TRUST_ACT', 'TRUST_ACT', 'Act of trust', 'Points for acting in trust during difficulty.', 25, 1, 5, now() - interval '1 year', true),
+  ('30000000-0000-4000-8000-000000000009', 'RULE_OF_LIFE', 'RULE_OF_LIFE', 'Rule of life completed', 'Points for completing a daily rule of life.', 30, 1, 7, now() - interval '1 year', true)
 on conflict (id) do update
 set
   code = excluded.code,
@@ -1088,6 +1133,24 @@ on conflict (user_id, badge_id) do update
 set
   current_value = excluded.current_value,
   required_value = excluded.required_value;
+
+insert into competition.user_badge_requirement_progress (
+  user_id,
+  badge_requirement_id,
+  current_value,
+  required_value,
+  completed_at
+)
+values
+  ('9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002', 'e1000000-0000-4000-8000-000000000002', 1, 7, null),
+  ('9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002', 'e1000000-0000-4000-8000-000000000003', 0, 1, null),
+  ('9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002', 'e1000000-0000-4000-8000-000000000004', 0, 1, null),
+  ('11111111-1111-4111-8111-111111111111', 'e1000000-0000-4000-8000-000000000007', 1, 5, null)
+on conflict (user_id, badge_requirement_id) do update
+set
+  current_value = excluded.current_value,
+  required_value = excluded.required_value,
+  completed_at = excluded.completed_at;
 
 insert into competition.badge_shares (
   id,
