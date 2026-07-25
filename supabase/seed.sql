@@ -1304,6 +1304,37 @@ set
 -- Prayer events and privacy-safe aggregates
 -- ---------------------------------------------------------------------------
 
+-- Keep a reading available for the API's default America/Chicago date in a
+-- freshly reset local database. The scheduled ingest replaces this placeholder
+-- with the canonical USCCB reading and enriches its Scripture text.
+insert into prayer.daily_readings (
+  reading_date,
+  celebration_name,
+  lectionary_number,
+  scripture_references,
+  scripture_text,
+  text_status
+)
+values (
+  (now() at time zone 'America/Chicago')::date,
+  'Seeded Daily Scripture',
+  605,
+  '[
+    {"position":1,"type":"reading_1","reference":"2 Corinthians 4:7-15"},
+    {"position":2,"type":"psalm","reference":"Psalm 126:1bc-2ab, 2cd-3, 4-5, 6"},
+    {"position":3,"type":"gospel","reference":"Matthew 20:20-28"}
+  ]'::jsonb,
+  '[]'::jsonb,
+  'pending'
+)
+on conflict (reading_date) do update
+set
+  celebration_name = excluded.celebration_name,
+  lectionary_number = excluded.lectionary_number,
+  scripture_references = excluded.scripture_references,
+  scripture_text = excluded.scripture_text,
+  text_status = excluded.text_status;
+
 insert into prayer.prayer_events (
   id,
   user_id,
