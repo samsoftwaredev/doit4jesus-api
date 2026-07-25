@@ -793,12 +793,60 @@ insert into competition.spiritual_activities (
   metadata
 )
 values
-  ('40000000-0000-4000-8000-000000000001', '9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002', 'ROSARY', now() - interval '2 hours 30 minutes', now() - interval '2 hours', 1800, 1, 'verified', 'manual', 'e0000000-0000-4000-8000-000000000001', 'US', 'seed-test-rosary-1', '{"mysteries":"joyful","note":"Morning rosary"}'::jsonb),
+  ('40000000-0000-4000-8000-000000000001', '9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002', 'ROSARY', ((date_trunc('month', now() at time zone 'America/Chicago')::date + time '11:30') at time zone 'America/Chicago'), ((date_trunc('month', now() at time zone 'America/Chicago')::date + time '12:00') at time zone 'America/Chicago'), 1800, 1, 'verified', 'manual', 'e0000000-0000-4000-8000-000000000001', 'US', 'seed-test-rosary-july-1', '{"mysteries":"joyful","note":"July rosary day 1"}'::jsonb),
   ('40000000-0000-4000-8000-000000000002', '9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002', 'SCRIPTURE', now() - interval '1 day 25 minutes', now() - interval '1 day', 1500, 2, 'verified', 'challenge', 'e0000000-0000-4000-8000-000000000001', 'US', 'seed-test-scripture-1', '{"passage":"Luke 10:25-37","translation":"NRSVCE"}'::jsonb),
   ('40000000-0000-4000-8000-000000000003', '9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002', 'PRAYER', now() - interval '2 days 10 minutes', now() - interval '2 days', 600, 1, 'self_reported', 'manual', 'e0000000-0000-4000-8000-000000000001', 'US', 'seed-test-prayer-1', '{"intention":"Peace in the community"}'::jsonb),
   ('40000000-0000-4000-8000-000000000004', '11111111-1111-4111-8111-111111111111', 'ROSARY', now() - interval '1 hour 25 minutes', now() - interval '1 hour', 1500, 1, 'verified', 'live_prayer', 'e0000000-0000-4000-8000-000000000003', 'MX', 'seed-maria-rosary-1', '{"mysteries":"sorrowful","groupPrayer":true}'::jsonb),
   ('40000000-0000-4000-8000-000000000005', '11111111-1111-4111-8111-111111111111', 'SERVICE', now() - interval '2 days', now() - interval '2 days', null, 1, 'verified', 'challenge', 'e0000000-0000-4000-8000-000000000003', 'MX', 'seed-maria-service-1', '{"description":"Prepared meals for a parish outreach"}'::jsonb),
   ('40000000-0000-4000-8000-000000000006', '22222222-2222-4222-8222-222222222222', 'ADORATION', now() - interval '3 hours 45 minutes', now() - interval '3 hours', 2700, 1, 'verified', 'manual', 'e0000000-0000-4000-8000-000000000002', 'US', 'seed-john-adoration-1', '{"parish":"St. Joseph"}'::jsonb)
+on conflict (id) do update
+set
+  user_id = excluded.user_id,
+  activity_code = excluded.activity_code,
+  occurred_at = excluded.occurred_at,
+  completed_at = excluded.completed_at,
+  duration_seconds = excluded.duration_seconds,
+  quantity = excluded.quantity,
+  verification_status = excluded.verification_status,
+  source = excluded.source,
+  city_id = excluded.city_id,
+  country_code = excluded.country_code,
+  idempotency_key = excluded.idempotency_key,
+  metadata = excluded.metadata;
+
+-- Seed 25 distinct completed Rosary days for test@test.com in July (the
+-- current month in the local development fixture). The timestamps are noon
+-- America/Chicago so each entry remains on its intended local calendar day.
+insert into competition.spiritual_activities (
+  id,
+  user_id,
+  activity_code,
+  occurred_at,
+  completed_at,
+  duration_seconds,
+  quantity,
+  verification_status,
+  source,
+  city_id,
+  country_code,
+  idempotency_key,
+  metadata
+)
+select
+  ('40000000-0000-4000-8000-' || lpad((day_number + 5)::text, 12, '0'))::uuid,
+  '9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002'::uuid,
+  'ROSARY',
+  ((date_trunc('month', now() at time zone 'America/Chicago')::date + (day_number - 1) + time '11:30') at time zone 'America/Chicago'),
+  ((date_trunc('month', now() at time zone 'America/Chicago')::date + (day_number - 1) + time '12:00') at time zone 'America/Chicago'),
+  1800,
+  1,
+  'verified',
+  'manual',
+  'e0000000-0000-4000-8000-000000000001'::uuid,
+  'US',
+  'seed-test-rosary-july-' || day_number,
+  jsonb_build_object('mysteries', 'joyful', 'note', 'July rosary day ' || day_number)
+from generate_series(2, 25) as day_number
 on conflict (id) do update
 set
   user_id = excluded.user_id,

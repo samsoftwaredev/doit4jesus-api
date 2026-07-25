@@ -41,6 +41,8 @@ export function throwDatabaseError(
       case 'ACTIVITY_NOT_FOUND':
       case 'ACTIVITY_DEFINITION_NOT_FOUND':
         throw ApiError.notFound('The activity definition was not found.');
+      case 'USER_PROFILE_NOT_FOUND':
+        throw ApiError.notFound('The current user profile was not found.');
       case 'CHALLENGE_NOT_COMPLETED':
         throw ApiError.conflict(
           'The challenge must be completed before its reward can be claimed.',
@@ -72,6 +74,9 @@ export function throwDatabaseError(
       case 'INVALID_IDEMPOTENCY_KEY':
       case 'INVALID_ACTIVITY_QUANTITY':
       case 'DEFENSE_DOES_NOT_MATCH_ENCOUNTER':
+      case 'INVALID_SELECTED_YEAR':
+      case 'INVALID_SELECTED_MONTH':
+      case 'USER_TIMEZONE_INVALID':
         throw new ApiError(422, 'VALIDATION_ERROR', error.message);
       default:
         break;

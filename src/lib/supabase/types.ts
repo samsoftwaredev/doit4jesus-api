@@ -562,6 +562,10 @@ export type Database = {
         Args: { p_encounter_id: string; p_idempotency_key: string };
         Returns: Json;
       };
+      get_my_rosary_completion: {
+        Args: { p_year?: number | null; p_month?: number | null };
+        Returns: Json;
+      };
     };
   };
 };

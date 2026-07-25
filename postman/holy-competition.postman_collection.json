@@ -141,6 +141,31 @@
             },
             "description": "Returns all active level definitions ordered by `level_number` ascending. Each entry contains the level name, minimum XP required, and any associated perks."
           }
+        },
+        {
+          "name": "Get rosary completion",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/me/rosary/completion?selectedYear=2026&selectedMonth=7",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "me", "rosary", "completion"],
+              "query": [
+                {
+                  "key": "selectedYear",
+                  "value": "2026",
+                  "description": "Optional UI focus year. Defaults to the authenticated user's current local year."
+                },
+                {
+                  "key": "selectedMonth",
+                  "value": "7",
+                  "description": "Optional UI focus month (1–12). Defaults to the authenticated user's current local month and does not change year-to-date math."
+                }
+              ]
+            },
+            "description": "Returns the authenticated user's timezone-aware rosary completion for all twelve months of the selected year. A local calendar day is complete when at least one self-reported or verified rosary has a `completed_at` timestamp that day; rejected rosaries are excluded.\n\nEligible days begin on the later of January 1 and the local account-creation date. Future days, months before joining, and future months return zero eligible/completed days. The response includes `selectedMonth` for UI focus, plus year-to-date totals that are unaffected by this parameter."
+          }
         }
       ]
     },
