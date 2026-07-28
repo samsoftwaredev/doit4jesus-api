@@ -35,6 +35,174 @@ paths:
         '200': { description: Daily Scripture reading }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '404': { description: No reading is stored for the requested date }
+  /api/v1/churches:
+    get:
+      summary: Search approved churches
+      description: >-
+        Requires at least one country, city, or diocese filter. When more than
+        one is supplied, all supplied filters must match the same church. City
+        is a church-city name and is not tied to app.cities.
+      parameters:
+        - in: query
+          name: countryCode
+          schema: { type: string, minLength: 2, maxLength: 2 }
+        - in: query
+          name: city
+          schema: { type: string, maxLength: 150 }
+        - in: query
+          name: diocese
+          schema: { type: string, maxLength: 160 }
+        - in: query
+          name: limit
+          schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+        - in: query
+          name: offset
+          schema: { type: integer, minimum: 0, default: 0 }
+      responses:
+        '200': { description: Church directory page }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+  /api/v1/churches/{churchId}:
+    get:
+      summary: Get church details and live service status
+      description: >-
+        Returns the church address, diocese, recurring weekday Mass,
+        confession, and adoration schedules, plus status calculated at request
+        time in the church's timezone. Church latitude and longitude are
+        included. A time with no end uses a one-hour duration. Service-status
+        booleans may overlap.
+      parameters:
+        - in: path
+          name: churchId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: Church details, schedule, and live status }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { description: Church not found }
+  /api/v1/me/churches:
+    get:
+      summary: List the current user's linked churches
+      responses:
+        '200': { description: Linked churches and primary state }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+    post:
+      summary: Link a church to the current user
+      description: >-
+        Set isPrimary to true to atomically make this church the user's only
+        primary church.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [churchId]
+              properties:
+                churchId: { type: string, format: uuid }
+                isPrimary: { type: boolean, default: false }
+      responses:
+        '201': { description: Church linked }
+        '200': { description: Church was already linked }
+        '404': { description: Church not found }
+  /api/v1/me/churches/{churchId}:
+    patch:
+      summary: Set a linked church as primary
+      parameters:
+        - in: path
+          name: churchId
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [isPrimary]
+              properties:
+                isPrimary: { type: boolean, enum: [true] }
+      responses:
+        '200': { description: Primary church updated }
+        '404': { description: Church is not linked to the current user }
+    delete:
+      summary: Unlink a church from the current user
+      parameters:
+        - in: path
+          name: churchId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '204': { description: Church unlinked }
+        '404': { description: Church is not linked to the current user }
+  /api/v1/church-change-requests:
+    get:
+      summary: List the current user's church change requests
+      parameters:
+        - in: query
+          name: status
+          schema: { type: string, enum: [pending, approved, rejected, all], default: all }
+        - in: query
+          name: limit
+          schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+        - in: query
+          name: offset
+          schema: { type: integer, minimum: 0, default: 0 }
+      responses:
+        '200': { description: Current-user change request page }
+    post:
+      summary: Submit a church creation or schedule replacement request
+      description: >-
+        Create requests include church details, required latitude/longitude,
+        and a full recurring schedule.
+        Schedule-update requests replace the church's entire recurring schedule
+        only after an administrator approves them.
+      responses:
+        '201': { description: Pending church change request created }
+        '422': { $ref: '#/components/responses/ValidationError' }
+  /api/v1/admin/church-change-requests:
+    get:
+      summary: List church change requests for administrator review
+      parameters:
+        - in: query
+          name: status
+          schema: { type: string, enum: [pending, approved, rejected, all], default: all }
+        - in: query
+          name: limit
+          schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+        - in: query
+          name: offset
+          schema: { type: integer, minimum: 0, default: 0 }
+      responses:
+        '200': { description: Moderator review queue }
+        '403': { description: Administrator role required }
+  /api/v1/admin/church-change-requests/{requestId}:
+    patch:
+      summary: Approve or reject a church change request
+      description: >-
+        Approving a schedule-update request replaces the church's complete
+        recurring schedule and grants the submitting user a repeatable
+        Church Schedule Steward badge.
+      parameters:
+        - in: path
+          name: requestId
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [decision]
+              properties:
+                decision: { type: string, enum: [approved, rejected] }
+                rejectionReason: { type: string, nullable: true, maxLength: 2000 }
+      responses:
+        '200': { description: Church change request reviewed }
+        '403': { description: Administrator role required }
+        '404': { description: Church change request not found }
+        '409': { description: Church change request was already reviewed }
   /api/v1/me:
     get:
       summary: Get current profile

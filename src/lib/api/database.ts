@@ -30,6 +30,20 @@ export function throwDatabaseError(
     switch (error.message) {
       case 'UNAUTHENTICATED':
         throw ApiError.unauthorized();
+      case 'FORBIDDEN':
+        throw ApiError.forbidden();
+      case 'CHURCH_NOT_FOUND':
+        throw ApiError.notFound('The church was not found.');
+      case 'CHURCH_NOT_LINKED':
+        throw ApiError.notFound(
+          'The church is not linked to the current user.',
+        );
+      case 'CHURCH_CHANGE_REQUEST_NOT_FOUND':
+        throw ApiError.notFound('The church change request was not found.');
+      case 'CHURCH_CHANGE_REQUEST_NOT_PENDING':
+        throw ApiError.conflict(
+          'The church change request has already been reviewed.',
+        );
       case 'CHALLENGE_NOT_FOUND':
         throw ApiError.notFound('The challenge assignment was not found.');
       case 'DEMON_NOT_FOUND':
@@ -77,6 +91,8 @@ export function throwDatabaseError(
       case 'INVALID_SELECTED_YEAR':
       case 'INVALID_SELECTED_MONTH':
       case 'USER_TIMEZONE_INVALID':
+      case 'INVALID_CHURCH_CHANGE_DECISION':
+      case 'INVALID_CHURCH_SERVICE_TIMES':
         throw new ApiError(422, 'VALIDATION_ERROR', error.message);
       default:
         break;

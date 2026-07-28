@@ -230,6 +230,140 @@ set
   leaderboard_visibility = excluded.leaderboard_visibility,
   prayer_map_visibility = excluded.prayer_map_visibility;
 
+-- ---------------------------------------------------------------------------
+-- Church directory, personal links, and moderation examples
+-- ---------------------------------------------------------------------------
+
+insert into app.user_roles (user_id, role)
+values
+  ('9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002', 'admin')
+on conflict (user_id) do update
+set role = excluded.role;
+
+insert into app.dioceses (id, country_code, name)
+values
+  ('c5000000-0000-4000-8000-000000000001', 'US', 'Diocese of Austin'),
+  ('c5000000-0000-4000-8000-000000000002', 'US', 'Diocese of Dallas'),
+  ('c5000000-0000-4000-8000-000000000003', 'MX', 'Archdiocese of Mexico City')
+on conflict (id) do update
+set
+  country_code = excluded.country_code,
+  name = excluded.name;
+
+insert into app.churches (
+  id,
+  diocese_id,
+  name,
+  address_line_1,
+  address_line_2,
+  city,
+  region_name,
+  postal_code,
+  country_code,
+  timezone,
+  latitude,
+  longitude,
+  is_active
+)
+values
+  ('c6000000-0000-4000-8000-000000000001', 'c5000000-0000-4000-8000-000000000001', 'St. Mary Cathedral', '203 E 10th St', null, 'Austin', 'Texas', '78701', 'US', 'America/Chicago', 30.270833, -97.741389, true),
+  ('c6000000-0000-4000-8000-000000000002', 'c5000000-0000-4000-8000-000000000001', 'St. Thomas More Catholic Church', '10205 FM 620 N', null, 'Austin', 'Texas', '78726', 'US', 'America/Chicago', 30.419492, -97.845792, true),
+  ('c6000000-0000-4000-8000-000000000003', 'c5000000-0000-4000-8000-000000000002', 'Cathedral Shrine of the Virgin of Guadalupe', '2215 Ross Ave', null, 'Dallas', 'Texas', '75201', 'US', 'America/Chicago', 32.784231, -96.792618, true),
+  ('c6000000-0000-4000-8000-000000000004', 'c5000000-0000-4000-8000-000000000003', 'Mexico City Metropolitan Cathedral', 'Plaza de la Constitución S/N', null, 'Mexico City', 'Mexico City', '06000', 'MX', 'America/Mexico_City', 19.434167, -99.133056, true)
+on conflict (id) do update
+set
+  diocese_id = excluded.diocese_id,
+  name = excluded.name,
+  address_line_1 = excluded.address_line_1,
+  address_line_2 = excluded.address_line_2,
+  city = excluded.city,
+  region_name = excluded.region_name,
+  postal_code = excluded.postal_code,
+  country_code = excluded.country_code,
+  timezone = excluded.timezone,
+  latitude = excluded.latitude,
+  longitude = excluded.longitude,
+  is_active = excluded.is_active;
+
+insert into app.church_service_times (
+  id,
+  church_id,
+  service_type,
+  weekday,
+  starts_at,
+  ends_at
+)
+values
+  ('c7000000-0000-4000-8000-000000000001', 'c6000000-0000-4000-8000-000000000001', 'mass', 0, '08:00', null),
+  ('c7000000-0000-4000-8000-000000000002', 'c6000000-0000-4000-8000-000000000001', 'mass', 0, '10:00', '11:15'),
+  ('c7000000-0000-4000-8000-000000000003', 'c6000000-0000-4000-8000-000000000001', 'confession', 6, '16:00', '17:00'),
+  ('c7000000-0000-4000-8000-000000000004', 'c6000000-0000-4000-8000-000000000001', 'adoration', 3, '18:00', '20:00'),
+  ('c7000000-0000-4000-8000-000000000005', 'c6000000-0000-4000-8000-000000000002', 'mass', 0, '09:00', null),
+  ('c7000000-0000-4000-8000-000000000006', 'c6000000-0000-4000-8000-000000000002', 'confession', 2, '17:30', '18:30'),
+  ('c7000000-0000-4000-8000-000000000007', 'c6000000-0000-4000-8000-000000000003', 'mass', 0, '12:00', null),
+  ('c7000000-0000-4000-8000-000000000008', 'c6000000-0000-4000-8000-000000000004', 'mass', 0, '09:00', null)
+on conflict (id) do update
+set
+  church_id = excluded.church_id,
+  service_type = excluded.service_type,
+  weekday = excluded.weekday,
+  starts_at = excluded.starts_at,
+  ends_at = excluded.ends_at;
+
+-- Reset the seeded users' primary flags before the upsert below so rerunning
+-- this seed remains valid even after exercising the primary-church endpoint.
+update app.user_churches
+set is_primary = false
+where user_id in (
+  '9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002'::uuid,
+  '11111111-1111-4111-8111-111111111111'::uuid
+);
+
+insert into app.user_churches (user_id, church_id, is_primary)
+values
+  ('9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002', 'c6000000-0000-4000-8000-000000000001', true),
+  ('9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002', 'c6000000-0000-4000-8000-000000000002', false),
+  ('11111111-1111-4111-8111-111111111111', 'c6000000-0000-4000-8000-000000000004', true)
+on conflict (user_id, church_id) do update
+set is_primary = excluded.is_primary;
+
+insert into app.church_change_requests (
+  id,
+  submitted_by,
+  request_type,
+  church_id,
+  proposed_church,
+  proposed_service_times,
+  notes,
+  status
+)
+values (
+  'c8000000-0000-4000-8000-000000000001',
+  '11111111-1111-4111-8111-111111111111',
+  'schedule_update',
+  'c6000000-0000-4000-8000-000000000004',
+  '{}'::jsonb,
+  '[
+    {"service_type":"mass","weekday":0,"start_time":"08:00","end_time":null},
+    {"service_type":"mass","weekday":0,"start_time":"12:00","end_time":null},
+    {"service_type":"adoration","weekday":4,"start_time":"18:00","end_time":"20:00"}
+  ]'::jsonb,
+  'Please add the current Sunday Mass and Friday adoration times.',
+  'pending'
+)
+on conflict (id) do update
+set
+  submitted_by = excluded.submitted_by,
+  request_type = excluded.request_type,
+  church_id = excluded.church_id,
+  proposed_church = excluded.proposed_church,
+  proposed_service_times = excluded.proposed_service_times,
+  notes = excluded.notes,
+  status = excluded.status,
+  reviewed_by = null,
+  reviewed_at = null,
+  rejection_reason = null;
+
 insert into app.notifications (
   id,
   user_id,
@@ -351,7 +485,8 @@ values
   ('80000000-0000-4000-8000-000000000007', 'SWORD_OF_THE_SPIRIT', 'Sword of the Spirit', 'Unlock the Sword of the Spirit by storing God’s word in your heart.', 'scripture', 'rare', '/badges/sword-of-the-spirit.png', '/badges/locked.png', 'activity_count', 10, '{"virtue":"wisdom","requirements":[{"type":"scripture_reading_sessions","value":10}]}'::jsonb, 125, false, true, true),
   ('80000000-0000-4000-8000-000000000008', 'HELMET_OF_SALVATION', 'Helmet of Salvation', 'Unlock the Helmet of Salvation by renewing hope and guarding your mind.', 'discipline', 'rare', '/badges/helmet-of-salvation.png', '/badges/locked.png', 'daily_streak', 14, '{"virtue":"hope","requirements":[{"type":"daily_prayer_streak","value":14}]}'::jsonb, 125, false, true, true),
   ('80000000-0000-4000-8000-000000000009', 'BOOTS_OF_READINESS', 'Boots of Readiness', 'Unlock the Boots of Readiness by being ready to serve and bring peace.', 'service', 'uncommon', '/badges/boots-of-readiness.png', '/badges/locked.png', 'activity_count', 5, '{"virtue":"readiness","requirements":[{"type":"service_acts","value":5}]}'::jsonb, 100, false, true, true),
-  ('80000000-0000-4000-8000-000000000010', 'BREASTPLATE_OF_RIGHTEOUSNESS', 'Breastplate of Righteousness', 'Unlock the Breastplate of Righteousness through consistent righteous choices.', 'discipline', 'epic', '/badges/breastplate-of-righteousness.png', '/badges/locked.png', 'daily_streak', 21, '{"virtue":"righteousness","requirements":[{"type":"daily_rule_of_life_streak","value":21}]}'::jsonb, 200, false, true, true)
+  ('80000000-0000-4000-8000-000000000010', 'BREASTPLATE_OF_RIGHTEOUSNESS', 'Breastplate of Righteousness', 'Unlock the Breastplate of Righteousness through consistent righteous choices.', 'discipline', 'epic', '/badges/breastplate-of-righteousness.png', '/badges/locked.png', 'daily_streak', 21, '{"virtue":"righteousness","requirements":[{"type":"daily_rule_of_life_streak","value":21}]}'::jsonb, 200, false, true, true),
+  ('80000000-0000-4000-8000-000000000011', 'CHURCH_SCHEDULE_STEWARD', 'Church Schedule Steward', 'Keep a church''s worship schedule current. Earned for every approved schedule update.', 'community', 'common', '/badges/community-helper.png', '/badges/locked.png', 'approved_church_schedule_update', 1, '{"requestType":"schedule_update"}'::jsonb, 0, true, true, true)
 on conflict (id) do update
 set
   code = excluded.code,

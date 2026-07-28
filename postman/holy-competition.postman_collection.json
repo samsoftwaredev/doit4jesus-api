@@ -40,6 +40,16 @@
       "key": "defenseAssignmentId",
       "value": "00000000-0000-0000-0000-000000000000",
       "description": "UUID of a defense assignment within an encounter."
+    },
+    {
+      "key": "churchId",
+      "value": "c6000000-0000-4000-8000-000000000001",
+      "description": "UUID of a church. The default is the seeded St. Mary Cathedral record."
+    },
+    {
+      "key": "churchChangeRequestId",
+      "value": "c8000000-0000-4000-8000-000000000001",
+      "description": "UUID of a church change request. The default is the seeded pending request."
     }
   ],
   "auth": {
@@ -101,6 +111,265 @@
       ]
     },
     {
+      "name": "Churches",
+      "description": "Search the approved church directory and retrieve a church's recurring services with its live status.",
+      "item": [
+        {
+          "name": "Search churches",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/churches?countryCode=US&city=Austin&diocese=Diocese%20of%20Austin&limit=20&offset=0",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "churches"],
+              "query": [
+                {
+                  "key": "countryCode",
+                  "value": "US",
+                  "description": "Optional two-letter country code. If multiple filters are supplied, each must match the same church."
+                },
+                {
+                  "key": "city",
+                  "value": "Austin",
+                  "description": "Optional church-city name. This is not an app.cities ID. If multiple filters are supplied, each must match the same church."
+                },
+                {
+                  "key": "diocese",
+                  "value": "Diocese of Austin",
+                  "description": "Optional canonical diocese name. If multiple filters are supplied, each must match the same church."
+                },
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "description": "Results per page (1–100)."
+                },
+                {
+                  "key": "offset",
+                  "value": "0",
+                  "description": "Zero-based page offset."
+                }
+              ]
+            },
+            "description": "Returns approved churches. Supply at least one country, city, or diocese filter; when multiple filters are supplied, they must all match the same church. Results include latitude and longitude; retrieve one church for its full address, weekly schedule, and live availability."
+          }
+        },
+        {
+          "name": "Get church details and live status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/churches/{{churchId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "churches", "{{churchId}}"]
+            },
+            "description": "Returns the complete church address, latitude/longitude, diocese, recurring weekday Mass/confession/adoration times, and live status. `massInProgress`, `confessionInProgress`, and `adorationInProgress` are computed at request time in the church's timezone and may all be true together. A missing end time means one hour."
+          }
+        }
+      ]
+    },
+    {
+      "name": "My Churches",
+      "description": "Link churches to the current user and optionally set one as primary.",
+      "item": [
+        {
+          "name": "List my linked churches",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/me/churches",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "me", "churches"]
+            },
+            "description": "Lists the authenticated user's church links, primary flag, and church summaries."
+          }
+        },
+        {
+          "name": "Link a church",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"churchId\": \"{{churchId}}\",\n  \"isPrimary\": true\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/me/churches",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "me", "churches"]
+            },
+            "description": "Links an active church to the authenticated user. Set `isPrimary` to true to atomically make it the user's only primary church."
+          }
+        },
+        {
+          "name": "Set primary church",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isPrimary\": true\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/me/churches/{{churchId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "me", "churches", "{{churchId}}"]
+            },
+            "description": "Makes an already-linked church the user's primary church."
+          }
+        },
+        {
+          "name": "Unlink a church",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/me/churches/{{churchId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "me", "churches", "{{churchId}}"]
+            },
+            "description": "Removes a church link for the authenticated user. Returns 204."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Church Change Requests",
+      "description": "Submit a proposed church or full replacement weekly schedule for moderator approval.",
+      "item": [
+        {
+          "name": "List my church change requests",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/church-change-requests?status=all&limit=20&offset=0",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "church-change-requests"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "all",
+                  "description": "pending | approved | rejected | all"
+                },
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "description": "Results per page (1–100)."
+                },
+                {
+                  "key": "offset",
+                  "value": "0",
+                  "description": "Zero-based page offset."
+                }
+              ]
+            },
+            "description": "Lists change requests submitted by the authenticated user."
+          }
+        },
+        {
+          "name": "Submit a schedule replacement",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"requestType\": \"scheduleUpdate\",\n  \"churchId\": \"{{churchId}}\",\n  \"serviceTimes\": [\n    {\n      \"serviceType\": \"mass\",\n      \"weekday\": \"sunday\",\n      \"startTime\": \"08:00\",\n      \"endTime\": null\n    },\n    {\n      \"serviceType\": \"confession\",\n      \"weekday\": \"saturday\",\n      \"startTime\": \"16:00\",\n      \"endTime\": \"17:00\"\n    }\n  ],\n  \"notes\": \"These times replace the church's current weekly schedule after approval.\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/church-change-requests",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "church-change-requests"]
+            },
+            "description": "Creates a pending change request. On approval, the supplied service-time array replaces the church's entire recurring weekly schedule. Omit `endTime` to use the one-hour default. Use `requestType: createChurch` with a `church` object, including required numeric `latitude` and `longitude`, to propose a new church."
+          }
+        },
+        {
+          "name": "Submit a new church",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"requestType\": \"createChurch\",\n  \"church\": {\n    \"dioceseId\": \"c5000000-0000-4000-8000-000000000001\",\n    \"name\": \"Example Catholic Church\",\n    \"addressLine1\": \"123 Example Street\",\n    \"addressLine2\": null,\n    \"city\": \"Austin\",\n    \"regionName\": \"Texas\",\n    \"postalCode\": \"78701\",\n    \"countryCode\": \"US\",\n    \"timezone\": \"America/Chicago\",\n    \"latitude\": 30.2672,\n    \"longitude\": -97.7431\n  },\n  \"serviceTimes\": [\n    {\n      \"serviceType\": \"mass\",\n      \"weekday\": \"sunday\",\n      \"startTime\": \"09:00\",\n      \"endTime\": null\n    }\n  ],\n  \"notes\": \"Please add this church to the directory.\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/church-change-requests",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "church-change-requests"]
+            },
+            "description": "Creates a pending church-directory request. Latitude (-90 to 90) and longitude (-180 to 180) are required and stored when an administrator approves the request."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin · Church Change Requests",
+      "description": "Administrator-only review queue. test@test.com is the seeded admin account.",
+      "item": [
+        {
+          "name": "List church change requests",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/church-change-requests?status=pending&limit=20&offset=0",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "admin", "church-change-requests"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "pending",
+                  "description": "pending | approved | rejected | all"
+                },
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "description": "Results per page (1–100)."
+                },
+                {
+                  "key": "offset",
+                  "value": "0",
+                  "description": "Zero-based page offset."
+                }
+              ]
+            },
+            "description": "Lists submitted church change requests. Requires the authenticated user to hold the app admin role."
+          }
+        },
+        {
+          "name": "Approve a church change request",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"decision\": \"approved\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/church-change-requests/{{churchChangeRequestId}}",
+              "host": ["{{baseUrl}}"],
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "church-change-requests",
+                "{{churchChangeRequestId}}"
+              ]
+            },
+            "description": "Approves a pending request. A new-church request creates the church and its schedule; a schedule-update request atomically replaces the existing church schedule and awards the submitting user a repeatable Church Schedule Steward badge."
+          }
+        }
+      ]
+    },
+    {
       "name": "Profile (me)",
       "description": "Read and update the authenticated user's profile.",
       "item": [
@@ -121,9 +390,7 @@
           "name": "Update current profile",
           "request": {
             "method": "PATCH",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" }
-            ],
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"displayName\": \"Samuel Ruiz\",\n  \"username\": \"samsoftwaredev\",\n  \"avatarUrl\": \"https://example.com/avatar.png\",\n  \"title\": \"Prayer Warrior\",\n  \"preferredLanguage\": \"en\",\n  \"timezone\": \"America/Los_Angeles\",\n  \"cityId\": null,\n  \"countryCode\": \"US\",\n  \"leaderboardVisibility\": \"public\",\n  \"prayerMapVisibility\": \"aggregated\"\n}",
@@ -347,7 +614,15 @@
             "url": {
               "raw": "{{baseUrl}}/api/v1/encounters/{{encounterId}}/defenses/{{defenseAssignmentId}}/complete",
               "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "encounters", "{{encounterId}}", "defenses", "{{defenseAssignmentId}}", "complete"]
+              "path": [
+                "api",
+                "v1",
+                "encounters",
+                "{{encounterId}}",
+                "defenses",
+                "{{defenseAssignmentId}}",
+                "complete"
+              ]
             },
             "description": "Completes an owned, assigned defense. The RPC validates state, updates the virtue and HP, records immutable events, applies a defeat reward if appropriate, and creates notifications. No client-provided reward values are accepted."
           }
@@ -637,7 +912,13 @@
             "url": {
               "raw": "{{baseUrl}}/api/v1/notifications/{{notificationId}}/read",
               "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "notifications", "{{notificationId}}", "read"]
+              "path": [
+                "api",
+                "v1",
+                "notifications",
+                "{{notificationId}}",
+                "read"
+              ]
             },
             "description": "Sets `read_at` to the current timestamp for the given notification. The notification must belong to the authenticated user.\n\nSet the `notificationId` collection variable to the UUID of the notification.\n\nReturns **204 No Content** on success, **404** if the notification is not found."
           }

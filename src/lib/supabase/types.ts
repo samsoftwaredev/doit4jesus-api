@@ -62,6 +62,103 @@ export type Database = {
         Update: { read_at?: string | null };
         Relationships: [];
       };
+      dioceses: {
+        Row: {
+          id: string;
+          country_code: string;
+          name: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      churches: {
+        Row: {
+          id: string;
+          diocese_id: string | null;
+          name: string;
+          address_line_1: string;
+          address_line_2: string | null;
+          city: string;
+          region_name: string | null;
+          postal_code: string | null;
+          country_code: string;
+          timezone: string;
+          latitude: number;
+          longitude: number;
+          is_active: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      church_service_times: {
+        Row: {
+          id: string;
+          church_id: string;
+          service_type: 'mass' | 'confession' | 'adoration';
+          weekday: number;
+          starts_at: string;
+          ends_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      user_churches: {
+        Row: {
+          user_id: string;
+          church_id: string;
+          is_primary: boolean;
+          linked_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      user_roles: {
+        Row: {
+          user_id: string;
+          role: 'admin';
+          granted_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      church_change_requests: {
+        Row: {
+          id: string;
+          submitted_by: string;
+          request_type: 'create_church' | 'schedule_update';
+          church_id: string | null;
+          proposed_church: Json;
+          proposed_service_times: Json;
+          notes: string | null;
+          status: 'pending' | 'approved' | 'rejected';
+          reviewed_by: string | null;
+          reviewed_at: string | null;
+          rejection_reason: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          submitted_by: string;
+          request_type: 'create_church' | 'schedule_update';
+          church_id?: string | null;
+          proposed_church: Json;
+          proposed_service_times: Json;
+          notes?: string | null;
+        };
+        Update: never;
+        Relationships: [];
+      };
     };
     Views: {
       leaderboard_profiles: {
@@ -75,7 +172,12 @@ export type Database = {
         Relationships: [];
       };
     };
-    Functions: Record<string, never>;
+    Functions: {
+      is_current_user_admin: {
+        Args: Record<string, never>;
+        Returns: boolean;
+      };
+    };
   };
   competition: EmptySchema & {
     Tables: {
@@ -580,6 +682,46 @@ export type Database = {
       };
       get_my_rosary_completion: {
         Args: { p_year?: number | null; p_month?: number | null };
+        Returns: Json;
+      };
+      search_churches: {
+        Args: {
+          p_country_code?: string | null;
+          p_city?: string | null;
+          p_diocese?: string | null;
+          p_limit?: number | null;
+          p_offset?: number | null;
+        };
+        Returns: Array<{
+          id: string;
+          name: string;
+          city: string;
+          region_name: string | null;
+          country_code: string;
+          diocese_name: string | null;
+          timezone: string;
+          latitude: number;
+          longitude: number;
+        }>;
+      };
+      link_current_user_church: {
+        Args: { p_church_id: string; p_is_primary?: boolean | null };
+        Returns: Json;
+      };
+      set_current_user_primary_church: {
+        Args: { p_church_id: string };
+        Returns: Json;
+      };
+      unlink_current_user_church: {
+        Args: { p_church_id: string };
+        Returns: Json;
+      };
+      review_church_change_request: {
+        Args: {
+          p_request_id: string;
+          p_decision: string;
+          p_rejection_reason?: string | null;
+        };
         Returns: Json;
       };
     };
