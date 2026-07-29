@@ -44,6 +44,15 @@ export function throwDatabaseError(
         throw ApiError.conflict(
           'The church change request has already been reviewed.',
         );
+      case 'FRIEND_USERNAME_NOT_FOUND':
+      case 'FRIEND_REQUEST_NOT_FOUND':
+      case 'FRIENDSHIP_NOT_FOUND':
+      case 'FRIEND_LEADERBOARD_PERIOD_NOT_FOUND':
+        throw ApiError.notFound();
+      case 'FRIEND_REQUEST_ALREADY_PENDING':
+      case 'FRIENDSHIP_ALREADY_EXISTS':
+      case 'FRIEND_REQUEST_NOT_PENDING':
+        throw ApiError.conflict(error.message);
       case 'CHALLENGE_NOT_FOUND':
         throw ApiError.notFound('The challenge assignment was not found.');
       case 'DEMON_NOT_FOUND':
@@ -93,6 +102,12 @@ export function throwDatabaseError(
       case 'USER_TIMEZONE_INVALID':
       case 'INVALID_CHURCH_CHANGE_DECISION':
       case 'INVALID_CHURCH_SERVICE_TIMES':
+      case 'INVALID_FRIEND_USERNAME':
+      case 'CANNOT_FRIEND_SELF':
+      case 'INVALID_FRIEND_REQUEST_DECISION':
+      case 'INVALID_FRIEND_REQUEST_DIRECTION':
+      case 'INVALID_FRIEND_REQUEST_STATUS':
+      case 'INVALID_FRIEND_LEADERBOARD_PERIOD_TYPE':
         throw new ApiError(422, 'VALIDATION_ERROR', error.message);
       default:
         break;

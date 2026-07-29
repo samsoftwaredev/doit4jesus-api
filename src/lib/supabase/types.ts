@@ -159,6 +159,32 @@ export type Database = {
         Update: never;
         Relationships: [];
       };
+      friend_requests: {
+        Row: {
+          id: string;
+          requester_id: string;
+          recipient_id: string;
+          status: 'pending' | 'accepted' | 'rejected' | 'cancelled';
+          responded_at: string | null;
+          cancelled_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      friendships: {
+        Row: {
+          id: string;
+          user_low_id: string;
+          user_high_id: string;
+          created_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
     };
     Views: {
       leaderboard_profiles: {
@@ -721,6 +747,73 @@ export type Database = {
           p_request_id: string;
           p_decision: string;
           p_rejection_reason?: string | null;
+        };
+        Returns: Json;
+      };
+      send_current_user_friend_request: {
+        Args: { p_username: string };
+        Returns: Json;
+      };
+      review_current_user_friend_request: {
+        Args: { p_request_id: string; p_decision: string };
+        Returns: Json;
+      };
+      cancel_current_user_friend_request: {
+        Args: { p_request_id: string };
+        Returns: Json;
+      };
+      unfriend_current_user: {
+        Args: { p_friend_id: string };
+        Returns: Json;
+      };
+      list_current_user_friend_requests: {
+        Args: {
+          p_direction?: string | null;
+          p_status?: string | null;
+          p_limit?: number | null;
+          p_offset?: number | null;
+        };
+        Returns: Array<{
+          id: string;
+          status: 'pending' | 'accepted' | 'rejected' | 'cancelled';
+          direction: 'incoming' | 'outgoing';
+          created_at: string;
+          responded_at: string | null;
+          cancelled_at: string | null;
+          user_id: string;
+          display_name: string;
+          username: string | null;
+          avatar_url: string | null;
+          title: string | null;
+        }>;
+      };
+      list_current_user_friends: {
+        Args: { p_limit?: number | null; p_offset?: number | null };
+        Returns: Array<{
+          friend_id: string;
+          display_name: string;
+          username: string | null;
+          avatar_url: string | null;
+          title: string | null;
+          total_xp: number;
+          current_level: number;
+          level_code: string | null;
+          level_name: string | null;
+          rosary_total: number;
+          badge_count: number;
+          friends_since: string;
+        }>;
+      };
+      get_current_user_friend_details: {
+        Args: { p_friend_id: string };
+        Returns: Json;
+      };
+      get_current_user_friends_leaderboard: {
+        Args: {
+          p_period_type?: string | null;
+          p_period_code?: string | null;
+          p_limit?: number | null;
+          p_offset?: number | null;
         };
         Returns: Json;
       };

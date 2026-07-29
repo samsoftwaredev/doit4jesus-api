@@ -203,6 +203,133 @@ paths:
         '403': { description: Administrator role required }
         '404': { description: Church change request not found }
         '409': { description: Church change request was already reviewed }
+  /api/v1/me/friend-requests:
+    get:
+      summary: List the current user's friend requests
+      parameters:
+        - in: query
+          name: direction
+          schema: { type: string, enum: [incoming, outgoing, all], default: incoming }
+        - in: query
+          name: status
+          schema: { type: string, enum: [pending, accepted, rejected, cancelled, all], default: pending }
+        - in: query
+          name: limit
+          schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+        - in: query
+          name: offset
+          schema: { type: integer, minimum: 0, default: 0 }
+      responses:
+        '200': { description: Friend request page }
+    post:
+      summary: Send a username-based friend request
+      description: >-
+        Username matching is case-insensitive. A reciprocal pending request is
+        accepted automatically; otherwise the recipient receives a notification.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username]
+              properties:
+                username: { type: string, minLength: 3, maxLength: 30 }
+      responses:
+        '201': { description: Pending request created }
+        '200': { description: Reciprocal request accepted automatically }
+        '409': { description: Users are already friends or a request is pending }
+  /api/v1/me/friend-requests/{requestId}:
+    patch:
+      summary: Accept or reject an incoming friend request
+      parameters:
+        - in: path
+          name: requestId
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [decision]
+              properties:
+                decision: { type: string, enum: [accepted, rejected] }
+      responses:
+        '200': { description: Friend request reviewed }
+        '409': { description: Friend request is no longer pending }
+    delete:
+      summary: Cancel an outgoing pending friend request
+      parameters:
+        - in: path
+          name: requestId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '204': { description: Friend request cancelled }
+        '403': { description: Only the request sender can cancel it }
+  /api/v1/me/friends:
+    get:
+      summary: List confirmed friends and shared stats
+      description: >-
+        Each card includes total XP, current level, Rosary total, and earned
+        badge-instance count. Rosary totals include self-reported and verified
+        activities, excluding rejected activities.
+      parameters:
+        - in: query
+          name: limit
+          schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+        - in: query
+          name: offset
+          schema: { type: integer, minimum: 0, default: 0 }
+      responses:
+        '200': { description: Confirmed friends page }
+  /api/v1/me/friends/leaderboard:
+    get:
+      summary: Get the current user's friends-only leaderboard
+      description: >-
+        Uses the same period points as the global leaderboard, but calculates
+        rank across the current user and their confirmed friends only.
+      parameters:
+        - in: query
+          name: periodType
+          schema: { type: string, enum: [daily, weekly, monthly, yearly, season], default: weekly }
+        - in: query
+          name: periodCode
+          schema: { type: string }
+        - in: query
+          name: limit
+          schema: { type: integer, minimum: 1, maximum: 100, default: 50 }
+        - in: query
+          name: offset
+          schema: { type: integer, minimum: 0, default: 0 }
+      responses:
+        '200': { description: Friends-only ranked entries }
+  /api/v1/me/friends/{friendId}:
+    get:
+      summary: Get a confirmed friend's stats and earned badges
+      description: >-
+        Returns total XP, current level, qualifying Rosary total, and every
+        earned badge instance. Badge source metadata remains private.
+      parameters:
+        - in: path
+          name: friendId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: Friend detail and earned badge history }
+        '404': { description: Confirmed friendship not found }
+    delete:
+      summary: Unfriend a confirmed friend
+      parameters:
+        - in: path
+          name: friendId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '204': { description: Friendship removed }
+        '404': { description: Confirmed friendship not found }
   /api/v1/me:
     get:
       summary: Get current profile

@@ -231,6 +231,52 @@ set
   prayer_map_visibility = excluded.prayer_map_visibility;
 
 -- ---------------------------------------------------------------------------
+-- Friendships and request examples
+-- ---------------------------------------------------------------------------
+
+insert into app.friendships (id, user_low_id, user_high_id)
+values (
+  'fb000000-0000-4000-8000-000000000001',
+  '11111111-1111-4111-8111-111111111111',
+  '9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002'
+)
+on conflict (user_low_id, user_high_id) do update
+set created_at = excluded.created_at;
+
+insert into app.friend_requests (
+  id,
+  requester_id,
+  recipient_id,
+  status,
+  responded_at,
+  cancelled_at
+)
+values
+  (
+    'fb000000-0000-4000-8000-000000000002',
+    '22222222-2222-4222-8222-222222222222',
+    '9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002',
+    'pending',
+    null,
+    null
+  ),
+  (
+    'fb000000-0000-4000-8000-000000000003',
+    '9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002',
+    '22222222-2222-4222-8222-222222222222',
+    'rejected',
+    now() - interval '4 days',
+    null
+  )
+on conflict (id) do update
+set
+  requester_id = excluded.requester_id,
+  recipient_id = excluded.recipient_id,
+  status = excluded.status,
+  responded_at = excluded.responded_at,
+  cancelled_at = excluded.cancelled_at;
+
+-- ---------------------------------------------------------------------------
 -- Church directory, personal links, and moderation examples
 -- ---------------------------------------------------------------------------
 
@@ -379,7 +425,8 @@ values
   ('aa000000-0000-4000-8000-000000000001', '9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002', 'badge_earned', 'Badge earned: First Rosary', 'You earned the First Rosary badge.', '/badges', '{"badgeId":"80000000-0000-4000-8000-000000000001"}'::jsonb, null, now() - interval '2 hours'),
   ('aa000000-0000-4000-8000-000000000002', '9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002', 'challenge_completed', 'Daily Scripture completed', 'Your reward is ready to claim.', '/challenges', '{"assignmentId":"70000000-0000-4000-8000-000000000002"}'::jsonb, now() - interval '22 hours', now() - interval '1 day'),
   ('aa000000-0000-4000-8000-000000000003', '11111111-1111-4111-8111-111111111111', 'challenge_progress', 'Weekly service progress', 'One of three service acts is complete.', '/challenges', '{"assignmentId":"70000000-0000-4000-8000-000000000003","currentProgress":1}'::jsonb, null, now() - interval '2 days'),
-  ('aa000000-0000-4000-8000-000000000004', '22222222-2222-4222-8222-222222222222', 'activity_recorded', 'Adoration recorded', 'Your adoration session was added to your progress.', '/activities', '{"activityId":"40000000-0000-4000-8000-000000000006"}'::jsonb, null, now() - interval '3 hours')
+  ('aa000000-0000-4000-8000-000000000004', '22222222-2222-4222-8222-222222222222', 'activity_recorded', 'Adoration recorded', 'Your adoration session was added to your progress.', '/activities', '{"activityId":"40000000-0000-4000-8000-000000000006"}'::jsonb, null, now() - interval '3 hours'),
+  ('aa000000-0000-4000-8000-000000000005', '9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002', 'friend_request_received', 'New friend request', 'John Paul sent you a friend request.', '/friends/requests', '{"friendRequestId":"fb000000-0000-4000-8000-000000000002","requesterId":"22222222-2222-4222-8222-222222222222"}'::jsonb, null, now() - interval '30 minutes')
 on conflict (id) do update
 set
   user_id = excluded.user_id,
