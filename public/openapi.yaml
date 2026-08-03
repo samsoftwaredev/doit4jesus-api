@@ -351,10 +351,13 @@ paths:
     get:
       summary: Get timezone-aware rosary completion by month and year
       description: >-
-        Returns all twelve months for the selected year. Completion days are
-        grouped in the authenticated user's configured timezone; multiple
-        rosaries on one local date count once. The selected month is UI focus
-        metadata and does not change the year-to-date calculation.
+        Returns all twelve months for the selected year plus every calendar
+        day in the selected month. Completion days are grouped in the
+        authenticated user's configured timezone; multiple rosaries on one
+        local date count once. Each `days` entry contains `day`, ISO `date`,
+        and `completed`. The day list includes dates before account creation
+        and future dates; `completed` is `null` for a future date. The
+        selected month does not change the year-to-date calculation.
       parameters:
         - in: query
           name: selectedYear
@@ -365,7 +368,7 @@ paths:
           description: Defaults to the authenticated user's current local month; used only as UI focus metadata.
           schema: { type: integer, minimum: 1, maximum: 12 }
       responses:
-        '200': { description: Year-to-date and twelve-month rosary completion aggregate }
+        '200': { description: Year-to-date, twelve-month, and selected-month daily rosary completion }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '422': { $ref: '#/components/responses/ValidationError' }
   /api/v1/progress:
