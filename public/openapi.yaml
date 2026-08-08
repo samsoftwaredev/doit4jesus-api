@@ -371,6 +371,19 @@ paths:
         '200': { description: Year-to-date, twelve-month, and selected-month daily rosary completion }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '422': { $ref: '#/components/responses/ValidationError' }
+  /api/v1/me/rosary/streak:
+    get:
+      summary: Get current and year-to-date longest Rosary streaks
+      description: >-
+        Returns timezone-aware streaks for the authenticated user. A local day
+        counts when at least one self-reported or verified Rosary has been
+        completed. The current streak ends today, or yesterday when today is
+        still incomplete; it resets after a full missed local day. The longest
+        streak is calculated from completed days in the current local calendar
+        year through today.
+      responses:
+        '200': { description: Current and year-to-date longest Rosary streaks }
+        '401': { $ref: '#/components/responses/Unauthorized' }
   /api/v1/progress:
     get:
       summary: Get XP and level progress

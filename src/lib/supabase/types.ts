@@ -710,6 +710,10 @@ export type Database = {
         Args: { p_year?: number | null; p_month?: number | null };
         Returns: Json;
       };
+      get_my_rosary_streak: {
+        Args: Record<string, never>;
+        Returns: Json;
+      };
       search_churches: {
         Args: {
           p_country_code?: string | null;

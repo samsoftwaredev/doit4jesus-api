@@ -634,6 +634,19 @@
             },
             "description": "Returns the authenticated user's timezone-aware rosary completion for all twelve months of the selected year and every calendar day in the selected month. Each `days` entry contains `day`, ISO `date`, and `completed`. A local calendar day is complete when at least one self-reported or verified rosary has a `completed_at` timestamp that day; rejected rosaries are excluded.\n\nThe selected month always includes every calendar day, including dates before account creation and future dates. `completed` is `null` for a future date. Eligible-day and completed-day aggregates continue to begin on the later of January 1 and the local account-creation date, and future aggregate days are excluded. The response includes `selectedMonth` for UI focus, plus year-to-date totals that are unaffected by this parameter."
           }
+        },
+        {
+          "name": "Get Rosary streaks",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/me/rosary/streak",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "me", "rosary", "streak"]
+            },
+            "description": "Returns the authenticated user's active Rosary streak and the longest streak in their current local calendar year. A local day counts when at least one self-reported or verified Rosary is completed. The active streak can end yesterday while the current local day remains incomplete; it resets after a full missed local day."
+          }
         }
       ]
     },
