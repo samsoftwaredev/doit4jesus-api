@@ -714,6 +714,23 @@ export type Database = {
         Args: Record<string, never>;
         Returns: Json;
       };
+      search_users: {
+        Args: {
+          p_query: string;
+          p_limit?: number | null;
+          p_offset?: number | null;
+        };
+        Returns: Array<{
+          username: string;
+          avatar_url: string | null;
+          title: string | null;
+          relationship_state:
+            | 'none'
+            | 'outgoingPending'
+            | 'incomingPending'
+            | 'friends';
+        }>;
+      };
       search_churches: {
         Args: {
           p_country_code?: string | null;
