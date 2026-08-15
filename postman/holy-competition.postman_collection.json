@@ -386,8 +386,38 @@
     },
     {
       "name": "Friends",
-      "description": "Username-only friend requests, confirmed-friend stats, earned badges, and period-points rankings. Usernames are matched case-insensitively.",
+      "description": "Username discovery, username-only friend requests, confirmed-friend stats, earned badges, and period-points rankings. Usernames are matched case-insensitively.",
       "item": [
+        {
+          "name": "Search users by username",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/users/search?q=john&limit=20&offset=0",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "users", "search"],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "john",
+                  "description": "Required username substring (4–30 letters, numbers, or underscores)."
+                },
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "description": "Results per page (1–20)."
+                },
+                {
+                  "key": "offset",
+                  "value": "0",
+                  "description": "Zero-based page offset."
+                }
+              ]
+            },
+            "description": "Finds active users by a case-insensitive username substring. The current user is excluded; each result includes avatar, title, and relationship state for deciding whether to send a friend request."
+          }
+        },
         {
           "name": "List incoming friend requests",
           "request": {
