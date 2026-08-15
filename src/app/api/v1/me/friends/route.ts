@@ -16,6 +16,7 @@ export async function GET(request: Request) {
       .rpc('list_current_user_friends', {
         p_limit: query.limit + 1,
         p_offset: query.offset,
+        p_include_rosary_streak: query.include === 'rosaryStreak',
       });
 
     throwDatabaseError(error, 'Unable to load friends.');
@@ -38,6 +39,9 @@ export async function GET(request: Request) {
         rosaryTotal: friend.rosary_total,
         badgeCount: friend.badge_count,
         friendsSince: friend.friends_since,
+        ...(query.include === 'rosaryStreak'
+          ? { rosaryStreak: friend.rosary_streak }
+          : {}),
       })),
       {},
       {

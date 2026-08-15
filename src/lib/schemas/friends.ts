@@ -24,7 +24,10 @@ export const friendRequestsQuerySchema = z.object({
   ...pagingSchema,
 });
 
-export const friendsQuerySchema = z.object(pagingSchema);
+export const friendsQuerySchema = z.object({
+  ...pagingSchema,
+  include: z.enum(['rosaryStreak']).optional(),
+});
 
 export const friendsLeaderboardQuerySchema = z.object({
   periodType: z

@@ -302,7 +302,9 @@ paths:
       description: >-
         Each card includes total XP, current level, Rosary total, and earned
         badge-instance count. Rosary totals include self-reported and verified
-        activities, excluding rejected activities.
+        activities, excluding rejected activities. Use include=rosaryStreak to
+        add each friend's timezone-aware current and year-to-date longest Rosary
+        streaks.
       parameters:
         - in: query
           name: limit
@@ -310,6 +312,10 @@ paths:
         - in: query
           name: offset
           schema: { type: integer, minimum: 0, default: 0 }
+        - in: query
+          name: include
+          description: Adds timezone-aware Rosary streaks to each friend card.
+          schema: { type: string, enum: [rosaryStreak] }
       responses:
         '200': { description: Confirmed friends page }
   /api/v1/me/friends/leaderboard:

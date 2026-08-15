@@ -1,6 +1,7 @@
 import {
   friendRequestsQuerySchema,
   friendsLeaderboardQuerySchema,
+  friendsQuerySchema,
   reviewFriendRequestSchema,
   sendFriendRequestSchema,
 } from '@/lib/schemas/friends';
@@ -33,5 +34,14 @@ describe('friend API schemas', () => {
       limit: 50,
       offset: 0,
     });
+  });
+
+  it('allows requesting Rosary streaks on friend cards', () => {
+    expect(friendsQuerySchema.parse({ include: 'rosaryStreak' })).toEqual({
+      include: 'rosaryStreak',
+      limit: 20,
+      offset: 0,
+    });
+    expect(() => friendsQuerySchema.parse({ include: 'badges' })).toThrow();
   });
 });

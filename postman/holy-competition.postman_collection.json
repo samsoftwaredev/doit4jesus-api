@@ -482,15 +482,16 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/me/friends?limit=20&offset=0",
+              "raw": "{{baseUrl}}/api/v1/me/friends?limit=20&offset=0&include=rosaryStreak",
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "me", "friends"],
               "query": [
                 { "key": "limit", "value": "20" },
-                { "key": "offset", "value": "0" }
+                { "key": "offset", "value": "0" },
+                { "key": "include", "value": "rosaryStreak" }
               ]
             },
-            "description": "Lists confirmed friends with their current level, total XP, qualifying Rosary total, and badge-instance count."
+            "description": "Lists confirmed friends with their current level, total XP, qualifying Rosary total, badge-instance count, and timezone-aware Rosary streaks when include=rosaryStreak is supplied."
           }
         },
         {

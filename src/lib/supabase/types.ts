@@ -809,7 +809,11 @@ export type Database = {
         }>;
       };
       list_current_user_friends: {
-        Args: { p_limit?: number | null; p_offset?: number | null };
+        Args: {
+          p_include_rosary_streak?: boolean | null;
+          p_limit?: number | null;
+          p_offset?: number | null;
+        };
         Returns: Array<{
           friend_id: string;
           display_name: string;
@@ -823,6 +827,7 @@ export type Database = {
           rosary_total: number;
           badge_count: number;
           friends_since: string;
+          rosary_streak: Json | null;
         }>;
       };
       get_current_user_friend_details: {
