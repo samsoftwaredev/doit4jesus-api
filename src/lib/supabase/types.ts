@@ -843,6 +843,15 @@ export type Database = {
         };
         Returns: Json;
       };
+      get_current_user_friends_comparison: {
+        Args: {
+          p_period_type?: string | null;
+          p_period_code?: string | null;
+          p_limit?: number | null;
+          p_offset?: number | null;
+        };
+        Returns: Json;
+      };
     };
   };
 };

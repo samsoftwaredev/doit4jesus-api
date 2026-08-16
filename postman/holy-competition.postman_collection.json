@@ -386,7 +386,7 @@
     },
     {
       "name": "Friends",
-      "description": "Username discovery, username-only friend requests, confirmed-friend stats, earned badges, and period-points rankings. Usernames are matched case-insensitively.",
+      "description": "Username discovery, username-only friend requests, confirmed-friend stats, earned badges, period-points rankings, and all-in-one comparisons. Usernames are matched case-insensitively.",
       "item": [
         {
           "name": "Search users by username",
@@ -557,6 +557,28 @@
               ]
             },
             "description": "Ranks the authenticated user and confirmed friends by the same period points as the existing leaderboard."
+          }
+        },
+        {
+          "name": "Compare progress with friends",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/me/friends/comparison?periodType=weekly&limit=50&offset=0",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "me", "friends", "comparison"],
+              "query": [
+                {
+                  "key": "periodType",
+                  "value": "weekly",
+                  "description": "daily | weekly | monthly | yearly | season"
+                },
+                { "key": "limit", "value": "50" },
+                { "key": "offset", "value": "0" }
+              ]
+            },
+            "description": "Returns the authenticated user and confirmed friends in one comparison view. Entries include period rank and activity counts, total XP, lifetime points, current level, Rosary total, badge count, and timezone-aware Rosary streaks."
           }
         },
         {

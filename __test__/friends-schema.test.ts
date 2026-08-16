@@ -1,5 +1,6 @@
 import {
   friendRequestsQuerySchema,
+  friendsComparisonQuerySchema,
   friendsLeaderboardQuerySchema,
   friendsQuerySchema,
   reviewFriendRequestSchema,
@@ -30,6 +31,11 @@ describe('friend API schemas', () => {
       offset: 0,
     });
     expect(friendsLeaderboardQuerySchema.parse({})).toEqual({
+      periodType: 'weekly',
+      limit: 50,
+      offset: 0,
+    });
+    expect(friendsComparisonQuerySchema.parse({})).toEqual({
       periodType: 'weekly',
       limit: 50,
       offset: 0,

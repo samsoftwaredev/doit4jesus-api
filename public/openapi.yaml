@@ -339,6 +339,32 @@ paths:
           schema: { type: integer, minimum: 0, default: 0 }
       responses:
         '200': { description: Friends-only ranked entries }
+  /api/v1/me/friends/comparison:
+    get:
+      summary: Compare progress with confirmed friends
+      description: >-
+        Returns the current user and confirmed friends ranked by the requested
+        leaderboard period. Each entry includes period activity counts, total
+        XP, lifetime points, current level, Rosary total, badge count, and
+        timezone-aware current and year-to-date longest Rosary streaks.
+      parameters:
+        - in: query
+          name: periodType
+          schema: { type: string, enum: [daily, weekly, monthly, yearly, season], default: weekly }
+        - in: query
+          name: periodCode
+          schema: { type: string }
+        - in: query
+          name: limit
+          schema: { type: integer, minimum: 1, maximum: 100, default: 50 }
+        - in: query
+          name: offset
+          schema: { type: integer, minimum: 0, default: 0 }
+      responses:
+        '200': { description: Friends comparison page }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { description: No leaderboard period matches the request }
+        '422': { $ref: '#/components/responses/ValidationError' }
   /api/v1/me/friends/{friendId}:
     get:
       summary: Get a confirmed friend's stats and earned badges
