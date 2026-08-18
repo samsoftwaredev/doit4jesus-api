@@ -831,7 +831,10 @@ export type Database = {
         }>;
       };
       get_current_user_friend_details: {
-        Args: { p_friend_id: string };
+        Args: {
+          p_friend_id: string;
+          p_include_rosary_streak?: boolean | null;
+        };
         Returns: Json;
       };
       get_current_user_friends_leaderboard: {

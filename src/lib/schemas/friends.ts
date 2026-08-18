@@ -29,6 +29,10 @@ export const friendsQuerySchema = z.object({
   include: z.enum(['rosaryStreak']).optional(),
 });
 
+export const friendDetailsQuerySchema = z.object({
+  include: z.enum(['rosaryStreak']).optional(),
+});
+
 export const friendsLeaderboardQuerySchema = z.object({
   periodType: z
     .enum(['daily', 'weekly', 'monthly', 'yearly', 'season'])

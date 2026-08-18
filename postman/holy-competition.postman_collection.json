@@ -488,6 +488,30 @@
           }
         },
         {
+          "name": "Reject friend request",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"decision\": \"rejected\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/me/friend-requests/{{friendRequestId}}",
+              "host": ["{{baseUrl}}"],
+              "path": [
+                "api",
+                "v1",
+                "me",
+                "friend-requests",
+                "{{friendRequestId}}"
+              ]
+            },
+            "description": "Only the recipient may reject an incoming pending request."
+          }
+        },
+        {
           "name": "Cancel outgoing friend request",
           "request": {
             "method": "DELETE",
@@ -530,11 +554,18 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/me/friends/{{friendId}}",
+              "raw": "{{baseUrl}}/api/v1/me/friends/{{friendId}}?include=rosaryStreak",
               "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "me", "friends", "{{friendId}}"]
+              "path": ["api", "v1", "me", "friends", "{{friendId}}"],
+              "query": [
+                {
+                  "key": "include",
+                  "value": "rosaryStreak",
+                  "description": "Optional. Adds the friend's timezone-aware Rosary streak."
+                }
+              ]
             },
-            "description": "Returns shared profile, total XP, current level, Rosary total, and every earned badge instance. Internal badge metadata is not exposed."
+            "description": "Returns shared profile, total XP, current level, Rosary total, and every earned badge instance. Add include=rosaryStreak to receive the friend's timezone-aware streak. Internal badge metadata is not exposed."
           }
         },
         {
@@ -556,7 +587,7 @@
                 { "key": "offset", "value": "0" }
               ]
             },
-            "description": "Ranks the authenticated user and confirmed friends by the same period points as the existing leaderboard."
+            "description": "Ranks the authenticated user and confirmed friends by the same period points as the existing leaderboard. The response also includes `currentUserEntry` even when the authenticated user is outside the requested page (or `null` when no entry is available)."
           }
         },
         {
@@ -1062,7 +1093,7 @@
                 }
               ]
             },
-            "description": "Returns ranked leaderboard entries for the requested period and scope. Each entry is enriched with a `profile` (display name, username, avatar, title) and an `isCurrentUser` flag.\n\nThe response also includes the matched `period` object and pagination metadata (`total`, `limit`, `offset`).\n\n**Example — country leaderboard for the US**\n`?periodType=weekly&scopeType=country&scopeReference=US`"
+            "description": "Returns ranked leaderboard entries for the requested period and scope. Each entry is enriched with a `profile` (display name, username, avatar, title) and an `isCurrentUser` flag.\n\nThe response also includes `currentUserEntry`, which is the authenticated user's entry even when it falls outside the requested page (or `null` when no entry exists), plus the matched `period` object and pagination metadata (`total`, `limit`, `offset`).\n\n**Example — country leaderboard for the US**\n`?periodType=weekly&scopeType=country&scopeReference=US`"
           }
         }
       ]

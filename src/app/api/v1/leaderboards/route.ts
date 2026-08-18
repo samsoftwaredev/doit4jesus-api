@@ -27,20 +27,42 @@ export async function GET(request: Request) {
     const period = periods?.[0]
     if (!period) throw ApiError.notFound('No leaderboard period matches the request.')
 
-    const { data: entries, error: entriesError, count } = await supabase
-      .schema('competition')
-      .from('leaderboard_entries')
-      .select('*', { count: 'exact' })
-      .eq('period_id', period.id)
-      .eq('scope_type', query.scopeType)
-      .eq('scope_reference', query.scopeReference)
-      .order('rank', { ascending: true, nullsFirst: false })
-      .order('points', { ascending: false })
-      .range(query.offset, query.offset + query.limit - 1)
+    const [entriesResponse, currentUserEntryResponse] = await Promise.all([
+      supabase
+        .schema('competition')
+        .from('leaderboard_entries')
+        .select('*', { count: 'exact' })
+        .eq('period_id', period.id)
+        .eq('scope_type', query.scopeType)
+        .eq('scope_reference', query.scopeReference)
+        .order('rank', { ascending: true, nullsFirst: false })
+        .order('points', { ascending: false })
+        .range(query.offset, query.offset + query.limit - 1),
+      supabase
+        .schema('competition')
+        .from('leaderboard_entries')
+        .select('*')
+        .eq('period_id', period.id)
+        .eq('scope_type', query.scopeType)
+        .eq('scope_reference', query.scopeReference)
+        .eq('user_id', userId)
+        .maybeSingle(),
+    ])
 
-    throwDatabaseError(entriesError, 'Unable to load leaderboard entries.')
-    const rows = entries ?? []
-    const userIds = [...new Set(rows.map((entry) => entry.user_id))]
+    throwDatabaseError(entriesResponse.error, 'Unable to load leaderboard entries.')
+    throwDatabaseError(
+      currentUserEntryResponse.error,
+      'Unable to load the current user leaderboard entry.',
+    )
+
+    const rows = entriesResponse.data ?? []
+    const currentUserEntry = currentUserEntryResponse.data
+    const userIds = [
+      ...new Set([
+        ...rows.map((entry) => entry.user_id),
+        ...(currentUserEntry ? [currentUserEntry.user_id] : []),
+      ]),
+    ]
 
     const { data: profiles, error: profileError } = userIds.length
       ? await supabase
@@ -52,24 +74,26 @@ export async function GET(request: Request) {
 
     throwDatabaseError(profileError, 'Unable to load leaderboard profiles.')
     const profileMap = new Map((profiles ?? []).map((profile) => [profile.user_id, profile]))
+    const toResponseEntry = (entry: (typeof rows)[number]) => ({
+      ...entry,
+      isCurrentUser: entry.user_id === userId,
+      profile: profileMap.get(entry.user_id) ?? {
+        user_id: entry.user_id,
+        display_name: 'Private Player',
+        username: null,
+        avatar_url: null,
+        title: null,
+      },
+    })
 
     return ok(
       {
         period,
-        entries: rows.map((entry) => ({
-          ...entry,
-          isCurrentUser: entry.user_id === userId,
-          profile: profileMap.get(entry.user_id) ?? {
-            user_id: entry.user_id,
-            display_name: 'Private Player',
-            username: null,
-            avatar_url: null,
-            title: null,
-          },
-        })),
+        entries: rows.map(toResponseEntry),
+        currentUserEntry: currentUserEntry ? toResponseEntry(currentUserEntry) : null,
       },
       {},
-      { total: count ?? 0, limit: query.limit, offset: query.offset },
+      { total: entriesResponse.count ?? 0, limit: query.limit, offset: query.offset },
     )
   } catch (error) {
     return errorResponse(error, request)

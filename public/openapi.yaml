@@ -86,7 +86,11 @@ paths:
           name: offset
           schema: { type: integer, minimum: 0, maximum: 10000, default: 0 }
       responses:
-        '200': { description: User search page }
+        '200':
+          description: User search page
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/UserSearchResponse' }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '422': { $ref: '#/components/responses/ValidationError' }
   /api/v1/churches/{churchId}:
@@ -233,6 +237,11 @@ paths:
   /api/v1/me/friend-requests:
     get:
       summary: List the current user's friend requests
+      description: >-
+        Every row's user is the other person: the sender for incoming requests
+        and the recipient for outgoing requests. Client actions should be based
+        on both status and direction: incoming pending requests may be accepted
+        or rejected, while outgoing pending requests may be cancelled.
       parameters:
         - in: query
           name: direction
@@ -247,7 +256,11 @@ paths:
           name: offset
           schema: { type: integer, minimum: 0, default: 0 }
       responses:
-        '200': { description: Friend request page }
+        '200':
+          description: Friend request page
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/FriendRequestsResponse' }
     post:
       summary: Send a username-based friend request
       description: >-
@@ -317,7 +330,11 @@ paths:
           description: Adds timezone-aware Rosary streaks to each friend card.
           schema: { type: string, enum: [rosaryStreak] }
       responses:
-        '200': { description: Confirmed friends page }
+        '200':
+          description: Confirmed friends page
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/FriendsResponse' }
   /api/v1/me/friends/leaderboard:
     get:
       summary: Get the current user's friends-only leaderboard
@@ -338,7 +355,11 @@ paths:
           name: offset
           schema: { type: integer, minimum: 0, default: 0 }
       responses:
-        '200': { description: Friends-only ranked entries }
+        '200':
+          description: Friends-only ranked entries
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/FriendsLeaderboardResponse' }
   /api/v1/me/friends/comparison:
     get:
       summary: Compare progress with confirmed friends
@@ -361,7 +382,11 @@ paths:
           name: offset
           schema: { type: integer, minimum: 0, default: 0 }
       responses:
-        '200': { description: Friends comparison page }
+        '200':
+          description: Friends comparison page
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/FriendsComparisonResponse' }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '404': { description: No leaderboard period matches the request }
         '422': { $ref: '#/components/responses/ValidationError' }
@@ -376,8 +401,16 @@ paths:
           name: friendId
           required: true
           schema: { type: string, format: uuid }
+        - in: query
+          name: include
+          description: Adds the friend's timezone-aware Rosary streak.
+          schema: { type: string, enum: [rosaryStreak] }
       responses:
-        '200': { description: Friend detail and earned badge history }
+        '200':
+          description: Friend detail and earned badge history
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/FriendDetailResponse' }
         '404': { description: Confirmed friendship not found }
     delete:
       summary: Unfriend a confirmed friend
@@ -635,7 +668,11 @@ paths:
           name: offset
           schema: { type: integer, minimum: 0, default: 0 }
       responses:
-        '200': { description: Ranked entries }
+        '200':
+          description: Ranked entries
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/LeaderboardResponse' }
   /api/v1/prayer-map:
     get:
       summary: Get privacy-filtered prayer-map markers
@@ -776,3 +813,480 @@ components:
             - { type: string, minLength: 2, maxLength: 2 }
             - { type: 'null' }
         metadata: { type: object, additionalProperties: true }
+    OffsetPageMeta:
+      type: object
+      additionalProperties: false
+      required: [limit, offset, hasMore, nextOffset]
+      properties:
+        limit: { type: integer, minimum: 1 }
+        offset: { type: integer, minimum: 0 }
+        hasMore: { type: boolean }
+        nextOffset:
+          anyOf:
+            - { type: integer, minimum: 0 }
+            - { type: 'null' }
+    RosaryStreak:
+      type: object
+      additionalProperties: false
+      required: [asOfDate, currentStreak, longestStreak, timezone]
+      properties:
+        asOfDate: { type: string, format: date }
+        currentStreak: { type: integer, minimum: 0 }
+        longestStreak: { type: integer, minimum: 0 }
+        timezone: { type: string, description: IANA time zone used for the streak boundary. }
+    UserSearchResult:
+      type: object
+      additionalProperties: false
+      required: [username, avatarUrl, title, relationshipState]
+      properties:
+        username: { type: string }
+        avatarUrl:
+          anyOf:
+            - { type: string }
+            - { type: 'null' }
+        title:
+          anyOf:
+            - { type: string }
+            - { type: 'null' }
+        relationshipState:
+          type: string
+          enum: [none, outgoingPending, incomingPending, friends]
+    UserSearchResponse:
+      type: object
+      additionalProperties: false
+      required: [data, meta]
+      properties:
+        data:
+          type: array
+          items: { $ref: '#/components/schemas/UserSearchResult' }
+        meta: { $ref: '#/components/schemas/OffsetPageMeta' }
+    FriendRequestUser:
+      type: object
+      additionalProperties: false
+      required: [id, displayName, username, avatarUrl, title]
+      properties:
+        id: { type: string, format: uuid }
+        displayName: { type: string }
+        username:
+          anyOf:
+            - { type: string }
+            - { type: 'null' }
+        avatarUrl:
+          anyOf:
+            - { type: string }
+            - { type: 'null' }
+        title:
+          anyOf:
+            - { type: string }
+            - { type: 'null' }
+    FriendRequest:
+      type: object
+      additionalProperties: false
+      required: [id, status, direction, createdAt, respondedAt, cancelledAt, user]
+      properties:
+        id: { type: string, format: uuid }
+        status: { type: string, enum: [pending, accepted, rejected, cancelled] }
+        direction: { type: string, enum: [incoming, outgoing] }
+        createdAt: { type: string, format: date-time }
+        respondedAt:
+          anyOf:
+            - { type: string, format: date-time }
+            - { type: 'null' }
+        cancelledAt:
+          anyOf:
+            - { type: string, format: date-time }
+            - { type: 'null' }
+        user: { $ref: '#/components/schemas/FriendRequestUser' }
+    FriendRequestsResponse:
+      type: object
+      additionalProperties: false
+      required: [data, meta]
+      properties:
+        data:
+          type: array
+          items: { $ref: '#/components/schemas/FriendRequest' }
+        meta: { $ref: '#/components/schemas/OffsetPageMeta' }
+    CurrentLevel:
+      type: object
+      additionalProperties: false
+      required: [levelNumber, code, name]
+      properties:
+        levelNumber: { type: integer, minimum: 1 }
+        code:
+          anyOf:
+            - { type: string }
+            - { type: 'null' }
+        name:
+          anyOf:
+            - { type: string }
+            - { type: 'null' }
+    FriendSummary:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - displayName
+        - username
+        - avatarUrl
+        - title
+        - totalXp
+        - currentLevel
+        - rosaryTotal
+        - badgeCount
+        - friendsSince
+      properties:
+        id: { type: string, format: uuid }
+        displayName: { type: string }
+        username:
+          anyOf:
+            - { type: string }
+            - { type: 'null' }
+        avatarUrl:
+          anyOf:
+            - { type: string }
+            - { type: 'null' }
+        title:
+          anyOf:
+            - { type: string }
+            - { type: 'null' }
+        totalXp: { type: integer, format: int64, minimum: 0 }
+        currentLevel: { $ref: '#/components/schemas/CurrentLevel' }
+        rosaryTotal: { type: integer, format: int64, minimum: 0 }
+        badgeCount: { type: integer, format: int64, minimum: 0 }
+        friendsSince: { type: string, format: date-time }
+        rosaryStreak:
+          description: Included only when include=rosaryStreak is requested.
+          $ref: '#/components/schemas/RosaryStreak'
+    FriendsResponse:
+      type: object
+      additionalProperties: false
+      required: [data, meta]
+      properties:
+        data:
+          type: array
+          items: { $ref: '#/components/schemas/FriendSummary' }
+        meta: { $ref: '#/components/schemas/OffsetPageMeta' }
+    LeaderboardPeriod:
+      type: object
+      additionalProperties: false
+      required: [id, periodType, code, name, startsAt, endsAt, status]
+      properties:
+        id: { type: string, format: uuid }
+        periodType: { type: string, enum: [daily, weekly, monthly, yearly, season] }
+        code: { type: string }
+        name: { type: string }
+        startsAt: { type: string, format: date-time }
+        endsAt: { type: string, format: date-time }
+        status: { type: string, enum: [scheduled, active, calculating, finalized] }
+    FriendProfile:
+      type: object
+      additionalProperties: false
+      required: [id, displayName, username, avatarUrl, title]
+      properties:
+        id: { type: string, format: uuid }
+        displayName: { type: string }
+        username:
+          anyOf:
+            - { type: string }
+            - { type: 'null' }
+        avatarUrl:
+          anyOf:
+            - { type: string }
+            - { type: 'null' }
+        title:
+          anyOf:
+            - { type: string }
+            - { type: 'null' }
+    FriendDetailLevel:
+      type: object
+      additionalProperties: false
+      required: [levelNumber, code, name, description, minimumTotalXp, iconUrl, imageUrl]
+      properties:
+        levelNumber: { type: integer, minimum: 1 }
+        code:
+          anyOf:
+            - { type: string }
+            - { type: 'null' }
+        name:
+          anyOf:
+            - { type: string }
+            - { type: 'null' }
+        description:
+          anyOf:
+            - { type: string }
+            - { type: 'null' }
+        minimumTotalXp:
+          anyOf:
+            - { type: integer, format: int64, minimum: 0 }
+            - { type: 'null' }
+        iconUrl:
+          anyOf:
+            - { type: string }
+            - { type: 'null' }
+        imageUrl:
+          anyOf:
+            - { type: string }
+            - { type: 'null' }
+    FriendDetailProgress:
+      type: object
+      additionalProperties: false
+      required: [totalXp, currentLevel]
+      properties:
+        totalXp: { type: integer, format: int64, minimum: 0 }
+        currentLevel: { $ref: '#/components/schemas/FriendDetailLevel' }
+    FriendBadgeDefinition:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - code
+        - name
+        - description
+        - category
+        - rarity
+        - iconUrl
+        - lockedIconUrl
+        - isRepeatable
+        - isShareable
+      properties:
+        id: { type: string, format: uuid }
+        code: { type: string }
+        name: { type: string }
+        description:
+          anyOf:
+            - { type: string }
+            - { type: 'null' }
+        category: { type: string }
+        rarity: { type: string }
+        iconUrl: { type: string }
+        lockedIconUrl:
+          anyOf:
+            - { type: string }
+            - { type: 'null' }
+        isRepeatable: { type: boolean }
+        isShareable: { type: boolean }
+    FriendBadge:
+      type: object
+      additionalProperties: false
+      required: [id, earnedAt, sequenceNumber, isFeatured, badge]
+      properties:
+        id: { type: string, format: uuid }
+        earnedAt: { type: string, format: date-time }
+        sequenceNumber: { type: integer, minimum: 1 }
+        isFeatured: { type: boolean }
+        badge: { $ref: '#/components/schemas/FriendBadgeDefinition' }
+    FriendDetailData:
+      type: object
+      additionalProperties: false
+      required: [friend, progress, rosaryTotal, badges]
+      properties:
+        friend: { $ref: '#/components/schemas/FriendProfile' }
+        progress: { $ref: '#/components/schemas/FriendDetailProgress' }
+        rosaryTotal: { type: integer, format: int64, minimum: 0 }
+        rosaryStreak:
+          description: Included only when include=rosaryStreak is requested.
+          $ref: '#/components/schemas/RosaryStreak'
+        badges:
+          type: array
+          items: { $ref: '#/components/schemas/FriendBadge' }
+    FriendDetailResponse:
+      type: object
+      additionalProperties: false
+      required: [data]
+      properties:
+        data: { $ref: '#/components/schemas/FriendDetailData' }
+    FriendsLeaderboardEntry:
+      type: object
+      additionalProperties: false
+      required:
+        - rank
+        - points
+        - rosariesCount
+        - scriptureReadingsCount
+        - prayersCount
+        - isCurrentUser
+        - friend
+      properties:
+        rank: { type: integer, format: int64, minimum: 1 }
+        points: { type: integer, format: int64, minimum: 0 }
+        rosariesCount: { type: integer, format: int64, minimum: 0 }
+        scriptureReadingsCount: { type: integer, format: int64, minimum: 0 }
+        prayersCount: { type: integer, format: int64, minimum: 0 }
+        isCurrentUser: { type: boolean }
+        friend: { $ref: '#/components/schemas/FriendProfile' }
+    FriendsLeaderboardData:
+      type: object
+      additionalProperties: false
+      required: [period, entries, currentUserEntry, total]
+      properties:
+        period: { $ref: '#/components/schemas/LeaderboardPeriod' }
+        entries:
+          type: array
+          items: { $ref: '#/components/schemas/FriendsLeaderboardEntry' }
+        currentUserEntry:
+          description: >-
+            The authenticated user's entry, returned even when it is outside
+            the requested page. Null when no current-user entry is available.
+          anyOf:
+            - { $ref: '#/components/schemas/FriendsLeaderboardEntry' }
+            - { type: 'null' }
+        total: { type: integer, minimum: 0 }
+    FriendsLeaderboardResponse:
+      type: object
+      additionalProperties: false
+      required: [data]
+      properties:
+        data: { $ref: '#/components/schemas/FriendsLeaderboardData' }
+    PeriodActivity:
+      type: object
+      additionalProperties: false
+      required: [rosariesCount, scriptureReadingsCount, prayersCount]
+      properties:
+        rosariesCount: { type: integer, format: int64, minimum: 0 }
+        scriptureReadingsCount: { type: integer, format: int64, minimum: 0 }
+        prayersCount: { type: integer, format: int64, minimum: 0 }
+    FriendsComparisonEntry:
+      type: object
+      additionalProperties: false
+      required:
+        - rank
+        - periodPoints
+        - periodActivity
+        - isCurrentUser
+        - profile
+        - totalXp
+        - lifetimePoints
+        - currentLevel
+        - rosaryTotal
+        - badgeCount
+        - rosaryStreak
+      properties:
+        rank: { type: integer, format: int64, minimum: 1 }
+        periodPoints: { type: integer, format: int64, minimum: 0 }
+        periodActivity: { $ref: '#/components/schemas/PeriodActivity' }
+        isCurrentUser: { type: boolean }
+        profile: { $ref: '#/components/schemas/FriendProfile' }
+        totalXp: { type: integer, format: int64, minimum: 0 }
+        lifetimePoints: { type: integer, format: int64, minimum: 0 }
+        currentLevel: { $ref: '#/components/schemas/CurrentLevel' }
+        rosaryTotal: { type: integer, format: int64, minimum: 0 }
+        badgeCount: { type: integer, format: int64, minimum: 0 }
+        rosaryStreak: { $ref: '#/components/schemas/RosaryStreak' }
+    FriendsComparisonData:
+      type: object
+      additionalProperties: false
+      required: [period, entries, total, limit, offset]
+      properties:
+        period: { $ref: '#/components/schemas/LeaderboardPeriod' }
+        entries:
+          type: array
+          items: { $ref: '#/components/schemas/FriendsComparisonEntry' }
+        total: { type: integer, minimum: 0 }
+        limit: { type: integer, minimum: 1, maximum: 100 }
+        offset: { type: integer, minimum: 0 }
+    FriendsComparisonResponse:
+      type: object
+      additionalProperties: false
+      required: [data]
+      properties:
+        data: { $ref: '#/components/schemas/FriendsComparisonData' }
+    GlobalLeaderboardPeriod:
+      type: object
+      additionalProperties: false
+      required: [id, period_type, code, name, starts_at, ends_at, status, finalized_at, created_at]
+      properties:
+        id: { type: string, format: uuid }
+        period_type: { type: string, enum: [daily, weekly, monthly, yearly, season] }
+        code: { type: string }
+        name: { type: string }
+        starts_at: { type: string, format: date-time }
+        ends_at: { type: string, format: date-time }
+        status: { type: string, enum: [scheduled, active, calculating, finalized] }
+        finalized_at:
+          anyOf:
+            - { type: string, format: date-time }
+            - { type: 'null' }
+        created_at: { type: string, format: date-time }
+    GlobalLeaderboardProfile:
+      type: object
+      additionalProperties: false
+      required: [user_id, display_name, username, avatar_url, title]
+      properties:
+        user_id: { type: string, format: uuid }
+        display_name: { type: string }
+        username:
+          anyOf:
+            - { type: string }
+            - { type: 'null' }
+        avatar_url:
+          anyOf:
+            - { type: string }
+            - { type: 'null' }
+        title:
+          anyOf:
+            - { type: string }
+            - { type: 'null' }
+    GlobalLeaderboardEntry:
+      type: object
+      additionalProperties: false
+      required:
+        - period_id
+        - user_id
+        - scope_type
+        - scope_reference
+        - points
+        - rank
+        - rosaries_count
+        - scripture_readings_count
+        - prayers_count
+        - updated_at
+        - isCurrentUser
+        - profile
+      properties:
+        period_id: { type: string, format: uuid }
+        user_id: { type: string, format: uuid }
+        scope_type: { type: string, enum: [global, country, city] }
+        scope_reference: { type: string }
+        points: { type: integer, format: int64, minimum: 0 }
+        rank:
+          anyOf:
+            - { type: integer, minimum: 1 }
+            - { type: 'null' }
+        rosaries_count: { type: integer, minimum: 0 }
+        scripture_readings_count: { type: integer, minimum: 0 }
+        prayers_count: { type: integer, minimum: 0 }
+        updated_at: { type: string, format: date-time }
+        isCurrentUser: { type: boolean }
+        profile: { $ref: '#/components/schemas/GlobalLeaderboardProfile' }
+    LeaderboardMeta:
+      type: object
+      additionalProperties: false
+      required: [total, limit, offset]
+      properties:
+        total: { type: integer, minimum: 0 }
+        limit: { type: integer, minimum: 1, maximum: 100 }
+        offset: { type: integer, minimum: 0 }
+    LeaderboardData:
+      type: object
+      additionalProperties: false
+      required: [period, entries, currentUserEntry]
+      properties:
+        period: { $ref: '#/components/schemas/GlobalLeaderboardPeriod' }
+        entries:
+          type: array
+          items: { $ref: '#/components/schemas/GlobalLeaderboardEntry' }
+        currentUserEntry:
+          description: >-
+            The authenticated user's entry for the selected period and scope,
+            returned even when it is outside the requested page. Null when the
+            user has no entry for that period and scope.
+          anyOf:
+            - { $ref: '#/components/schemas/GlobalLeaderboardEntry' }
+            - { type: 'null' }
+    LeaderboardResponse:
+      type: object
+      additionalProperties: false
+      required: [data, meta]
+      properties:
+        data: { $ref: '#/components/schemas/LeaderboardData' }
+        meta: { $ref: '#/components/schemas/LeaderboardMeta' }

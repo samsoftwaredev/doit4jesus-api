@@ -1,4 +1,5 @@
 import {
+  friendDetailsQuerySchema,
   friendRequestsQuerySchema,
   friendsComparisonQuerySchema,
   friendsLeaderboardQuerySchema,
@@ -49,5 +50,13 @@ describe('friend API schemas', () => {
       offset: 0,
     });
     expect(() => friendsQuerySchema.parse({ include: 'badges' })).toThrow();
+  });
+
+  it('allows requesting a Rosary streak on a friend detail', () => {
+    expect(friendDetailsQuerySchema.parse({ include: 'rosaryStreak' })).toEqual({
+      include: 'rosaryStreak',
+    });
+    expect(friendDetailsQuerySchema.parse({})).toEqual({});
+    expect(() => friendDetailsQuerySchema.parse({ include: 'badges' })).toThrow();
   });
 });
