@@ -1418,7 +1418,11 @@ insert into competition.leaderboard_periods (
 )
 values
   ('50000000-0000-4000-8000-000000000001', 'weekly', 'seed-current-week', 'Current Week', date_trunc('week', now()), date_trunc('week', now()) + interval '1 week', 'active', null),
-  ('50000000-0000-4000-8000-000000000002', 'weekly', 'seed-previous-week', 'Previous Week', date_trunc('week', now()) - interval '1 week', date_trunc('week', now()), 'finalized', date_trunc('week', now()) + interval '1 hour')
+  ('50000000-0000-4000-8000-000000000002', 'weekly', 'seed-previous-week', 'Previous Week', date_trunc('week', now()) - interval '1 week', date_trunc('week', now()), 'finalized', date_trunc('week', now()) + interval '1 hour'),
+  ('50000000-0000-4000-8000-000000000003', 'daily', 'seed-current-day', 'Today', date_trunc('day', now()), date_trunc('day', now()) + interval '1 day', 'active', null),
+  ('50000000-0000-4000-8000-000000000004', 'monthly', 'seed-current-month', 'Current Month', date_trunc('month', now()), date_trunc('month', now()) + interval '1 month', 'active', null),
+  ('50000000-0000-4000-8000-000000000005', 'yearly', 'seed-current-year', 'Current Year', date_trunc('year', now()), date_trunc('year', now()) + interval '1 year', 'active', null),
+  ('50000000-0000-4000-8000-000000000006', 'season', 'seed-current-season', 'Current Season', date_trunc('quarter', now()), date_trunc('quarter', now()) + interval '3 months', 'active', null)
 on conflict (id) do update
 set
   period_type = excluded.period_type,
@@ -1449,7 +1453,19 @@ values
   ('50000000-0000-4000-8000-000000000001', '11111111-1111-4111-8111-111111111111', 'country', 'MX', 240, 1, 3, 4, 9),
   ('50000000-0000-4000-8000-000000000002', '11111111-1111-4111-8111-111111111111', 'global', 'global', 410, 1, 5, 6, 14),
   ('50000000-0000-4000-8000-000000000002', '9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002', 'global', 'global', 280, 2, 3, 5, 11),
-  ('50000000-0000-4000-8000-000000000002', '22222222-2222-4222-8222-222222222222', 'global', 'global', 190, 3, 2, 4, 8)
+  ('50000000-0000-4000-8000-000000000002', '22222222-2222-4222-8222-222222222222', 'global', 'global', 190, 3, 2, 4, 8),
+  ('50000000-0000-4000-8000-000000000003', '11111111-1111-4111-8111-111111111111', 'global', 'global', 50, 1, 1, 1, 2),
+  ('50000000-0000-4000-8000-000000000003', '9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002', 'global', 'global', 35, 2, 1, 0, 1),
+  ('50000000-0000-4000-8000-000000000003', '22222222-2222-4222-8222-222222222222', 'global', 'global', 20, 3, 0, 1, 1),
+  ('50000000-0000-4000-8000-000000000004', '11111111-1111-4111-8111-111111111111', 'global', 'global', 900, 1, 12, 16, 31),
+  ('50000000-0000-4000-8000-000000000004', '9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002', 'global', 'global', 580, 2, 8, 10, 22),
+  ('50000000-0000-4000-8000-000000000004', '22222222-2222-4222-8222-222222222222', 'global', 'global', 430, 3, 5, 8, 17),
+  ('50000000-0000-4000-8000-000000000005', '11111111-1111-4111-8111-111111111111', 'global', 'global', 5400, 1, 75, 101, 196),
+  ('50000000-0000-4000-8000-000000000005', '9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002', 'global', 'global', 3200, 2, 49, 67, 124),
+  ('50000000-0000-4000-8000-000000000005', '22222222-2222-4222-8222-222222222222', 'global', 'global', 2100, 3, 31, 44, 85),
+  ('50000000-0000-4000-8000-000000000006', '11111111-1111-4111-8111-111111111111', 'global', 'global', 1700, 1, 24, 31, 62),
+  ('50000000-0000-4000-8000-000000000006', '9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002', 'global', 'global', 1100, 2, 16, 21, 43),
+  ('50000000-0000-4000-8000-000000000006', '22222222-2222-4222-8222-222222222222', 'global', 'global', 850, 3, 11, 15, 32)
 on conflict (period_id, user_id, scope_type, scope_reference) do update
 set
   points = excluded.points,

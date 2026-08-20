@@ -19,6 +19,13 @@ paths:
       responses:
         '200':
           description: Healthy
+          content:
+            application/json:
+              example:
+                data:
+                  status: ok
+                  service: holy-competition-api
+                  timestamp: '2026-08-17T12:00:00.000Z'
   /api/v1/scripture:
     get:
       summary: Get a daily Scripture reading
@@ -32,7 +39,21 @@ paths:
           description: Optional calendar date in YYYY-MM-DD format.
           schema: { type: string, format: date }
       responses:
-        '200': { description: Daily Scripture reading }
+        '200':
+          description: Daily Scripture reading
+          content:
+            application/json:
+              example:
+                data:
+                  readingDate: '2026-08-17'
+                  celebrationName: Twentieth Sunday in Ordinary Time
+                  lectionaryNumber: 120
+                  scriptureReferences:
+                    - { label: First Reading, reference: Jeremiah 38:4-6, 8-10 }
+                    - { label: Gospel, reference: Luke 12:49-53 }
+                  scriptureText:
+                    Gospel: I came to set the earth on fire.
+                  textStatus: complete
         '401': { $ref: '#/components/responses/Unauthorized' }
         '404': { description: No reading is stored for the requested date }
   /api/v1/churches:
@@ -59,7 +80,22 @@ paths:
           name: offset
           schema: { type: integer, minimum: 0, default: 0 }
       responses:
-        '200': { description: Church directory page }
+        '200':
+          description: Church directory page
+          content:
+            application/json:
+              example:
+                data:
+                  - id: c6000000-0000-4000-8000-000000000001
+                    name: St. Mary Cathedral
+                    city: Austin
+                    regionName: Texas
+                    countryCode: US
+                    dioceseName: Diocese of Austin
+                    timezone: America/Chicago
+                    latitude: 30.270833
+                    longitude: -97.743057
+                meta: { limit: 20, offset: 0, hasMore: false, nextOffset: null }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '422': { $ref: '#/components/responses/ValidationError' }
   /api/v1/users/search:
@@ -91,6 +127,13 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/UserSearchResponse' }
+              example:
+                data:
+                  - username: johnpaul
+                    avatarUrl: https://example.com/avatars/johnpaul.png
+                    title: Scripture Seeker
+                    relationshipState: incomingPending
+                meta: { limit: 20, offset: 0, hasMore: false, nextOffset: null }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '422': { $ref: '#/components/responses/ValidationError' }
   /api/v1/churches/{churchId}:
@@ -108,14 +151,46 @@ paths:
           required: true
           schema: { type: string, format: uuid }
       responses:
-        '200': { description: Church details, schedule, and live status }
+        '200':
+          description: Church details, schedule, and live status
+          content:
+            application/json:
+              example:
+                data:
+                  id: c6000000-0000-4000-8000-000000000001
+                  name: St. Mary Cathedral
+                  diocese: { id: c5000000-0000-4000-8000-000000000001, name: Diocese of Austin, countryCode: US }
+                  address: { line1: 203 E 10th St, line2: null, city: Austin, regionName: Texas, postalCode: '78701', countryCode: US }
+                  timezone: America/Chicago
+                  latitude: 30.270833
+                  longitude: -97.743057
+                  schedule:
+                    - { id: c7000000-0000-4000-8000-000000000001, serviceType: mass, weekday: sunday, startTime: '09:00', endTime: '10:00', usesDefaultOneHourDuration: false }
+                  liveStatus: { isOpenNow: false, services: [] }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '404': { description: Church not found }
   /api/v1/me/churches:
     get:
       summary: List the current user's linked churches
       responses:
-        '200': { description: Linked churches and primary state }
+        '200':
+          description: Linked churches and primary state
+          content:
+            application/json:
+              example:
+                data:
+                  - church:
+                      id: c6000000-0000-4000-8000-000000000001
+                      name: St. Mary Cathedral
+                      city: Austin
+                      regionName: Texas
+                      countryCode: US
+                      timezone: America/Chicago
+                      latitude: 30.270833
+                      longitude: -97.743057
+                      isActive: true
+                    isPrimary: true
+                    linkedAt: '2026-08-01T12:00:00Z'
         '401': { $ref: '#/components/responses/Unauthorized' }
     post:
       summary: Link a church to the current user
@@ -133,8 +208,18 @@ paths:
                 churchId: { type: string, format: uuid }
                 isPrimary: { type: boolean, default: false }
       responses:
-        '201': { description: Church linked }
-        '200': { description: Church was already linked }
+        '201':
+          description: Church linked
+          content:
+            application/json:
+              example:
+                data: { churchId: c6000000-0000-4000-8000-000000000001, isPrimary: true, created: true }
+        '200':
+          description: Church was already linked
+          content:
+            application/json:
+              example:
+                data: { churchId: c6000000-0000-4000-8000-000000000001, isPrimary: true, created: false }
         '404': { description: Church not found }
   /api/v1/me/churches/{churchId}:
     patch:
@@ -154,7 +239,12 @@ paths:
               properties:
                 isPrimary: { type: boolean, enum: [true] }
       responses:
-        '200': { description: Primary church updated }
+        '200':
+          description: Primary church updated
+          content:
+            application/json:
+              example:
+                data: { churchId: c6000000-0000-4000-8000-000000000001, isPrimary: true }
         '404': { description: Church is not linked to the current user }
     delete:
       summary: Unlink a church from the current user
@@ -164,7 +254,7 @@ paths:
           required: true
           schema: { type: string, format: uuid }
       responses:
-        '204': { description: Church unlinked }
+        '204': { description: Church unlinked. The successful response body is empty. }
         '404': { description: Church is not linked to the current user }
   /api/v1/church-change-requests:
     get:
@@ -180,7 +270,26 @@ paths:
           name: offset
           schema: { type: integer, minimum: 0, default: 0 }
       responses:
-        '200': { description: Current-user change request page }
+        '200':
+          description: Current-user change request page
+          content:
+            application/json:
+              example:
+                data:
+                  - id: c8000000-0000-4000-8000-000000000001
+                    submitted_by: 9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002
+                    request_type: schedule_update
+                    church_id: c6000000-0000-4000-8000-000000000001
+                    proposed_church: {}
+                    proposed_service_times: []
+                    notes: Added an evening Mass.
+                    status: pending
+                    reviewed_by: null
+                    reviewed_at: null
+                    rejection_reason: null
+                    created_at: '2026-08-17T12:00:00Z'
+                    updated_at: '2026-08-17T12:00:00Z'
+                meta: { limit: 20, offset: 0, hasMore: false, nextOffset: null }
     post:
       summary: Submit a church creation or schedule replacement request
       description: >-
@@ -189,7 +298,17 @@ paths:
         Schedule-update requests replace the church's entire recurring schedule
         only after an administrator approves them.
       responses:
-        '201': { description: Pending church change request created }
+        '201':
+          description: Pending church change request created
+          content:
+            application/json:
+              example:
+                data:
+                  id: c8000000-0000-4000-8000-000000000001
+                  request_type: schedule_update
+                  church_id: c6000000-0000-4000-8000-000000000001
+                  status: pending
+                  created_at: '2026-08-17T12:00:00Z'
         '422': { $ref: '#/components/responses/ValidationError' }
   /api/v1/admin/church-change-requests:
     get:
@@ -205,7 +324,22 @@ paths:
           name: offset
           schema: { type: integer, minimum: 0, default: 0 }
       responses:
-        '200': { description: Moderator review queue }
+        '200':
+          description: Moderator review queue
+          content:
+            application/json:
+              example:
+                data:
+                  - id: c8000000-0000-4000-8000-000000000001
+                    submitted_by: 9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002
+                    request_type: schedule_update
+                    church_id: c6000000-0000-4000-8000-000000000001
+                    status: pending
+                    proposed_church: {}
+                    proposed_service_times: []
+                    notes: Added an evening Mass.
+                    created_at: '2026-08-17T12:00:00Z'
+                meta: { limit: 20, offset: 0, hasMore: false, nextOffset: null }
         '403': { description: Administrator role required }
   /api/v1/admin/church-change-requests/{requestId}:
     patch:
@@ -230,7 +364,12 @@ paths:
                 decision: { type: string, enum: [approved, rejected] }
                 rejectionReason: { type: string, nullable: true, maxLength: 2000 }
       responses:
-        '200': { description: Church change request reviewed }
+        '200':
+          description: Church change request reviewed
+          content:
+            application/json:
+              example:
+                data: { requestId: c8000000-0000-4000-8000-000000000001, status: approved, churchId: c6000000-0000-4000-8000-000000000001 }
         '403': { description: Administrator role required }
         '404': { description: Church change request not found }
         '409': { description: Church change request was already reviewed }
@@ -261,6 +400,21 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/FriendRequestsResponse' }
+              example:
+                data:
+                  - id: fb000000-0000-4000-8000-000000000002
+                    status: pending
+                    direction: incoming
+                    createdAt: '2026-08-17T10:00:00Z'
+                    respondedAt: null
+                    cancelledAt: null
+                    user:
+                      id: 22222222-2222-4222-8222-222222222222
+                      displayName: John Paul
+                      username: johnpaul
+                      avatarUrl: https://example.com/avatars/johnpaul.png
+                      title: Scripture Seeker
+                meta: { limit: 20, offset: 0, hasMore: false, nextOffset: null }
     post:
       summary: Send a username-based friend request
       description: >-
@@ -276,8 +430,18 @@ paths:
               properties:
                 username: { type: string, minLength: 3, maxLength: 30 }
       responses:
-        '201': { description: Pending request created }
-        '200': { description: Reciprocal request accepted automatically }
+        '201':
+          description: Pending request created
+          content:
+            application/json:
+              example:
+                data: { requestId: fb000000-0000-4000-8000-000000000002, status: pending, automatic: false }
+        '200':
+          description: Reciprocal request accepted automatically
+          content:
+            application/json:
+              example:
+                data: { requestId: fb000000-0000-4000-8000-000000000002, friendshipId: fb000000-0000-4000-8000-000000000001, status: accepted, automatic: true }
         '409': { description: Users are already friends or a request is pending }
   /api/v1/me/friend-requests/{requestId}:
     patch:
@@ -297,7 +461,12 @@ paths:
               properties:
                 decision: { type: string, enum: [accepted, rejected] }
       responses:
-        '200': { description: Friend request reviewed }
+        '200':
+          description: Friend request reviewed
+          content:
+            application/json:
+              example:
+                data: { requestId: fb000000-0000-4000-8000-000000000002, friendshipId: fb000000-0000-4000-8000-000000000001, status: accepted }
         '409': { description: Friend request is no longer pending }
     delete:
       summary: Cancel an outgoing pending friend request
@@ -307,7 +476,7 @@ paths:
           required: true
           schema: { type: string, format: uuid }
       responses:
-        '204': { description: Friend request cancelled }
+        '204': { description: Friend request cancelled. The successful response body is empty. }
         '403': { description: Only the request sender can cancel it }
   /api/v1/me/friends:
     get:
@@ -335,6 +504,20 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/FriendsResponse' }
+              example:
+                data:
+                  - id: 11111111-1111-4111-8111-111111111111
+                    displayName: Maria Santos
+                    username: mariasantos
+                    avatarUrl: https://example.com/avatars/mariasantos.png
+                    title: Prayer Champion
+                    totalXp: 920
+                    currentLevel: { levelNumber: 3, code: disciple, name: Disciple }
+                    rosaryTotal: 14
+                    badgeCount: 2
+                    friendsSince: '2026-08-01T12:00:00Z'
+                    rosaryStreak: { asOfDate: '2026-08-17', currentStreak: 7, longestStreak: 12, timezone: America/Mexico_City }
+                meta: { limit: 20, offset: 0, hasMore: false, nextOffset: null }
   /api/v1/me/friends/leaderboard:
     get:
       summary: Get the current user's friends-only leaderboard
@@ -360,6 +543,26 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/FriendsLeaderboardResponse' }
+              example:
+                data:
+                  period: { id: 50000000-0000-4000-8000-000000000001, periodType: weekly, code: seed-current-week, name: Current Week, startsAt: '2026-08-10T00:00:00Z', endsAt: '2026-08-17T00:00:00Z', status: active }
+                  entries:
+                    - rank: 1
+                      points: 240
+                      rosariesCount: 3
+                      scriptureReadingsCount: 4
+                      prayersCount: 9
+                      isCurrentUser: false
+                      friend: { id: 11111111-1111-4111-8111-111111111111, displayName: Maria Santos, username: mariasantos, avatarUrl: https://example.com/avatars/mariasantos.png, title: Prayer Champion }
+                  currentUserEntry:
+                    rank: 2
+                    points: 120
+                    rosariesCount: 1
+                    scriptureReadingsCount: 2
+                    prayersCount: 5
+                    isCurrentUser: true
+                    friend: { id: 9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002, displayName: Test User, username: testuser, avatarUrl: https://example.com/avatars/testuser.png, title: Faithful Beginner }
+                  total: 2
   /api/v1/me/friends/comparison:
     get:
       summary: Compare progress with confirmed friends
@@ -387,6 +590,24 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/FriendsComparisonResponse' }
+              example:
+                data:
+                  period: { id: 50000000-0000-4000-8000-000000000001, periodType: weekly, code: seed-current-week, name: Current Week, startsAt: '2026-08-10T00:00:00Z', endsAt: '2026-08-17T00:00:00Z', status: active }
+                  entries:
+                    - rank: 1
+                      periodPoints: 240
+                      periodActivity: { rosariesCount: 3, scriptureReadingsCount: 4, prayersCount: 9 }
+                      isCurrentUser: false
+                      profile: { id: 11111111-1111-4111-8111-111111111111, displayName: Maria Santos, username: mariasantos, avatarUrl: https://example.com/avatars/mariasantos.png, title: Prayer Champion }
+                      totalXp: 920
+                      lifetimePoints: 2050
+                      currentLevel: { levelNumber: 3, code: disciple, name: Disciple }
+                      rosaryTotal: 14
+                      badgeCount: 2
+                      rosaryStreak: { asOfDate: '2026-08-17', currentStreak: 7, longestStreak: 12, timezone: America/Mexico_City }
+                  total: 2
+                  limit: 50
+                  offset: 0
         '401': { $ref: '#/components/responses/Unauthorized' }
         '404': { description: No leaderboard period matches the request }
         '422': { $ref: '#/components/responses/ValidationError' }
@@ -411,6 +632,15 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/FriendDetailResponse' }
+              example:
+                data:
+                  friend: { id: 11111111-1111-4111-8111-111111111111, displayName: Maria Santos, username: mariasantos, avatarUrl: https://example.com/avatars/mariasantos.png, title: Prayer Champion }
+                  progress:
+                    totalXp: 920
+                    currentLevel: { levelNumber: 3, code: disciple, name: Disciple, description: Growing in faithful discipleship., minimumTotalXp: 750, iconUrl: null, imageUrl: null }
+                  rosaryTotal: 14
+                  rosaryStreak: { asOfDate: '2026-08-17', currentStreak: 7, longestStreak: 12, timezone: America/Mexico_City }
+                  badges: []
         '404': { description: Confirmed friendship not found }
     delete:
       summary: Unfriend a confirmed friend
@@ -420,13 +650,18 @@ paths:
           required: true
           schema: { type: string, format: uuid }
       responses:
-        '204': { description: Friendship removed }
+        '204': { description: Friendship removed. The successful response body is empty. }
         '404': { description: Confirmed friendship not found }
   /api/v1/me:
     get:
       summary: Get current profile
       responses:
-        '200': { description: Current profile }
+        '200':
+          description: Current profile
+          content:
+            application/json:
+              example:
+                data: { userId: 9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002, displayName: Test User, username: testuser, avatarUrl: https://example.com/avatars/testuser.png, title: Faithful Beginner, preferredLanguage: en, timezone: America/Chicago, cityId: e0000000-0000-4000-8000-000000000001, countryCode: US, leaderboardVisibility: public, prayerMapVisibility: aggregated, createdAt: '2026-06-01T12:00:00Z', updatedAt: '2026-08-17T12:00:00Z' }
         '401': { $ref: '#/components/responses/Unauthorized' }
     patch:
       summary: Update current profile
@@ -436,7 +671,12 @@ paths:
           application/json:
             schema: { $ref: '#/components/schemas/UpdateProfile' }
       responses:
-        '200': { description: Updated profile }
+        '200':
+          description: Updated profile
+          content:
+            application/json:
+              example:
+                data: { userId: 9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002, displayName: Test User, username: testuser, avatarUrl: https://example.com/avatars/testuser.png, title: Prayer Warrior, preferredLanguage: en, timezone: America/Chicago, cityId: e0000000-0000-4000-8000-000000000001, countryCode: US, leaderboardVisibility: public, prayerMapVisibility: aggregated, createdAt: '2026-06-01T12:00:00Z', updatedAt: '2026-08-17T12:00:00Z' }
         '409': { description: Username conflict }
         '422': { $ref: '#/components/responses/ValidationError' }
   /api/v1/me/rosary/completion:
@@ -460,7 +700,21 @@ paths:
           description: Defaults to the authenticated user's current local month; used only as UI focus metadata.
           schema: { type: integer, minimum: 1, maximum: 12 }
       responses:
-        '200': { description: Year-to-date, twelve-month, and selected-month daily rosary completion }
+        '200':
+          description: Year-to-date, twelve-month, and selected-month daily rosary completion
+          content:
+            application/json:
+              example:
+                data:
+                  selectedYear: 2026
+                  selectedMonth: 8
+                  timezone: America/Chicago
+                  yearToDateCompletedDays: 42
+                  months:
+                    - { month: 8, completedDays: 7 }
+                  days:
+                    - { day: 1, date: '2026-08-01', completed: true }
+                    - { day: 2, date: '2026-08-02', completed: false }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '422': { $ref: '#/components/responses/ValidationError' }
   /api/v1/me/rosary/streak:
@@ -474,30 +728,77 @@ paths:
         streak is calculated from completed days in the current local calendar
         year through today.
       responses:
-        '200': { description: Current and year-to-date longest Rosary streaks }
+        '200':
+          description: Current and year-to-date longest Rosary streaks
+          content:
+            application/json:
+              example:
+                data: { asOfDate: '2026-08-17', currentStreak: 7, longestStreak: 12, timezone: America/Chicago }
         '401': { $ref: '#/components/responses/Unauthorized' }
   /api/v1/progress:
     get:
       summary: Get XP and level progress
       responses:
-        '200': { description: Progress summary }
+        '200':
+          description: Progress summary
+          content:
+            application/json:
+              example:
+                data:
+                  totalXp: 920
+                  lifetimePoints: 2050
+                  weeklyPoints: 240
+                  yearlyPoints: 1250
+                  lastActivityAt: '2026-08-17T10:30:00Z'
+                  version: 18
+                  currentLevel: { level_number: 3, code: disciple, name: Disciple, minimum_total_xp: 750 }
+                  nextLevel: { level_number: 4, code: witness, name: Witness, minimum_total_xp: 1500 }
+                  levelProgressPercentage: 22.67
+                  xpIntoCurrentLevel: 170
+                  xpRequiredForNextLevel: 750
+                  updatedAt: '2026-08-17T10:30:00Z'
   /api/v1/levels:
     get:
       summary: List active level definitions
       responses:
-        '200': { description: Active levels }
+        '200':
+          description: Active levels
+          content:
+            application/json:
+              example:
+                data:
+                  - { level_number: 1, code: seeker, name: Seeker, description: Begin your walk with Christ., minimum_total_xp: 0, is_active: true }
+                  - { level_number: 2, code: follower, name: Follower, description: Grow through daily faithfulness., minimum_total_xp: 250, is_active: true }
   /api/v1/virtues:
     get:
       summary: Get active virtue definitions and the current user's values
       responses:
-        '200': { description: Virtue dashboard data }
+        '200':
+          description: Virtue dashboard data
+          content:
+            application/json:
+              example:
+                data:
+                  - definition: { code: COURAGE, name: Courage, description: Faithful strength in adversity., default_value: 0, is_active: true }
+                    currentValue: 18
+                    initialized: true
+                    updatedAt: '2026-08-17T10:30:00Z'
         '401': { $ref: '#/components/responses/Unauthorized' }
   /api/v1/demons:
     get:
       summary: List active demon catalog entries
       description: Includes each demon's saint mentor and virtue affinities.
       responses:
-        '200': { description: Demon catalog }
+        '200':
+          description: Demon catalog
+          content:
+            application/json:
+              example:
+                data:
+                  - demon: { id: d1000000-0000-4000-8000-000000000001, code: DISCOURAGEMENT, name: Demon of Discouragement, category: spiritual, is_active: true }
+                    saintMentor: { id: d2000000-0000-4000-8000-000000000001, name: St. Michael the Archangel, is_active: true }
+                    virtueAffinities:
+                      - { demon_id: d1000000-0000-4000-8000-000000000001, virtue_code: COURAGE, multiplier: 1.2 }
   /api/v1/demons/{demonCode}:
     get:
       summary: Get one demon's battle definition
@@ -507,7 +808,21 @@ paths:
           required: true
           schema: { type: string, maxLength: 100 }
       responses:
-        '200': { description: Demon attacks, defenses, affinities, mentor, and defeat reward }
+        '200':
+          description: Demon attacks, defenses, affinities, mentor, and defeat reward
+          content:
+            application/json:
+              example:
+                data:
+                  demon: { id: d1000000-0000-4000-8000-000000000001, code: DISCOURAGEMENT, name: Demon of Discouragement, category: spiritual, is_active: true }
+                  saintMentor: { id: d2000000-0000-4000-8000-000000000001, name: St. Michael the Archangel }
+                  attacks:
+                    - { id: d3000000-0000-4000-8000-000000000001, code: SELF_DOUBT, name: Self Doubt, damage: 10 }
+                  defenses:
+                    - { id: d4000000-0000-4000-8000-000000000001, code: PRAY_SCRIPTURE, name: Pray with Scripture, virtue_code: COURAGE }
+                  virtueAffinities:
+                    - { demon_id: d1000000-0000-4000-8000-000000000001, virtue_code: COURAGE, multiplier: 1.2 }
+                  defeatReward: { xp_reward: 100, virtue_bonus: 5 }
         '404': { description: Demon not found }
   /api/v1/encounters:
     get:
@@ -527,7 +842,15 @@ paths:
           description: Started-at cursor from the prior response.
           schema: { type: string, format: date-time }
       responses:
-        '200': { description: Encounter page with demon summaries }
+        '200':
+          description: Encounter page with demon summaries
+          content:
+            application/json:
+              example:
+                data:
+                  - encounter: { id: e1000000-0000-4000-8000-000000000001, user_id: 9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002, demon_id: d1000000-0000-4000-8000-000000000001, status: active, current_hp: 70, started_at: '2026-08-17T09:00:00Z' }
+                    demon: { id: d1000000-0000-4000-8000-000000000001, code: DISCOURAGEMENT, name: Demon of Discouragement }
+                meta: { limit: 20, hasMore: false, nextCursor: null }
     post:
       summary: Start a demon encounter
       parameters:
@@ -538,8 +861,24 @@ paths:
           application/json:
             schema: { $ref: '#/components/schemas/StartEncounter' }
       responses:
-        '201': { description: Encounter and first defense assignment created }
-        '200': { description: Idempotent replay of a prior encounter start }
+        '201':
+          description: Encounter and first defense assignment created
+          content:
+            application/json:
+              example:
+                data:
+                  replayed: false
+                  encounter: { id: e1000000-0000-4000-8000-000000000001, status: active, current_hp: 100 }
+                  assignment: { id: e2000000-0000-4000-8000-000000000001, assignment_sequence: 1, status: active }
+        '200':
+          description: Idempotent replay of a prior encounter start
+          content:
+            application/json:
+              example:
+                data:
+                  replayed: true
+                  encounter: { id: e1000000-0000-4000-8000-000000000001, status: active, current_hp: 100 }
+                  assignment: { id: e2000000-0000-4000-8000-000000000001, assignment_sequence: 1, status: active }
         '409': { description: The selected demon already has an active encounter }
   /api/v1/encounters/{encounterId}:
     get:
@@ -554,7 +893,21 @@ paths:
           description: Battle-event timestamp cursor from the prior response.
           schema: { type: string, format: date-time }
       responses:
-        '200': { description: Encounter, assigned defenses, and timeline page }
+        '200':
+          description: Encounter, assigned defenses, and timeline page
+          content:
+            application/json:
+              example:
+                data:
+                  encounter: { id: e1000000-0000-4000-8000-000000000001, status: active, current_hp: 70, started_at: '2026-08-17T09:00:00Z' }
+                  demon: { id: d1000000-0000-4000-8000-000000000001, code: DISCOURAGEMENT, name: Demon of Discouragement }
+                  assignments:
+                    - assignment: { id: e2000000-0000-4000-8000-000000000001, assignment_sequence: 1, status: completed }
+                      defense: { id: d4000000-0000-4000-8000-000000000001, code: PRAY_SCRIPTURE, name: Pray with Scripture }
+                  timeline:
+                    - event: { id: e3000000-0000-4000-8000-000000000001, event_type: defense_completed, occurred_at: '2026-08-17T09:15:00Z' }
+                      virtueEvent: { id: e4000000-0000-4000-8000-000000000001, virtue_code: COURAGE, change_amount: 2 }
+                meta: { timelineLimit: 20, hasMore: false, nextTimelineCursor: null }
         '404': { description: Encounter not found or not owned by the current user }
   /api/v1/encounters/{encounterId}/defenses/{assignmentId}/complete:
     post:
@@ -567,7 +920,18 @@ paths:
         - $ref: '#/components/parameters/AssignmentId'
         - $ref: '#/components/parameters/IdempotencyKey'
       responses:
-        '200': { description: Authoritative battle result }
+        '200':
+          description: Authoritative battle result
+          content:
+            application/json:
+              example:
+                data:
+                  replayed: false
+                  encounter: { id: e1000000-0000-4000-8000-000000000001, status: active, current_hp: 55 }
+                  assignment: { id: e2000000-0000-4000-8000-000000000001, status: completed }
+                  damageDealt: 15
+                  virtueChanges: [{ virtueCode: COURAGE, delta: 2, currentValue: 20 }]
+                  newBadges: []
         '404': { description: Encounter or defense assignment not found }
         '409': { description: Encounter or assignment is no longer active }
   /api/v1/encounters/{encounterId}/abandon:
@@ -577,7 +941,14 @@ paths:
         - $ref: '#/components/parameters/EncounterId'
         - $ref: '#/components/parameters/IdempotencyKey'
       responses:
-        '200': { description: Encounter abandoned and open defenses cancelled }
+        '200':
+          description: Encounter abandoned and open defenses cancelled
+          content:
+            application/json:
+              example:
+                data:
+                  replayed: false
+                  encounter: { id: e1000000-0000-4000-8000-000000000001, status: abandoned, abandoned_at: '2026-08-17T10:00:00Z' }
         '404': { description: Encounter not found }
         '409': { description: Encounter is no longer active }
   /api/v1/activities:
@@ -595,7 +966,23 @@ paths:
           name: activityCode
           schema: { type: string }
       responses:
-        '200': { description: Activity page }
+        '200':
+          description: Activity page
+          content:
+            application/json:
+              example:
+                data:
+                  - id: a1000000-0000-4000-8000-000000000001
+                    user_id: 9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002
+                    activity_code: ROSARY
+                    occurred_at: '2026-08-17T09:00:00Z'
+                    completed_at: '2026-08-17T09:30:00Z'
+                    duration_seconds: 1800
+                    quantity: 1
+                    verification_status: self_reported
+                    source: manual
+                    metadata: { mysteries: joyful }
+                meta: { limit: 20, hasMore: false, nextCursor: null }
     post:
       summary: Record an activity and apply its transactional effects
       parameters:
@@ -606,8 +993,24 @@ paths:
           application/json:
             schema: { $ref: '#/components/schemas/RecordActivity' }
       responses:
-        '201': { description: Activity recorded }
-        '200': { description: Idempotent replay of an existing result }
+        '201':
+          description: Activity recorded
+          content:
+            application/json:
+              example:
+                data:
+                  replayed: false
+                  activity: { id: a1000000-0000-4000-8000-000000000001, activityCode: ROSARY, quantity: 1, verificationStatus: self_reported }
+                  xp: { points: 25, totalXp: 945, currentLevel: 3 }
+        '200':
+          description: Idempotent replay of an existing result
+          content:
+            application/json:
+              example:
+                data:
+                  replayed: true
+                  activity: { id: a1000000-0000-4000-8000-000000000001, activityCode: ROSARY, quantity: 1, verificationStatus: self_reported }
+                  xp: { points: 25, totalXp: 945, currentLevel: 3 }
         '422': { $ref: '#/components/responses/ValidationError' }
   /api/v1/challenges:
     get:
@@ -620,7 +1023,21 @@ paths:
             enum: [active, completed, expired, cancelled, all]
             default: active
       responses:
-        '200': { description: Challenge assignments with definitions }
+        '200':
+          description: Challenge assignments with definitions
+          content:
+            application/json:
+              example:
+                data:
+                  - id: b1000000-0000-4000-8000-000000000001
+                    user_id: 9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002
+                    challenge_definition_id: b2000000-0000-4000-8000-000000000001
+                    status: active
+                    assignment_date: '2026-08-17'
+                    current_progress: 2
+                    target_quantity: 3
+                    definition: { id: b2000000-0000-4000-8000-000000000001, code: DAILY_ROSARY, name: Pray the Rosary, reward_xp: 50 }
+                    progressPercentage: 66.67
   /api/v1/challenges/{assignmentId}/claim:
     post:
       summary: Claim a completed challenge reward
@@ -631,14 +1048,39 @@ paths:
           schema: { type: string, format: uuid }
         - $ref: '#/components/parameters/IdempotencyKey'
       responses:
-        '200': { description: Reward claim result }
+        '200':
+          description: Reward claim result
+          content:
+            application/json:
+              example:
+                data:
+                  replayed: false
+                  assignmentId: b1000000-0000-4000-8000-000000000001
+                  reward: { xp: 50, badgeId: null }
+                  xp: { points: 50, totalXp: 970, currentLevel: 3 }
         '404': { description: Assignment not found }
         '409': { description: Assignment is not completed }
   /api/v1/badges:
     get:
       summary: List badge definitions, earned badges, aggregate progress, and individual unlock requirements
       responses:
-        '200': { description: Badge catalog for the current user }
+        '200':
+          description: Badge catalog for the current user
+          content:
+            application/json:
+              example:
+                data:
+                  - definition: { id: b3000000-0000-4000-8000-000000000001, code: ROSARY_BEGINNER, name: Rosary Beginner, category: prayer, rarity: common, is_active: true }
+                    earned:
+                      - { id: b4000000-0000-4000-8000-000000000001, earned_at: '2026-08-01T12:00:00Z', sequence_number: 1 }
+                    progress: { current_value: 14, required_value: 30, updated_at: '2026-08-17T10:00:00Z' }
+                    requirements:
+                      - definition: { id: b5000000-0000-4000-8000-000000000001, required_value: 30, display_order: 1 }
+                        currentValue: 14
+                        requiredValue: 30
+                        complete: false
+                        completedAt: null
+                        updatedAt: '2026-08-17T10:00:00Z'
   /api/v1/leaderboards:
     get:
       summary: Get leaderboard entries
@@ -673,6 +1115,24 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/LeaderboardResponse' }
+              example:
+                data:
+                  period: { id: 50000000-0000-4000-8000-000000000001, period_type: weekly, code: seed-current-week, name: Current Week, starts_at: '2026-08-10T00:00:00Z', ends_at: '2026-08-17T00:00:00Z', status: active, finalized_at: null, created_at: '2026-08-10T00:00:00Z' }
+                  entries:
+                    - period_id: 50000000-0000-4000-8000-000000000001
+                      user_id: 11111111-1111-4111-8111-111111111111
+                      scope_type: global
+                      scope_reference: global
+                      points: 240
+                      rank: 1
+                      rosaries_count: 3
+                      scripture_readings_count: 4
+                      prayers_count: 9
+                      updated_at: '2026-08-17T10:00:00Z'
+                      isCurrentUser: false
+                      profile: { user_id: 11111111-1111-4111-8111-111111111111, display_name: Maria Santos, username: mariasantos, avatar_url: https://example.com/avatars/mariasantos.png, title: Prayer Champion }
+                  currentUserEntry: null
+                meta: { total: 1, limit: 50, offset: 0 }
   /api/v1/prayer-map:
     get:
       summary: Get privacy-filtered prayer-map markers
@@ -693,7 +1153,26 @@ paths:
           name: countryCode
           schema: { type: string, minLength: 2, maxLength: 2 }
       responses:
-        '200': { description: Aggregated map markers }
+        '200':
+          description: Aggregated map markers
+          content:
+            application/json:
+              example:
+                data:
+                  - id: f1000000-0000-4000-8000-000000000001
+                    aggregation_level: city
+                    location_reference: Austin,TX,US
+                    name: Austin
+                    country_code: US
+                    latitude: 30.2672
+                    longitude: -97.7431
+                    prayer_count: 42
+                    unique_users: 12
+                    intensity: 0.76
+                    period_start: '2026-08-10T00:00:00Z'
+                    period_end: '2026-08-17T00:00:00Z'
+                    updated_at: '2026-08-17T10:00:00Z'
+                meta: { level: city, from: '2026-08-10T00:00:00Z', to: '2026-08-17T00:00:00Z', privacyThreshold: 5 }
   /api/v1/notifications:
     get:
       summary: List current-user notifications
@@ -709,7 +1188,22 @@ paths:
           description: Created-at cursor from the prior response.
           schema: { type: string, format: date-time }
       responses:
-        '200': { description: Notifications }
+        '200':
+          description: Notifications
+          content:
+            application/json:
+              example:
+                data:
+                  - id: f2000000-0000-4000-8000-000000000001
+                    user_id: 9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002
+                    notification_type: friend_request_received
+                    title: New friend request
+                    body: John Paul wants to be your friend.
+                    action_url: /friends/requests
+                    payload: { friendRequestId: fb000000-0000-4000-8000-000000000002 }
+                    read_at: null
+                    created_at: '2026-08-17T10:00:00Z'
+                meta: { limit: 20, hasMore: false, nextCursor: null }
   /api/v1/notifications/{notificationId}/read:
     patch:
       summary: Mark one notification as read
@@ -719,7 +1213,7 @@ paths:
           required: true
           schema: { type: string, format: uuid }
       responses:
-        '204': { description: Marked as read }
+        '204': { description: Marked as read. The successful response body is empty. }
 components:
   securitySchemes:
     supabaseBearer:
