@@ -99,33 +99,6 @@
       ]
     },
     {
-      "name": "Daily Scripture",
-      "description": "The current liturgical reading and its available Scripture text.",
-      "item": [
-        {
-          "name": "Get daily Scripture",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/scripture",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "scripture"],
-              "query": [
-                {
-                  "key": "date",
-                  "value": "2026-07-25",
-                  "description": "Optional calendar date in YYYY-MM-DD format. Omit to retrieve today's reading in the America/Chicago calendar.",
-                  "disabled": true
-                }
-              ]
-            },
-            "description": "Returns the day's celebration, lectionary number, Scripture references, and any enriched Scripture text. The collection's Bearer token authentication applies automatically.\n\nUse the optional `date` query parameter to retrieve a specific day. Returns **404** when no reading has been imported for the requested date."
-          }
-        }
-      ]
-    },
-    {
       "name": "Churches",
       "description": "Search the approved church directory and retrieve a church's recurring services with its live status.",
       "item": [

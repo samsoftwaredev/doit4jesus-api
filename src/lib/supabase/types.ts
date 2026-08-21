@@ -630,22 +630,6 @@ export type Database = {
   };
   prayer: EmptySchema & {
     Tables: {
-      daily_readings: {
-        Row: {
-          id: string;
-          reading_date: string;
-          celebration_name: string;
-          lectionary_number: number | null;
-          scripture_references: Json;
-          scripture_text: Json;
-          text_status: 'pending' | 'complete' | 'partial' | 'failed';
-          created_at: string;
-          updated_at: string;
-        };
-        Insert: never;
-        Update: never;
-        Relationships: [];
-      };
       map_markers: {
         Row: {
           id: string;

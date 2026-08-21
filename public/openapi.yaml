@@ -26,36 +26,6 @@ paths:
                   status: ok
                   service: holy-competition-api
                   timestamp: '2026-08-17T12:00:00.000Z'
-  /api/v1/scripture:
-    get:
-      summary: Get a daily Scripture reading
-      description: >-
-        Returns the stored observance, lectionary number, reading references,
-        and scripture text for the requested date. The default date is today
-        in the US Central calendar used by the daily-reading catalogue.
-      parameters:
-        - in: query
-          name: date
-          description: Optional calendar date in YYYY-MM-DD format.
-          schema: { type: string, format: date }
-      responses:
-        '200':
-          description: Daily Scripture reading
-          content:
-            application/json:
-              example:
-                data:
-                  readingDate: '2026-08-17'
-                  celebrationName: Twentieth Sunday in Ordinary Time
-                  lectionaryNumber: 120
-                  scriptureReferences:
-                    - { label: First Reading, reference: Jeremiah 38:4-6, 8-10 }
-                    - { label: Gospel, reference: Luke 12:49-53 }
-                  scriptureText:
-                    Gospel: I came to set the earth on fire.
-                  textStatus: complete
-        '401': { $ref: '#/components/responses/Unauthorized' }
-        '404': { description: No reading is stored for the requested date }
   /api/v1/churches:
     get:
       summary: Search approved churches
