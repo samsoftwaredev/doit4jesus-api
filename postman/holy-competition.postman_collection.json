@@ -99,6 +99,46 @@
       ]
     },
     {
+      "name": "Liturgy",
+      "description": "Catholic Mass readings backed by a local lectionary dataset. The API resolves the universal Roman-calendar day first, then maps every citation to NABRE verse text from the checked-in book files. No external liturgical API is called at request time.",
+      "item": [
+        {
+          "name": "Get today’s Mass readings",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/liturgy/today?country=US&diocese=dallas&locale=en-US",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "liturgy", "today"],
+              "query": [
+                { "key": "country", "value": "US", "description": "Optional two-letter country code." },
+                { "key": "diocese", "value": "dallas", "description": "Optional diocesan calendar identifier.", "disabled": true },
+                { "key": "locale", "value": "en-US", "description": "Optional BCP 47 locale metadata.", "disabled": true }
+              ]
+            },
+            "description": "Uses LITURGY_TIMEZONE (America/Chicago by default) to determine today’s date. Each reading includes mapped local NABRE verse text. A 404 READINGS_NOT_FOUND means the calendar resolved but the local lectionary dataset has no entry; the API never guesses citations."
+          }
+        },
+        {
+          "name": "Get Mass readings by date",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/liturgy/readings/2026-12-25?country=US",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "liturgy", "readings", "2026-12-25"],
+              "query": [
+                { "key": "country", "value": "US", "description": "Optional two-letter country code." }
+              ]
+            },
+            "description": "The date path must be a real YYYY-MM-DD value. Every reading includes mapped local NABRE verse text. Christmas returns its Vigil, Night, Dawn, and Day variants in readingSets, while readings exposes the first valid set for convenience."
+          }
+        }
+      ]
+    },
+    {
       "name": "Churches",
       "description": "Search the approved church directory and retrieve a church's recurring services with its live status.",
       "item": [
