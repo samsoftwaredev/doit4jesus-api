@@ -137,9 +137,23 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "liturgy", "today"],
               "query": [
-                { "key": "country", "value": "US", "description": "Optional two-letter country code." },
-                { "key": "diocese", "value": "dallas", "description": "Optional diocesan calendar identifier.", "disabled": true },
-                { "key": "locale", "value": "en-US", "description": "Optional BCP 47 locale metadata.", "disabled": true }
+                {
+                  "key": "country",
+                  "value": "US",
+                  "description": "Optional two-letter country code."
+                },
+                {
+                  "key": "diocese",
+                  "value": "dallas",
+                  "description": "Optional diocesan calendar identifier.",
+                  "disabled": true
+                },
+                {
+                  "key": "locale",
+                  "value": "en-US",
+                  "description": "Optional BCP 47 locale metadata.",
+                  "disabled": true
+                }
               ]
             },
             "description": "Uses LITURGY_TIMEZONE (America/Chicago by default) to determine today’s date. Each reading includes mapped local NABRE verse text. A 404 READINGS_NOT_FOUND means the calendar resolved but the local lectionary dataset has no entry; the API never guesses citations."
@@ -155,7 +169,11 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "liturgy", "readings", "2026-12-25"],
               "query": [
-                { "key": "country", "value": "US", "description": "Optional two-letter country code." }
+                {
+                  "key": "country",
+                  "value": "US",
+                  "description": "Optional two-letter country code."
+                }
               ]
             },
             "description": "The date path must be a real YYYY-MM-DD value. Every reading includes mapped local NABRE verse text. Christmas returns its Vigil, Night, Dawn, and Day variants in readingSets, while readings exposes the first valid set for convenience."

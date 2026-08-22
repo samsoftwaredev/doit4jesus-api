@@ -53,7 +53,9 @@ describe('GET /api/v1/leaderboards', () => {
     periodQuery.eq = jest.fn().mockReturnValue(periodQuery);
     periodQuery.in = jest.fn().mockReturnValue(periodQuery);
     periodQuery.order = jest.fn().mockReturnValue(periodQuery);
-    periodQuery.limit = jest.fn().mockResolvedValue({ data: [period], error: null });
+    periodQuery.limit = jest
+      .fn()
+      .mockResolvedValue({ data: [period], error: null });
 
     const pageEntriesQuery: Record<string, jest.Mock> = {};
     pageEntriesQuery.select = jest.fn().mockReturnValue(pageEntriesQuery);
@@ -64,7 +66,9 @@ describe('GET /api/v1/leaderboards', () => {
       .mockResolvedValue({ data: [pageEntry], error: null, count: 100 });
 
     const currentUserEntryQuery: Record<string, jest.Mock> = {};
-    currentUserEntryQuery.select = jest.fn().mockReturnValue(currentUserEntryQuery);
+    currentUserEntryQuery.select = jest
+      .fn()
+      .mockReturnValue(currentUserEntryQuery);
     currentUserEntryQuery.eq = jest.fn().mockReturnValue(currentUserEntryQuery);
     currentUserEntryQuery.maybeSingle = jest
       .fn()
@@ -104,7 +108,10 @@ describe('GET /api/v1/leaderboards', () => {
       })),
     };
 
-    mockedRequireUser.mockResolvedValue({ supabase, userId: currentUserId } as never);
+    mockedRequireUser.mockResolvedValue({
+      supabase,
+      userId: currentUserId,
+    } as never);
 
     const response = await GET({
       url: 'http://localhost:3000/api/v1/leaderboards?limit=1&offset=0',
@@ -129,6 +136,9 @@ describe('GET /api/v1/leaderboards', () => {
       },
       meta: { total: 100, limit: 1, offset: 0 },
     });
-    expect(profilesQuery.in).toHaveBeenCalledWith('user_id', [otherUserId, currentUserId]);
+    expect(profilesQuery.in).toHaveBeenCalledWith('user_id', [
+      otherUserId,
+      currentUserId,
+    ]);
   });
 });

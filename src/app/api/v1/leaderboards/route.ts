@@ -1,31 +1,36 @@
-import { ApiError } from '@/lib/api/errors'
-import { errorResponse, ok } from '@/lib/api/response'
-import { throwDatabaseError } from '@/lib/api/database'
-import { requireUser } from '@/lib/auth/require-user'
-import { leaderboardQuerySchema } from '@/lib/schemas/leaderboard'
+import { throwDatabaseError } from '@/lib/api/database';
+import { ApiError } from '@/lib/api/errors';
+import { errorResponse, ok } from '@/lib/api/response';
+import { requireUser } from '@/lib/auth/require-user';
+import { leaderboardQuerySchema } from '@/lib/schemas/leaderboard';
 
-export const dynamic = 'force-dynamic'
+export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
   try {
-    const { supabase, userId } = await requireUser(request)
-    const url = new URL(request.url)
-    const query = leaderboardQuerySchema.parse(Object.fromEntries(url.searchParams.entries()))
+    const { supabase, userId } = await requireUser(request);
+    const url = new URL(request.url);
+    const query = leaderboardQuerySchema.parse(
+      Object.fromEntries(url.searchParams.entries()),
+    );
 
     let periodQuery = supabase
       .schema('competition')
       .from('leaderboard_periods')
       .select('*')
-      .eq('period_type', query.periodType)
+      .eq('period_type', query.periodType);
 
     periodQuery = query.periodCode
       ? periodQuery.eq('code', query.periodCode)
-      : periodQuery.in('status', ['active', 'finalized']).order('starts_at', { ascending: false })
+      : periodQuery
+          .in('status', ['active', 'finalized'])
+          .order('starts_at', { ascending: false });
 
-    const { data: periods, error: periodError } = await periodQuery.limit(1)
-    throwDatabaseError(periodError, 'Unable to load the leaderboard period.')
-    const period = periods?.[0]
-    if (!period) throw ApiError.notFound('No leaderboard period matches the request.')
+    const { data: periods, error: periodError } = await periodQuery.limit(1);
+    throwDatabaseError(periodError, 'Unable to load the leaderboard period.');
+    const period = periods?.[0];
+    if (!period)
+      throw ApiError.notFound('No leaderboard period matches the request.');
 
     const [entriesResponse, currentUserEntryResponse] = await Promise.all([
       supabase
@@ -47,22 +52,25 @@ export async function GET(request: Request) {
         .eq('scope_reference', query.scopeReference)
         .eq('user_id', userId)
         .maybeSingle(),
-    ])
+    ]);
 
-    throwDatabaseError(entriesResponse.error, 'Unable to load leaderboard entries.')
+    throwDatabaseError(
+      entriesResponse.error,
+      'Unable to load leaderboard entries.',
+    );
     throwDatabaseError(
       currentUserEntryResponse.error,
       'Unable to load the current user leaderboard entry.',
-    )
+    );
 
-    const rows = entriesResponse.data ?? []
-    const currentUserEntry = currentUserEntryResponse.data
+    const rows = entriesResponse.data ?? [];
+    const currentUserEntry = currentUserEntryResponse.data;
     const userIds = [
       ...new Set([
         ...rows.map((entry) => entry.user_id),
         ...(currentUserEntry ? [currentUserEntry.user_id] : []),
       ]),
-    ]
+    ];
 
     const { data: profiles, error: profileError } = userIds.length
       ? await supabase
@@ -70,10 +78,12 @@ export async function GET(request: Request) {
           .from('leaderboard_profiles')
           .select('user_id,display_name,username,avatar_url,title')
           .in('user_id', userIds)
-      : { data: [], error: null }
+      : { data: [], error: null };
 
-    throwDatabaseError(profileError, 'Unable to load leaderboard profiles.')
-    const profileMap = new Map((profiles ?? []).map((profile) => [profile.user_id, profile]))
+    throwDatabaseError(profileError, 'Unable to load leaderboard profiles.');
+    const profileMap = new Map(
+      (profiles ?? []).map((profile) => [profile.user_id, profile]),
+    );
     const toResponseEntry = (entry: (typeof rows)[number]) => ({
       ...entry,
       isCurrentUser: entry.user_id === userId,
@@ -84,18 +94,24 @@ export async function GET(request: Request) {
         avatar_url: null,
         title: null,
       },
-    })
+    });
 
     return ok(
       {
         period,
         entries: rows.map(toResponseEntry),
-        currentUserEntry: currentUserEntry ? toResponseEntry(currentUserEntry) : null,
+        currentUserEntry: currentUserEntry
+          ? toResponseEntry(currentUserEntry)
+          : null,
       },
       {},
-      { total: entriesResponse.count ?? 0, limit: query.limit, offset: query.offset },
-    )
+      {
+        total: entriesResponse.count ?? 0,
+        limit: query.limit,
+        offset: query.offset,
+      },
+    );
   } catch (error) {
-    return errorResponse(error, request)
+    return errorResponse(error, request);
   }
 }

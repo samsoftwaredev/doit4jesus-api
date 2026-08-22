@@ -43,7 +43,9 @@ export class LectionaryResolver {
         break;
       case 'COMMON':
         readingSets = proper?.common
-          ? this.repository.getCommonReadings(proper.common).flatMap((entry) => entry.readingSets)
+          ? this.repository
+              .getCommonReadings(proper.common)
+              .flatMap((entry) => entry.readingSets)
           : [];
         break;
       case 'MIXED':

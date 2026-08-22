@@ -1,10 +1,11 @@
-import { createClient as createSupabaseClient } from '@supabase/supabase-js'
-import type { Database } from '@/lib/supabase/types'
+import { createClient as createSupabaseClient } from '@supabase/supabase-js';
+
+import type { Database } from '@/lib/supabase/types';
 
 export function createAdminClient() {
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!serviceRoleKey) {
-    throw new Error('SUPABASE_SERVICE_ROLE_KEY is not configured.')
+    throw new Error('SUPABASE_SERVICE_ROLE_KEY is not configured.');
   }
 
   return createSupabaseClient<Database>(
@@ -16,5 +17,5 @@ export function createAdminClient() {
         persistSession: false,
       },
     },
-  )
+  );
 }

@@ -1,8 +1,18 @@
-import type { LectionaryEntry, ReadingSet, ScriptureReading } from '@/liturgy/models';
+import type {
+  LectionaryEntry,
+  ReadingSet,
+  ScriptureReading,
+} from '@/liturgy/models';
 
-const reading = (type: ScriptureReading['type'], citation: string) => ({ type, citation });
+const reading = (type: ScriptureReading['type'], citation: string) => ({
+  type,
+  citation,
+});
 
-const weekdaySet = (id: string, readings: ScriptureReading[]): LectionaryEntry => ({
+const weekdaySet = (
+  id: string,
+  readings: ScriptureReading[],
+): LectionaryEntry => ({
   selectionRule: 'WEEKDAY',
   readingSets: [{ id, label: 'DEFAULT', readings, selectionRule: 'WEEKDAY' }],
 });

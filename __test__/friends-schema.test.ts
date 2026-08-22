@@ -53,10 +53,14 @@ describe('friend API schemas', () => {
   });
 
   it('allows requesting a Rosary streak on a friend detail', () => {
-    expect(friendDetailsQuerySchema.parse({ include: 'rosaryStreak' })).toEqual({
-      include: 'rosaryStreak',
-    });
+    expect(friendDetailsQuerySchema.parse({ include: 'rosaryStreak' })).toEqual(
+      {
+        include: 'rosaryStreak',
+      },
+    );
     expect(friendDetailsQuerySchema.parse({})).toEqual({});
-    expect(() => friendDetailsQuerySchema.parse({ include: 'badges' })).toThrow();
+    expect(() =>
+      friendDetailsQuerySchema.parse({ include: 'badges' }),
+    ).toThrow();
   });
 });

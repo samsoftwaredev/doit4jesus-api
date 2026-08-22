@@ -1,4 +1,4 @@
-import { createContactRequestSchema } from '../src/lib/schemas/contact'
+import { createContactRequestSchema } from '../src/lib/schemas/contact';
 
 describe('createContactRequestSchema', () => {
   it('accepts an Other subject with a user-specified label', () => {
@@ -16,8 +16,8 @@ describe('createContactRequestSchema', () => {
       subject: 'Other',
       otherSubject: 'Accessibility question',
       message: 'Can you improve voice-over support?',
-    })
-  })
+    });
+  });
 
   it('rejects a custom subject for a listed category', () => {
     expect(() =>
@@ -28,6 +28,6 @@ describe('createContactRequestSchema', () => {
         otherSubject: 'Different billing issue',
         message: 'Please send my receipt.',
       }),
-    ).toThrow('otherSubject may only be provided when subject is Other.')
-  })
-})
+    ).toThrow('otherSubject may only be provided when subject is Other.');
+  });
+});

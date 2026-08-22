@@ -121,7 +121,9 @@ function parseRanges(citation: string): { book: string; ranges: VerseRange[] } {
   for (const reference of references) {
     const chapterMatch = reference.trim().match(/^(\d+)\s*:\s*(.+)$/);
     if (!chapterMatch) {
-      throw new NabreVerseMappingError(`Unsupported NABRE citation segment: ${citation}`);
+      throw new NabreVerseMappingError(
+        `Unsupported NABRE citation segment: ${citation}`,
+      );
     }
     activeChapter = Number.parseInt(chapterMatch[1], 10);
 
@@ -132,7 +134,9 @@ function parseRanges(citation: string): { book: string; ranges: VerseRange[] } {
         /^(\d+[a-z]*)(?:\s*-\s*(?:(\d+)\s*:\s*)?(\d+[a-z]*))?$/i,
       );
       if (!rangeMatch || activeChapter === null) {
-        throw new NabreVerseMappingError(`Unsupported NABRE verse range: ${citation}`);
+        throw new NabreVerseMappingError(
+          `Unsupported NABRE verse range: ${citation}`,
+        );
       }
 
       const startVerse = parseVerseNumber(rangeMatch[1]);
@@ -141,7 +145,9 @@ function parseRanges(citation: string): { book: string; ranges: VerseRange[] } {
         : activeChapter;
       const endVerse = parseVerseNumber(rangeMatch[3] ?? rangeMatch[1]);
       if (!startVerse || !endVerse || endChapter < activeChapter) {
-        throw new NabreVerseMappingError(`Invalid NABRE verse range: ${citation}`);
+        throw new NabreVerseMappingError(
+          `Invalid NABRE verse range: ${citation}`,
+        );
       }
       ranges.push({
         startChapter: activeChapter,
@@ -166,7 +172,10 @@ export class NabreVerseMapper {
     return {
       ...reading,
       text: verses
-        .map((verse) => `${bibleBook.book} ${verse.chapter}:${verse.verse} ${verse.text}`)
+        .map(
+          (verse) =>
+            `${bibleBook.book} ${verse.chapter}:${verse.verse} ${verse.text}`,
+        )
         .join('\n'),
     };
   }
@@ -180,36 +189,60 @@ export class NabreVerseMapper {
     if (cached) return cached;
 
     const loader = bookLoaders[book];
-    if (!loader) throw new NabreVerseMappingError(`No local NABRE book file exists for ${book}.`);
+    if (!loader)
+      throw new NabreVerseMappingError(
+        `No local NABRE book file exists for ${book}.`,
+      );
     const loaded = await loader();
     this.cache.set(book, loaded.default);
     return loaded.default;
   }
 
-  private selectVerses(book: BibleBook, ranges: VerseRange[], citation: string) {
-    const selected: Array<{ chapter: number; verse: number; text: string }> = [];
+  private selectVerses(
+    book: BibleBook,
+    ranges: VerseRange[],
+    citation: string,
+  ) {
+    const selected: Array<{ chapter: number; verse: number; text: string }> =
+      [];
     const seen = new Set<string>();
 
     for (const range of ranges) {
-      for (let chapterNumber = range.startChapter; chapterNumber <= range.endChapter; chapterNumber += 1) {
-        const chapter = book.chapters.find((candidate) => candidate.chapter === chapterNumber);
+      for (
+        let chapterNumber = range.startChapter;
+        chapterNumber <= range.endChapter;
+        chapterNumber += 1
+      ) {
+        const chapter = book.chapters.find(
+          (candidate) => candidate.chapter === chapterNumber,
+        );
         if (!chapter) {
-          throw new NabreVerseMappingError(`Chapter ${chapterNumber} is unavailable for ${citation}.`);
+          throw new NabreVerseMappingError(
+            `Chapter ${chapterNumber} is unavailable for ${citation}.`,
+          );
         }
-        const firstVerse = chapterNumber === range.startChapter ? range.startVerse : 1;
-        const lastVerse = chapterNumber === range.endChapter ? range.endVerse : Infinity;
+        const firstVerse =
+          chapterNumber === range.startChapter ? range.startVerse : 1;
+        const lastVerse =
+          chapterNumber === range.endChapter ? range.endVerse : Infinity;
         for (const verse of chapter.verses) {
           if (verse.verse < firstVerse || verse.verse > lastVerse) continue;
           const key = `${chapterNumber}:${verse.verse}`;
           if (seen.has(key)) continue;
           seen.add(key);
-          selected.push({ chapter: chapterNumber, verse: verse.verse, text: verse.text });
+          selected.push({
+            chapter: chapterNumber,
+            verse: verse.verse,
+            text: verse.text,
+          });
         }
       }
     }
 
     if (selected.length === 0) {
-      throw new NabreVerseMappingError(`No local NABRE verses matched ${citation}.`);
+      throw new NabreVerseMappingError(
+        `No local NABRE verses matched ${citation}.`,
+      );
     }
     return selected;
   }

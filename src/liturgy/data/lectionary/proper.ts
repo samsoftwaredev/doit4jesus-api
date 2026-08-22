@@ -5,8 +5,11 @@ import type {
   SundayCycle,
 } from '@/liturgy/models';
 
-const reading = (type: ScriptureReading['type'], citation: string, optional = false) =>
-  optional ? { type, citation, optional } : { type, citation };
+const reading = (
+  type: ScriptureReading['type'],
+  citation: string,
+  optional = false,
+) => (optional ? { type, citation, optional } : { type, citation });
 
 const set = (
   id: string,
@@ -183,7 +186,11 @@ export const properReadings: Record<string, LectionaryEntry> = {
   'easter-vigil': proper(
     set('easter-vigil-default', 'VIGIL', [
       reading('FIRST_READING', 'Gn 1:1—2:2', true),
-      reading('RESPONSORIAL_PSALM', 'Ps 104:1-2, 5-6, 10, 12, 13-14, 24, 35', true),
+      reading(
+        'RESPONSORIAL_PSALM',
+        'Ps 104:1-2, 5-6, 10, 12, 13-14, 24, 35',
+        true,
+      ),
       reading('FIRST_READING', 'Gn 22:1-18', true),
       reading('RESPONSORIAL_PSALM', 'Ps 16:5, 8, 9-10, 11', true),
       reading('FIRST_READING', 'Ex 14:15—15:1'),

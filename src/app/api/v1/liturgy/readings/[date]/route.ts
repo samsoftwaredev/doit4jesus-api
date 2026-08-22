@@ -25,7 +25,11 @@ export async function GET(
     return errorResponse(
       error instanceof Error
         ? error
-        : new ApiError(500, 'LITURGY_RESOLUTION_ERROR', 'Unable to resolve Mass readings.'),
+        : new ApiError(
+            500,
+            'LITURGY_RESOLUTION_ERROR',
+            'Unable to resolve Mass readings.',
+          ),
       request,
     );
   }

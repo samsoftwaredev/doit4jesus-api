@@ -46,7 +46,9 @@ describe('/api/v1/me', () => {
     const profileQuery: Record<string, jest.Mock> = {};
     profileQuery.select = jest.fn().mockReturnValue(profileQuery);
     profileQuery.eq = jest.fn().mockReturnValue(profileQuery);
-    profileQuery.single = jest.fn().mockResolvedValue({ data: profile, error: null });
+    profileQuery.single = jest
+      .fn()
+      .mockResolvedValue({ data: profile, error: null });
     const resolvedCityQuery = cityQuery();
     const from = jest
       .fn()
@@ -55,7 +57,9 @@ describe('/api/v1/me', () => {
     const supabase = { schema: jest.fn(() => ({ from })) };
     mockedRequireUser.mockResolvedValue({ supabase, userId } as never);
 
-    const response = await GET({ url: 'http://localhost/api/v1/me' } as Request);
+    const response = await GET({
+      url: 'http://localhost/api/v1/me',
+    } as Request);
 
     expect(await response.json()).toEqual({
       data: expect.objectContaining({
@@ -81,21 +85,33 @@ describe('/api/v1/me', () => {
     const supabase = { schema: jest.fn(() => ({ from })) };
     mockedRequireUser.mockResolvedValue({ supabase, userId } as never);
 
-    const response = await GET({ url: 'http://localhost/api/v1/me' } as Request);
+    const response = await GET({
+      url: 'http://localhost/api/v1/me',
+    } as Request);
 
     expect(await response.json()).toEqual({
-      data: expect.objectContaining({ cityId: null, cityName: null, state: null }),
+      data: expect.objectContaining({
+        cityId: null,
+        cityName: null,
+        state: null,
+      }),
     });
     expect(from).toHaveBeenCalledTimes(1);
   });
 
   it('persists gender and an optional saint avatar through PATCH', async () => {
-    const updatedProfile = { ...profile, gender: 'female' as const, saint_avatar_id: null };
+    const updatedProfile = {
+      ...profile,
+      gender: 'female' as const,
+      saint_avatar_id: null,
+    };
     const profileQuery: Record<string, jest.Mock> = {};
     profileQuery.update = jest.fn().mockReturnValue(profileQuery);
     profileQuery.eq = jest.fn().mockReturnValue(profileQuery);
     profileQuery.select = jest.fn().mockReturnValue(profileQuery);
-    profileQuery.single = jest.fn().mockResolvedValue({ data: updatedProfile, error: null });
+    profileQuery.single = jest
+      .fn()
+      .mockResolvedValue({ data: updatedProfile, error: null });
     const resolvedCityQuery = cityQuery();
     const from = jest
       .fn()
@@ -106,7 +122,10 @@ describe('/api/v1/me', () => {
 
     const response = await PATCH({
       url: 'http://localhost/api/v1/me',
-      headers: { get: (name: string) => (name === 'content-type' ? 'application/json' : null) },
+      headers: {
+        get: (name: string) =>
+          name === 'content-type' ? 'application/json' : null,
+      },
       json: async () => ({ gender: 'female', saintAvatarId: null }),
     } as Request);
 

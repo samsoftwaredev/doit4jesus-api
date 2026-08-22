@@ -1,5 +1,4 @@
 import bibleBooks from '@/data/bible/bible-nabre-book-chapters.json';
-
 import type { CanonicalReference } from '@/liturgy/models';
 
 type BibleBook = { Book: string; Chapters: number };
@@ -53,7 +52,20 @@ export function canonicalBookForCitation(citation: string) {
   const base = aliases[shortName];
   if (!base) return null;
 
-  if (number && ['Corinthians', 'Samuel', 'Thessalonians', 'Timothy', 'Peter', 'John', 'Kings', 'Chronicles', 'Maccabees'].some((name) => base.endsWith(name))) {
+  if (
+    number &&
+    [
+      'Corinthians',
+      'Samuel',
+      'Thessalonians',
+      'Timothy',
+      'Peter',
+      'John',
+      'Kings',
+      'Chronicles',
+      'Maccabees',
+    ].some((name) => base.endsWith(name))
+  ) {
     return `${number}${base.replace(/^1/, '')}`;
   }
   return base;
@@ -82,6 +94,10 @@ export class NabreScriptureRepository {
     const chapters = this.books.get(reference.book);
     if (!chapters) return false;
     const end = reference.chapterEnd ?? reference.chapterStart;
-    return reference.chapterStart >= 1 && end >= reference.chapterStart && end <= chapters;
+    return (
+      reference.chapterStart >= 1 &&
+      end >= reference.chapterStart &&
+      end <= chapters
+    );
   }
 }

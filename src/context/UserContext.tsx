@@ -1,27 +1,28 @@
-'use client'
+'use client';
 
-import { createContext, useContext, useEffect, useState } from 'react'
-import type { User } from '@supabase/supabase-js'
-import { supabaseClient } from '@/app/classes/supabaseClient'
+import type { User } from '@supabase/supabase-js';
+import { createContext, useContext, useEffect, useState } from 'react';
+
+import { supabaseClient } from '@/app/classes/supabaseClient';
 
 type UserContextValue = {
-  user: User | null
-  profile:  null
-  isLoading: boolean
-  refreshProfile: () => Promise<void>
-}
+  user: User | null;
+  profile: null;
+  isLoading: boolean;
+  refreshProfile: () => Promise<void>;
+};
 
 const UserContext = createContext<UserContextValue>({
   user: null,
   profile: null,
   isLoading: true,
   refreshProfile: async () => {},
-})
+});
 
 export function UserProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null)
-  const [profile, setProfile] = useState< null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+  const [user, setUser] = useState<User | null>(null);
+  const [profile, setProfile] = useState<null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   async function fetchProfile() {
     // const { data } = await apiClient.me.get()
@@ -29,37 +30,36 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   }
 
   async function refreshProfile() {
-    if (user) await fetchProfile()
+    if (user) await fetchProfile();
   }
 
   useEffect(() => {
-
     // onAuthStateChange fires immediately with INITIAL_SESSION
     const {
       data: { subscription },
     } = supabaseClient.auth.onAuthStateChange(async (_event, session) => {
-      const currentUser = session?.user ?? null
-      setUser(currentUser)
+      const currentUser = session?.user ?? null;
+      setUser(currentUser);
 
       if (currentUser) {
-        await fetchProfile()
+        await fetchProfile();
       } else {
-        setProfile(null)
+        setProfile(null);
       }
 
-      setIsLoading(false)
-    })
+      setIsLoading(false);
+    });
 
-    return () => subscription.unsubscribe()
-  }, [])
+    return () => subscription.unsubscribe();
+  }, []);
 
   return (
     <UserContext.Provider value={{ user, profile, isLoading, refreshProfile }}>
       {children}
     </UserContext.Provider>
-  )
+  );
 }
 
 export function useUser() {
-  return useContext(UserContext)
+  return useContext(UserContext);
 }

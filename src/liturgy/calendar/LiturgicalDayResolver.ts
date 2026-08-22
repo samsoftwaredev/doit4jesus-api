@@ -61,13 +61,14 @@ function sundayOnOrBefore(date: Date) {
 }
 
 function ordinal(value: number) {
-  const suffix = value % 10 === 1 && value % 100 !== 11
-    ? 'st'
-    : value % 10 === 2 && value % 100 !== 12
-      ? 'nd'
-      : value % 10 === 3 && value % 100 !== 13
-        ? 'rd'
-        : 'th';
+  const suffix =
+    value % 10 === 1 && value % 100 !== 11
+      ? 'st'
+      : value % 10 === 2 && value % 100 !== 12
+        ? 'nd'
+        : value % 10 === 3 && value % 100 !== 13
+          ? 'rd'
+          : 'th';
   return `${value}${suffix}`;
 }
 
@@ -106,11 +107,12 @@ export function firstSundayOfAdvent(year: number) {
 
 function sundayCycle(liturgicalYear: number): SundayCycle {
   const cycles: SundayCycle[] = ['A', 'B', 'C'];
-  return cycles[((liturgicalYear - 2026) % 3 + 3) % 3];
+  return cycles[(((liturgicalYear - 2026) % 3) + 3) % 3];
 }
 
 function epiphany(year: number, country?: string) {
-  if (country === 'US') return sundayOnOrAfter(utcDate({ year, month: 1, day: 2 }));
+  if (country === 'US')
+    return sundayOnOrAfter(utcDate({ year, month: 1, day: 2 }));
   return utcDate({ year, month: 1, day: 6 });
 }
 
@@ -123,19 +125,97 @@ function fixedCelebration(date: Date): LiturgicalCelebration | undefined {
   const month = date.getUTCMonth() + 1;
   const day = date.getUTCDate();
   const fixed: Record<string, LiturgicalCelebration> = {
-    '1-1': celebration('mary-mother-of-god', 'Mary, the Holy Mother of God', 'SOLEMNITY', ['WHITE'], 'REQUIRED_PROPER'),
-    '3-19': celebration('saint-joseph', 'Saint Joseph, Spouse of the Blessed Virgin Mary', 'SOLEMNITY', ['WHITE'], 'REQUIRED_PROPER'),
-    '3-25': celebration('annunciation', 'The Annunciation of the Lord', 'SOLEMNITY', ['WHITE'], 'REQUIRED_PROPER'),
-    '6-24': celebration('nativity-of-saint-john-the-baptist', 'The Nativity of Saint John the Baptist', 'SOLEMNITY', ['WHITE'], 'REQUIRED_PROPER'),
-    '6-29': celebration('saints-peter-and-paul', 'Saints Peter and Paul, Apostles', 'SOLEMNITY', ['RED'], 'REQUIRED_PROPER'),
-    '8-6': celebration('transfiguration', 'The Transfiguration of the Lord', 'FEAST', ['WHITE'], 'REQUIRED_PROPER'),
-    '8-15': celebration('assumption', 'The Assumption of the Blessed Virgin Mary', 'SOLEMNITY', ['WHITE'], 'REQUIRED_PROPER'),
-    '8-21': celebration('saint-pius-x', 'Memorial of Saint Pius X, Pope', 'MEMORIAL', ['WHITE'], 'WEEKDAY'),
-    '8-28': celebration('saint-augustine', 'Memorial of Saint Augustine, Bishop and Doctor of the Church', 'MEMORIAL', ['WHITE'], 'OPTIONAL_PROPER'),
-    '10-1': celebration('saint-therese-of-lisieux', 'Memorial of Saint Thérèse of the Child Jesus, Virgin and Doctor of the Church', 'MEMORIAL', ['WHITE'], 'OPTIONAL_PROPER'),
-    '11-1': celebration('all-saints', 'All Saints', 'SOLEMNITY', ['WHITE'], 'REQUIRED_PROPER'),
-    '12-8': celebration('immaculate-conception', 'The Immaculate Conception of the Blessed Virgin Mary', 'SOLEMNITY', ['WHITE'], 'REQUIRED_PROPER'),
-    '12-25': celebration('christmas', 'The Nativity of the Lord (Christmas)', 'SOLEMNITY', ['WHITE'], 'REQUIRED_PROPER'),
+    '1-1': celebration(
+      'mary-mother-of-god',
+      'Mary, the Holy Mother of God',
+      'SOLEMNITY',
+      ['WHITE'],
+      'REQUIRED_PROPER',
+    ),
+    '3-19': celebration(
+      'saint-joseph',
+      'Saint Joseph, Spouse of the Blessed Virgin Mary',
+      'SOLEMNITY',
+      ['WHITE'],
+      'REQUIRED_PROPER',
+    ),
+    '3-25': celebration(
+      'annunciation',
+      'The Annunciation of the Lord',
+      'SOLEMNITY',
+      ['WHITE'],
+      'REQUIRED_PROPER',
+    ),
+    '6-24': celebration(
+      'nativity-of-saint-john-the-baptist',
+      'The Nativity of Saint John the Baptist',
+      'SOLEMNITY',
+      ['WHITE'],
+      'REQUIRED_PROPER',
+    ),
+    '6-29': celebration(
+      'saints-peter-and-paul',
+      'Saints Peter and Paul, Apostles',
+      'SOLEMNITY',
+      ['RED'],
+      'REQUIRED_PROPER',
+    ),
+    '8-6': celebration(
+      'transfiguration',
+      'The Transfiguration of the Lord',
+      'FEAST',
+      ['WHITE'],
+      'REQUIRED_PROPER',
+    ),
+    '8-15': celebration(
+      'assumption',
+      'The Assumption of the Blessed Virgin Mary',
+      'SOLEMNITY',
+      ['WHITE'],
+      'REQUIRED_PROPER',
+    ),
+    '8-21': celebration(
+      'saint-pius-x',
+      'Memorial of Saint Pius X, Pope',
+      'MEMORIAL',
+      ['WHITE'],
+      'WEEKDAY',
+    ),
+    '8-28': celebration(
+      'saint-augustine',
+      'Memorial of Saint Augustine, Bishop and Doctor of the Church',
+      'MEMORIAL',
+      ['WHITE'],
+      'OPTIONAL_PROPER',
+    ),
+    '10-1': celebration(
+      'saint-therese-of-lisieux',
+      'Memorial of Saint Thérèse of the Child Jesus, Virgin and Doctor of the Church',
+      'MEMORIAL',
+      ['WHITE'],
+      'OPTIONAL_PROPER',
+    ),
+    '11-1': celebration(
+      'all-saints',
+      'All Saints',
+      'SOLEMNITY',
+      ['WHITE'],
+      'REQUIRED_PROPER',
+    ),
+    '12-8': celebration(
+      'immaculate-conception',
+      'The Immaculate Conception of the Blessed Virgin Mary',
+      'SOLEMNITY',
+      ['WHITE'],
+      'REQUIRED_PROPER',
+    ),
+    '12-25': celebration(
+      'christmas',
+      'The Nativity of the Lord (Christmas)',
+      'SOLEMNITY',
+      ['WHITE'],
+      'REQUIRED_PROPER',
+    ),
   };
   return fixed[`${month}-${day}`];
 }
@@ -147,30 +227,96 @@ function specialCelebration(
 ): LiturgicalCelebration | undefined {
   const offset = daysBetween(easter, date);
   const variable: Record<string, LiturgicalCelebration> = {
-    '-46': celebration('ash-wednesday', 'Ash Wednesday', 'WEEKDAY', ['VIOLET'], 'REQUIRED_PROPER'),
-    '-7': celebration('palm-sunday', 'Palm Sunday of the Passion of the Lord', 'SUNDAY', ['RED'], 'REQUIRED_PROPER'),
-    '-3': celebration('holy-thursday', 'Holy Thursday - Mass of the Lord’s Supper', 'SOLEMNITY', ['WHITE'], 'REQUIRED_PROPER'),
-    '-2': celebration('good-friday', 'Friday of the Passion of the Lord', 'SOLEMNITY', ['RED'], 'REQUIRED_PROPER'),
-    '-1': celebration('easter-vigil', 'The Easter Vigil in the Holy Night', 'SOLEMNITY', ['WHITE'], 'REQUIRED_PROPER'),
-    '0': celebration('easter-sunday', 'Easter Sunday of the Resurrection of the Lord', 'SOLEMNITY', ['WHITE'], 'REQUIRED_PROPER'),
-    '49': celebration('pentecost', 'Pentecost Sunday', 'SOLEMNITY', ['RED'], 'REQUIRED_PROPER'),
-    '68': celebration('sacred-heart', 'The Most Sacred Heart of Jesus', 'SOLEMNITY', ['WHITE'], 'REQUIRED_PROPER'),
+    '-46': celebration(
+      'ash-wednesday',
+      'Ash Wednesday',
+      'WEEKDAY',
+      ['VIOLET'],
+      'REQUIRED_PROPER',
+    ),
+    '-7': celebration(
+      'palm-sunday',
+      'Palm Sunday of the Passion of the Lord',
+      'SUNDAY',
+      ['RED'],
+      'REQUIRED_PROPER',
+    ),
+    '-3': celebration(
+      'holy-thursday',
+      'Holy Thursday - Mass of the Lord’s Supper',
+      'SOLEMNITY',
+      ['WHITE'],
+      'REQUIRED_PROPER',
+    ),
+    '-2': celebration(
+      'good-friday',
+      'Friday of the Passion of the Lord',
+      'SOLEMNITY',
+      ['RED'],
+      'REQUIRED_PROPER',
+    ),
+    '-1': celebration(
+      'easter-vigil',
+      'The Easter Vigil in the Holy Night',
+      'SOLEMNITY',
+      ['WHITE'],
+      'REQUIRED_PROPER',
+    ),
+    '0': celebration(
+      'easter-sunday',
+      'Easter Sunday of the Resurrection of the Lord',
+      'SOLEMNITY',
+      ['WHITE'],
+      'REQUIRED_PROPER',
+    ),
+    '49': celebration(
+      'pentecost',
+      'Pentecost Sunday',
+      'SOLEMNITY',
+      ['RED'],
+      'REQUIRED_PROPER',
+    ),
+    '68': celebration(
+      'sacred-heart',
+      'The Most Sacred Heart of Jesus',
+      'SOLEMNITY',
+      ['WHITE'],
+      'REQUIRED_PROPER',
+    ),
   };
 
   if (sameDate(date, addDays(easter, country === 'US' ? 42 : 39))) {
-    return celebration('ascension', 'The Ascension of the Lord', 'SOLEMNITY', ['WHITE'], 'REQUIRED_PROPER');
+    return celebration(
+      'ascension',
+      'The Ascension of the Lord',
+      'SOLEMNITY',
+      ['WHITE'],
+      'REQUIRED_PROPER',
+    );
   }
   if (sameDate(date, addDays(easter, country === 'US' ? 63 : 60))) {
-    return celebration('corpus-christi', 'The Most Holy Body and Blood of Christ', 'SOLEMNITY', ['WHITE'], 'REQUIRED_PROPER');
+    return celebration(
+      'corpus-christi',
+      'The Most Holy Body and Blood of Christ',
+      'SOLEMNITY',
+      ['WHITE'],
+      'REQUIRED_PROPER',
+    );
   }
   if (offset === -46) return variable['-46'];
   if (offset === -7) return variable['-7'];
   if (offset >= -6 && offset <= -1) return variable[String(offset)];
-  if (offset === 0 || offset === 49 || offset === 68) return variable[String(offset)];
+  if (offset === 0 || offset === 49 || offset === 68)
+    return variable[String(offset)];
   return undefined;
 }
 
-function seasonForDate(date: Date, easter: Date, advent: Date, country?: string): LiturgicalSeason {
+function seasonForDate(
+  date: Date,
+  easter: Date,
+  advent: Date,
+  country?: string,
+): LiturgicalSeason {
   const year = date.getUTCFullYear();
   const baptism = baptismOfTheLord(year, country);
   const ashWednesday = addDays(easter, -46);
@@ -179,12 +325,20 @@ function seasonForDate(date: Date, easter: Date, advent: Date, country?: string)
   if (date.getUTCMonth() === 11 && date.getUTCDate() >= 25) return 'CHRISTMAS';
   if (compareDates(date, advent) >= 0) return 'ADVENT';
   if (compareDates(date, baptism) <= 0) return 'CHRISTMAS';
-  if (compareDates(date, ashWednesday) >= 0 && compareDates(date, easter) < 0) return 'LENT';
-  if (compareDates(date, easter) >= 0 && compareDates(date, pentecost) <= 0) return 'EASTER';
+  if (compareDates(date, ashWednesday) >= 0 && compareDates(date, easter) < 0)
+    return 'LENT';
+  if (compareDates(date, easter) >= 0 && compareDates(date, pentecost) <= 0)
+    return 'EASTER';
   return 'ORDINARY_TIME';
 }
 
-function weekForDate(date: Date, season: LiturgicalSeason, easter: Date, advent: Date, country?: string) {
+function weekForDate(
+  date: Date,
+  season: LiturgicalSeason,
+  easter: Date,
+  advent: Date,
+  country?: string,
+) {
   const year = date.getUTCFullYear();
   if (season === 'ADVENT') return Math.floor(daysBetween(advent, date) / 7) + 1;
   if (season === 'EASTER') return Math.floor(daysBetween(easter, date) / 7) + 1;
@@ -264,7 +418,10 @@ function psalterWeek(week: number | undefined): 1 | 2 | 3 | 4 | undefined {
 }
 
 export class LiturgicalDayResolver {
-  resolve(date: string, options: LiturgicalCalendarOptions = {}): LiturgicalDay {
+  resolve(
+    date: string,
+    options: LiturgicalCalendarOptions = {},
+  ): LiturgicalDay {
     const [year, month, day] = date.split('-').map(Number);
     const value = utcDate({ year, month, day });
     const easter = easterSunday(year);
@@ -275,13 +432,23 @@ export class LiturgicalDayResolver {
     const week = weekForDate(value, season, easter, advent, options.country);
     const special = specialCelebration(value, easter, options.country);
     const epiphanyCelebration = sameDate(value, epiphany(year, options.country))
-      ? celebration('epiphany', 'The Epiphany of the Lord', 'SOLEMNITY', ['WHITE'], 'REQUIRED_PROPER')
+      ? celebration(
+          'epiphany',
+          'The Epiphany of the Lord',
+          'SOLEMNITY',
+          ['WHITE'],
+          'REQUIRED_PROPER',
+        )
       : undefined;
     const fixed = fixedCelebration(value);
 
     return {
       date: formatDate(value),
-      primaryCelebration: special ?? epiphanyCelebration ?? fixed ?? defaultCelebration(value, season, week),
+      primaryCelebration:
+        special ??
+        epiphanyCelebration ??
+        fixed ??
+        defaultCelebration(value, season, week),
       season,
       week,
       weekday: value.getUTCDay(),

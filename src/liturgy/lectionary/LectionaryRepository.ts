@@ -25,13 +25,18 @@ export interface LectionaryRepository {
     eventId: string,
     sundayCycle: SundayCycle,
   ): LectionaryEntry | undefined;
-  getTemporalReadings(input: TemporalReadingsInput): LectionaryEntry | undefined;
+  getTemporalReadings(
+    input: TemporalReadingsInput,
+  ): LectionaryEntry | undefined;
   getCommonReadings(common: LiturgicalCommon): LectionaryEntry[];
 }
 
 export class LocalLectionaryRepository implements LectionaryRepository {
   getProperReadings(eventId: string, sundayCycle: SundayCycle) {
-    return cycleSpecificProperReadings[eventId]?.[sundayCycle] ?? properReadings[eventId];
+    return (
+      cycleSpecificProperReadings[eventId]?.[sundayCycle] ??
+      properReadings[eventId]
+    );
   }
 
   getTemporalReadings(input: TemporalReadingsInput) {

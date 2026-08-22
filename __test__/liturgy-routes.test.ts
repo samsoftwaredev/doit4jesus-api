@@ -29,7 +29,11 @@ const payload = {
     season: 'ORDINARY_TIME' as const,
     color: ['WHITE' as const],
   },
-  cycles: { sunday: 'A' as const, weekday: 'II' as const, psalterWeek: 4 as const },
+  cycles: {
+    sunday: 'A' as const,
+    weekday: 'II' as const,
+    psalterWeek: 4 as const,
+  },
   readings: [{ type: 'GOSPEL' as const, citation: 'Mt 22:34-40' }],
 };
 
@@ -59,7 +63,9 @@ describe('liturgy routes', () => {
   });
 
   it('uses the configured local date in the today route', async () => {
-    const response = await getToday({ url: 'http://localhost/api/v1/liturgy/today' } as Request);
+    const response = await getToday({
+      url: 'http://localhost/api/v1/liturgy/today',
+    } as Request);
 
     expect(await response.json()).toEqual({ data: payload });
     expect(mockedApplicationToday).toHaveBeenCalledWith();
@@ -71,5 +77,4 @@ describe('liturgy routes', () => {
       includeVerseText: true,
     });
   });
-
 });

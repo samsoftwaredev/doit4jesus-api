@@ -1,49 +1,60 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import NextLink from 'next/link'
-import AppBar from '@mui/material/AppBar'
-import Avatar from '@mui/material/Avatar'
-import Box from '@mui/material/Box'
-import Button from '@mui/material/Button'
-import Container from '@mui/material/Container'
-import Divider from '@mui/material/Divider'
-import IconButton from '@mui/material/IconButton'
-import ListItemIcon from '@mui/material/ListItemIcon'
-import Menu from '@mui/material/Menu'
-import MenuItem from '@mui/material/MenuItem'
-import Skeleton from '@mui/material/Skeleton'
-import Stack from '@mui/material/Stack'
-import Toolbar from '@mui/material/Toolbar'
-import Typography from '@mui/material/Typography'
-import LogoutIcon from '@mui/icons-material/Logout'
-import PersonIcon from '@mui/icons-material/Person'
-import { useUser } from '@/context/UserContext'
-import { supabaseClient } from '@/app/classes/supabaseClient'
+import LogoutIcon from '@mui/icons-material/Logout';
+import PersonIcon from '@mui/icons-material/Person';
+import AppBar from '@mui/material/AppBar';
+import Avatar from '@mui/material/Avatar';
+import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
+import Container from '@mui/material/Container';
+import Divider from '@mui/material/Divider';
+import IconButton from '@mui/material/IconButton';
+import ListItemIcon from '@mui/material/ListItemIcon';
+import Menu from '@mui/material/Menu';
+import MenuItem from '@mui/material/MenuItem';
+import Skeleton from '@mui/material/Skeleton';
+import Stack from '@mui/material/Stack';
+import Toolbar from '@mui/material/Toolbar';
+import Typography from '@mui/material/Typography';
+import NextLink from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+
+import { supabaseClient } from '@/app/classes/supabaseClient';
+import { useUser } from '@/context/UserContext';
 
 export default function TopNav() {
-  const router = useRouter()
-  const { user, profile, isLoading } = useUser()
-  const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null)
+  const router = useRouter();
+  const { user, profile, isLoading } = useUser();
+  const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
 
-  const displayName = (profile as { displayName?: string } | null)?.displayName
-  const avatarUrl = (profile as { avatarUrl?: string } | null)?.avatarUrl
-  const username = (profile as { username?: string } | null)?.username
+  const displayName = (profile as { displayName?: string } | null)?.displayName;
+  const avatarUrl = (profile as { avatarUrl?: string } | null)?.avatarUrl;
+  const username = (profile as { username?: string } | null)?.username;
 
   const initials = displayName
-    ? displayName.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2)
-    : (user?.email?.[0] ?? '?').toUpperCase()
+    ? displayName
+        .split(' ')
+        .map((n: string) => n[0])
+        .join('')
+        .toUpperCase()
+        .slice(0, 2)
+    : (user?.email?.[0] ?? '?').toUpperCase();
 
   async function handleSignOut() {
-    setAnchorEl(null)
-    await supabaseClient.auth.signOut()
-    router.push('/auth/login')
-    router.refresh()
+    setAnchorEl(null);
+    await supabaseClient.auth.signOut();
+    router.push('/auth/login');
+    router.refresh();
   }
 
   return (
-    <AppBar position="sticky" color="inherit" elevation={0} sx={{ borderBottom: '1px solid', borderColor: 'divider' }}>
+    <AppBar
+      position="sticky"
+      color="inherit"
+      elevation={0}
+      sx={{ borderBottom: '1px solid', borderColor: 'divider' }}
+    >
       <Container maxWidth="lg">
         <Toolbar disableGutters sx={{ minHeight: { xs: 56, sm: 64 } }}>
           {/* Brand */}
@@ -66,10 +77,18 @@ export default function TopNav() {
           ) : user ? (
             <>
               {/* Authenticated */}
-              <IconButton onClick={(e) => setAnchorEl(e.currentTarget)} size="small">
+              <IconButton
+                onClick={(e) => setAnchorEl(e.currentTarget)}
+                size="small"
+              >
                 <Avatar
                   src={avatarUrl ?? undefined}
-                  sx={{ width: 36, height: 36, bgcolor: 'primary.main', fontSize: 14 }}
+                  sx={{
+                    width: 36,
+                    height: 36,
+                    bgcolor: 'primary.main',
+                    fontSize: 14,
+                  }}
                 >
                   {initials}
                 </Avatar>
@@ -89,20 +108,32 @@ export default function TopNav() {
                     {displayName ?? user.email}
                   </Typography>
                   {username && (
-                    <Typography variant="caption" color="text.secondary">@{username}</Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      @{username}
+                    </Typography>
                   )}
                   {!username && (
-                    <Typography variant="caption" color="text.secondary" noWrap>{user.email}</Typography>
+                    <Typography variant="caption" color="text.secondary" noWrap>
+                      {user.email}
+                    </Typography>
                   )}
                 </Box>
                 <Divider />
-                <MenuItem component={NextLink} href="/dashboard" onClick={() => setAnchorEl(null)}>
-                  <ListItemIcon><PersonIcon fontSize="small" /></ListItemIcon>
+                <MenuItem
+                  component={NextLink}
+                  href="/dashboard"
+                  onClick={() => setAnchorEl(null)}
+                >
+                  <ListItemIcon>
+                    <PersonIcon fontSize="small" />
+                  </ListItemIcon>
                   Dashboard
                 </MenuItem>
                 <Divider />
                 <MenuItem onClick={handleSignOut} sx={{ color: 'error.main' }}>
-                  <ListItemIcon><LogoutIcon fontSize="small" color="error" /></ListItemIcon>
+                  <ListItemIcon>
+                    <LogoutIcon fontSize="small" color="error" />
+                  </ListItemIcon>
                   Sign Out
                 </MenuItem>
               </Menu>
@@ -111,10 +142,20 @@ export default function TopNav() {
             <>
               {/* Unauthenticated */}
               <Stack direction="row" spacing={1}>
-                <Button component={NextLink} href="/auth/login" variant="outlined" size="small">
+                <Button
+                  component={NextLink}
+                  href="/auth/login"
+                  variant="outlined"
+                  size="small"
+                >
                   Sign In
                 </Button>
-                <Button component={NextLink} href="/auth/signup" variant="contained" size="small">
+                <Button
+                  component={NextLink}
+                  href="/auth/signup"
+                  variant="contained"
+                  size="small"
+                >
                   Sign Up
                 </Button>
               </Stack>
@@ -123,5 +164,5 @@ export default function TopNav() {
         </Toolbar>
       </Container>
     </AppBar>
-  )
+  );
 }

@@ -1,11 +1,11 @@
 import {
+  MassReadingsService,
   applicationToday,
   getMassReadings,
-  MassReadingsService,
 } from '../src/liturgy/MassReadingsService';
 import { LiturgicalDayResolver } from '../src/liturgy/calendar/LiturgicalDayResolver';
-import { LectionaryResolver } from '../src/liturgy/lectionary/LectionaryResolver';
 import { LocalLectionaryRepository } from '../src/liturgy/lectionary/LectionaryRepository';
+import { LectionaryResolver } from '../src/liturgy/lectionary/LectionaryResolver';
 import { NabreScriptureRepository } from '../src/liturgy/scripture/NabreScriptureRepository';
 import { NabreVerseMapper } from '../src/liturgy/scripture/NabreVerseMapper';
 
@@ -17,9 +17,12 @@ describe('LiturgicalDayResolver', () => {
     ['2025-11-30', 'A'],
     ['2026-11-29', 'B'],
     ['2027-11-28', 'C'],
-  ] as const)('uses Sunday cycle %s at the first Sunday of Advent', (date, cycle) => {
-    expect(calendar.resolve(date).sundayCycle).toBe(cycle);
-  });
+  ] as const)(
+    'uses Sunday cycle %s at the first Sunday of Advent',
+    (date, cycle) => {
+      expect(calendar.resolve(date).sundayCycle).toBe(cycle);
+    },
+  );
 
   it.each([
     ['2026-01-04', { country: 'US' }, 'epiphany'],
@@ -31,13 +34,16 @@ describe('LiturgicalDayResolver', () => {
     ['2026-05-24', {}, 'pentecost'],
     ['2026-06-07', { country: 'US' }, 'corpus-christi'],
     ['2026-06-12', {}, 'sacred-heart'],
-  ] as const)('resolves required proper readings for %s', (date, options, celebrationId) => {
-    const day = calendar.resolve(date, options);
-    const result = lectionary.resolve(day);
+  ] as const)(
+    'resolves required proper readings for %s',
+    (date, options, celebrationId) => {
+      const day = calendar.resolve(date, options);
+      const result = lectionary.resolve(day);
 
-    expect(day.primaryCelebration.id).toBe(celebrationId);
-    expect(result.primary?.readings.length).toBeGreaterThan(0);
-  });
+      expect(day.primaryCelebration.id).toBe(celebrationId);
+      expect(result.primary?.readings.length).toBeGreaterThan(0);
+    },
+  );
 
   it.each([
     ['2026-12-07', 'ADVENT', 2, 1],
@@ -52,10 +58,12 @@ describe('LiturgicalDayResolver', () => {
   });
 
   it('uses a Sunday-transferred Ascension in the United States', () => {
-    expect(calendar.resolve('2026-05-17', { country: 'US' }).primaryCelebration.id).toBe(
+    expect(
+      calendar.resolve('2026-05-17', { country: 'US' }).primaryCelebration.id,
+    ).toBe('ascension');
+    expect(calendar.resolve('2026-05-14').primaryCelebration.id).toBe(
       'ascension',
     );
-    expect(calendar.resolve('2026-05-14').primaryCelebration.id).toBe('ascension');
   });
 });
 
@@ -69,7 +77,10 @@ describe('LectionaryResolver', () => {
       week: 20,
       weekdayCycle: 'II',
       psalterWeek: 4,
-      primaryCelebration: { id: 'saint-pius-x', readingSelectionRule: 'WEEKDAY' },
+      primaryCelebration: {
+        id: 'saint-pius-x',
+        readingSelectionRule: 'WEEKDAY',
+      },
     });
     expect(result.primary?.readings).toEqual(
       expect.arrayContaining([
@@ -82,7 +93,9 @@ describe('LectionaryResolver', () => {
   it('uses the Cycle I first reading on the same ordinary weekday context', () => {
     const result = lectionary.resolve(calendar.resolve('2025-08-22'));
     expect(result.primary?.readings).toEqual(
-      expect.arrayContaining([{ type: 'FIRST_READING', citation: 'Jgs 11:29-39a' }]),
+      expect.arrayContaining([
+        { type: 'FIRST_READING', citation: 'Jgs 11:29-39a' },
+      ]),
     );
   });
 
@@ -92,13 +105,19 @@ describe('LectionaryResolver', () => {
     expect(result.readingSets).toHaveLength(2);
     expect(result.readingSets[0]).toMatchObject({
       selectionRule: 'WEEKDAY',
-      readings: expect.arrayContaining([{ type: 'FIRST_READING', citation: '1 Cor 1:17-25' }]),
+      readings: expect.arrayContaining([
+        { type: 'FIRST_READING', citation: '1 Cor 1:17-25' },
+      ]),
     });
-    expect(result.readingSets[1]).toMatchObject({ selectionRule: 'OPTIONAL_PROPER' });
+    expect(result.readingSets[1]).toMatchObject({
+      selectionRule: 'OPTIONAL_PROPER',
+    });
   });
 
   it('returns all Christmas Mass variants instead of flattening them', () => {
-    const result = lectionary.resolve(calendar.resolve('2026-12-25', { country: 'US' }));
+    const result = lectionary.resolve(
+      calendar.resolve('2026-12-25', { country: 'US' }),
+    );
 
     expect(result.readingSets.map((readingSet) => readingSet.label)).toEqual([
       'VIGIL',
@@ -115,22 +134,28 @@ describe('LectionaryResolver', () => {
     const result = lectionary.resolve(calendar.resolve('2026-04-04'));
     expect(result.primary?.label).toBe('VIGIL');
     expect(result.primary?.readings.length).toBeGreaterThan(8);
-    expect(result.primary?.readings.at(-1)).toEqual({ type: 'GOSPEL', citation: 'Mt 28:1-10' });
+    expect(result.primary?.readings.at(-1)).toEqual({
+      type: 'GOSPEL',
+      citation: 'Mt 28:1-10',
+    });
   });
 
   it.each([
     ['2026-03-29', 'A', 'Mt 26:14—27:66'],
     ['2027-03-21', 'B', 'Mk 14:1—15:47'],
     ['2028-04-09', 'C', 'Lk 22:14—23:56'],
-  ] as const)('uses the Year %s Palm Sunday Passion Gospel', (date, cycle, gospel) => {
-    const day = calendar.resolve(date);
-    const result = lectionary.resolve(day);
+  ] as const)(
+    'uses the Year %s Palm Sunday Passion Gospel',
+    (date, cycle, gospel) => {
+      const day = calendar.resolve(date);
+      const result = lectionary.resolve(day);
 
-    expect(day.sundayCycle).toBe(cycle);
-    expect(result.primary?.readings).toEqual(
-      expect.arrayContaining([{ type: 'GOSPEL', citation: gospel }]),
-    );
-  });
+      expect(day.sundayCycle).toBe(cycle);
+      expect(result.primary?.readings).toEqual(
+        expect.arrayContaining([{ type: 'GOSPEL', citation: gospel }]),
+      );
+    },
+  );
 });
 
 describe('MassReadingsService', () => {
@@ -150,7 +175,12 @@ describe('MassReadingsService', () => {
         color: ['WHITE'],
       },
       cycles: { sunday: 'A', weekday: 'II', psalterWeek: 4 },
-      metadata: { country: 'US', diocese: 'dallas', locale: 'en-US', dataVersion: 'v1' },
+      metadata: {
+        country: 'US',
+        diocese: 'dallas',
+        locale: 'en-US',
+        dataVersion: 'v1',
+      },
     });
     expect(result.readings[0].text).toContain('Ezekiel 37:1');
     expect(result.metadata?.scriptureTextSource).toBe('NABRE');
@@ -163,7 +193,9 @@ describe('MassReadingsService', () => {
 
   it('maps local NABRE book text into the standard response body', async () => {
     const result = await getMassReadings({ date: '2026-08-21' });
-    const ezekiel = result.readings.find((reading) => reading.citation === 'Ez 37:1-14');
+    const ezekiel = result.readings.find(
+      (reading) => reading.citation === 'Ez 37:1-14',
+    );
 
     expect(ezekiel?.text).toContain('Ezekiel 37:1');
     expect(result.metadata?.scriptureTextSource).toBe('NABRE');
@@ -173,24 +205,32 @@ describe('MassReadingsService', () => {
     await expect(getMassReadings({ date: '2026-2-30' })).rejects.toMatchObject({
       code: 'INVALID_DATE',
     });
-    await expect(getMassReadings({ date: '2026-02-30' })).rejects.toMatchObject({
-      code: 'INVALID_DATE',
-    });
+    await expect(getMassReadings({ date: '2026-02-30' })).rejects.toMatchObject(
+      {
+        code: 'INVALID_DATE',
+      },
+    );
   });
 
   it('uses the configured civil timezone for today', () => {
-    expect(applicationToday(new Date('2026-08-21T04:30:00.000Z'), 'America/Chicago')).toBe(
-      '2026-08-20',
-    );
-    expect(applicationToday(new Date('2026-08-21T05:30:00.000Z'), 'America/Chicago')).toBe(
-      '2026-08-21',
-    );
+    expect(
+      applicationToday(new Date('2026-08-21T04:30:00.000Z'), 'America/Chicago'),
+    ).toBe('2026-08-20');
+    expect(
+      applicationToday(new Date('2026-08-21T05:30:00.000Z'), 'America/Chicago'),
+    ).toBe('2026-08-21');
   });
 
   it('caches results using the full regional cache key', async () => {
     const service = new MassReadingsService();
-    const first = await service.getMassReadings({ date: '2026-08-21', country: 'US' });
-    const second = await service.getMassReadings({ date: '2026-08-21', country: 'US' });
+    const first = await service.getMassReadings({
+      date: '2026-08-21',
+      country: 'US',
+    });
+    const second = await service.getMassReadings({
+      date: '2026-08-21',
+      country: 'US',
+    });
     expect(second).toBe(first);
   });
 
@@ -203,7 +243,10 @@ describe('MassReadingsService', () => {
 
   it('maps a cross-chapter citation from the individual local book file', async () => {
     const mapper = new NabreVerseMapper();
-    const reading = await mapper.mapReading({ type: 'FIRST_READING', citation: 'Gn 1:31—2:2' });
+    const reading = await mapper.mapReading({
+      type: 'FIRST_READING',
+      citation: 'Gn 1:31—2:2',
+    });
 
     expect(reading.text).toContain('Genesis 1:31');
     expect(reading.text).toContain('Genesis 2:2');

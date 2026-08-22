@@ -1,5 +1,6 @@
-import { createClient as createSupabaseClient } from '@supabase/supabase-js'
-import type { Database } from '@/lib/supabase/types'
+import { createClient as createSupabaseClient } from '@supabase/supabase-js';
+
+import type { Database } from '@/lib/supabase/types';
 
 export function createBearerClient(accessToken: string) {
   return createSupabaseClient<Database>(
@@ -17,5 +18,5 @@ export function createBearerClient(accessToken: string) {
         detectSessionInUrl: false,
       },
     },
-  )
+  );
 }

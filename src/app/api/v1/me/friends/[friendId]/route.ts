@@ -1,7 +1,10 @@
 import { throwDatabaseError } from '@/lib/api/database';
 import { errorResponse, noContent, ok } from '@/lib/api/response';
 import { requireUser } from '@/lib/auth/require-user';
-import { friendDetailsQuerySchema, friendIdSchema } from '@/lib/schemas/friends';
+import {
+  friendDetailsQuerySchema,
+  friendIdSchema,
+} from '@/lib/schemas/friends';
 
 export const dynamic = 'force-dynamic';
 

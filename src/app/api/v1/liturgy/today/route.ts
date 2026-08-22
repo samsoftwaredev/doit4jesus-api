@@ -1,7 +1,10 @@
 import { ApiError } from '@/lib/api/errors';
 import { errorResponse, ok } from '@/lib/api/response';
 import { requireUser } from '@/lib/auth/require-user';
-import { applicationToday, getMassReadings } from '@/liturgy/MassReadingsService';
+import {
+  applicationToday,
+  getMassReadings,
+} from '@/liturgy/MassReadingsService';
 
 export const dynamic = 'force-dynamic';
 
@@ -21,7 +24,11 @@ export async function GET(request: Request) {
     return errorResponse(
       error instanceof Error
         ? error
-        : new ApiError(500, 'LITURGY_RESOLUTION_ERROR', 'Unable to resolve Mass readings.'),
+        : new ApiError(
+            500,
+            'LITURGY_RESOLUTION_ERROR',
+            'Unable to resolve Mass readings.',
+          ),
       request,
     );
   }

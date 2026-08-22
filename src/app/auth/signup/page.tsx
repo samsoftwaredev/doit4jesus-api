@@ -1,35 +1,36 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import NextLink from 'next/link'
-import Alert from '@mui/material/Alert'
-import Box from '@mui/material/Box'
-import Button from '@mui/material/Button'
-import Container from '@mui/material/Container'
-import Link from '@mui/material/Link'
-import Paper from '@mui/material/Paper'
-import Stack from '@mui/material/Stack'
-import TextField from '@mui/material/TextField'
-import Typography from '@mui/material/Typography'
-import { supabaseClient } from '@/app/classes/supabaseClient'
+import Alert from '@mui/material/Alert';
+import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
+import Container from '@mui/material/Container';
+import Link from '@mui/material/Link';
+import Paper from '@mui/material/Paper';
+import Stack from '@mui/material/Stack';
+import TextField from '@mui/material/TextField';
+import Typography from '@mui/material/Typography';
+import NextLink from 'next/link';
+import { useState } from 'react';
+
+import { supabaseClient } from '@/app/classes/supabaseClient';
 
 export default function SignupPage() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [confirm, setConfirm] = useState('')
-  const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState(false)
-  const [loading, setLoading] = useState(false)
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirm, setConfirm] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
+    e.preventDefault();
     if (password !== confirm) {
-      setError('Passwords do not match.')
-      return
+      setError('Passwords do not match.');
+      return;
     }
 
-    setLoading(true)
-    setError(null)
+    setLoading(true);
+    setError(null);
 
     const { error } = await supabaseClient.auth.signUp({
       email,
@@ -37,36 +38,55 @@ export default function SignupPage() {
       options: {
         emailRedirectTo: `${window.location.origin}/auth/callback`,
       },
-    })
+    });
 
     if (error) {
-      setError(error.message)
-      setLoading(false)
-      return
+      setError(error.message);
+      setLoading(false);
+      return;
     }
 
-    setSuccess(true)
-    setLoading(false)
+    setSuccess(true);
+    setLoading(false);
   }
 
   if (success) {
     return (
-      <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', bgcolor: 'background.default' }}>
+      <Box
+        sx={{
+          minHeight: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          bgcolor: 'background.default',
+        }}
+      >
         <Container maxWidth="xs">
           <Paper sx={{ p: 4, textAlign: 'center' }}>
-            <Typography variant="h5" fontWeight={700} mb={2}>Check your email</Typography>
-            <Typography color="text.secondary" mb={3}>
-              We sent a confirmation link to <strong>{email}</strong>. Click the link to activate your account.
+            <Typography variant="h5" fontWeight={700} mb={2}>
+              Check your email
             </Typography>
-            <Link component={NextLink} href="/auth/login" variant="body2">Back to Sign In</Link>
+            <Typography color="text.secondary" mb={3}>
+              We sent a confirmation link to <strong>{email}</strong>. Click the
+              link to activate your account.
+            </Typography>
+            <Link component={NextLink} href="/auth/login" variant="body2">
+              Back to Sign In
+            </Link>
           </Paper>
         </Container>
       </Box>
-    )
+    );
   }
 
   return (
-    <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', bgcolor: 'background.default' }}>
+    <Box
+      sx={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        bgcolor: 'background.default',
+      }}
+    >
       <Container maxWidth="xs">
         <Paper sx={{ p: 4 }}>
           <Typography variant="h5" fontWeight={700} textAlign="center" mb={3}>
@@ -100,19 +120,25 @@ export default function SignupPage() {
               autoComplete="new-password"
             />
             {error && <Alert severity="error">{error}</Alert>}
-            <Button type="submit" variant="contained" size="large" loading={loading}>
+            <Button
+              type="submit"
+              variant="contained"
+              size="large"
+              loading={loading}
+            >
               Create Account
             </Button>
           </Stack>
           <Stack mt={2} alignItems="center">
             <Typography variant="body2" color="text.secondary">
               Already have an account?{' '}
-              <Link component={NextLink} href="/auth/login">Sign in</Link>
+              <Link component={NextLink} href="/auth/login">
+                Sign in
+              </Link>
             </Typography>
           </Stack>
         </Paper>
       </Container>
     </Box>
-  )
+  );
 }
-

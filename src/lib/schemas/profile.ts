@@ -1,11 +1,11 @@
-import { z } from 'zod'
+import { z } from 'zod';
 
 function isValidTimeZone(value: string) {
   try {
-    new Intl.DateTimeFormat('en-US', { timeZone: value }).format()
-    return true
+    new Intl.DateTimeFormat('en-US', { timeZone: value }).format();
+    return true;
   } catch {
-    return false
+    return false;
   }
 }
 
@@ -17,7 +17,10 @@ export const updateProfileSchema = z
       .trim()
       .min(3)
       .max(30)
-      .regex(/^[a-zA-Z0-9_]+$/, 'Username may contain letters, numbers, and underscores.')
+      .regex(
+        /^[a-zA-Z0-9_]+$/,
+        'Username may contain letters, numbers, and underscores.',
+      )
       .nullable()
       .optional(),
     avatarUrl: z.url().nullable().optional(),
@@ -25,11 +28,26 @@ export const updateProfileSchema = z
     gender: z.enum(['male', 'female']).optional(),
     saintAvatarId: z.uuid().nullable().optional(),
     preferredLanguage: z.string().trim().min(2).max(10).optional(),
-    timezone: z.string().trim().min(1).max(100).refine(isValidTimeZone, 'Invalid IANA timezone.').optional(),
+    timezone: z
+      .string()
+      .trim()
+      .min(1)
+      .max(100)
+      .refine(isValidTimeZone, 'Invalid IANA timezone.')
+      .optional(),
     cityId: z.uuid().nullable().optional(),
-    countryCode: z.string().trim().length(2).toUpperCase().nullable().optional(),
+    countryCode: z
+      .string()
+      .trim()
+      .length(2)
+      .toUpperCase()
+      .nullable()
+      .optional(),
     leaderboardVisibility: z.enum(['public', 'friends', 'private']).optional(),
     prayerMapVisibility: z.enum(['aggregated', 'hidden']).optional(),
   })
   .strict()
-  .refine((value) => Object.keys(value).length > 0, 'At least one profile field is required.')
+  .refine(
+    (value) => Object.keys(value).length > 0,
+    'At least one profile field is required.',
+  );
