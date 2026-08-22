@@ -22,6 +22,8 @@ export const updateProfileSchema = z
       .optional(),
     avatarUrl: z.url().nullable().optional(),
     title: z.string().trim().max(100).nullable().optional(),
+    gender: z.enum(['male', 'female']).optional(),
+    saintAvatarId: z.uuid().nullable().optional(),
     preferredLanguage: z.string().trim().min(2).max(10).optional(),
     timezone: z.string().trim().min(1).max(100).refine(isValidTimeZone, 'Invalid IANA timezone.').optional(),
     cityId: z.uuid().nullable().optional(),

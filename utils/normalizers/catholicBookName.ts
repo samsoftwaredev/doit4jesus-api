@@ -1,4 +1,4 @@
-import { CATHOLIC_BIBLE_BOOKS } from '@/constants/catholicBibleBooks';
+import CATHOLIC_BIBLE_BOOKS_LIST from '@/data/bible/bible-all-books.json';
 
 export type CatholicBookNormalizationResult = {
   input: string;
@@ -7,8 +7,13 @@ export type CatholicBookNormalizationResult = {
   canonicalBookName: string;
 };
 
+const catholicBibleBooks = CATHOLIC_BIBLE_BOOKS_LIST.map((book, index) => ({
+  id: index + 1,
+  book: book,
+}));
+
 const BOOK_ID_TO_NAME = new Map<number, string>(
-  CATHOLIC_BIBLE_BOOKS.map((b) => [b.id, b.book]),
+  catholicBibleBooks.map((b) => [b.id, b.book]),
 );
 
 const EXPLICIT_ALIASES: Record<string, number> = {
@@ -140,7 +145,7 @@ for (const [alias, id] of Object.entries(EXPLICIT_ALIASES)) {
   addAlias(alias, id);
 }
 
-for (const book of CATHOLIC_BIBLE_BOOKS) {
+for (const book of catholicBibleBooks) {
   addAlias(book.book, book.id);
 
   const parentheticalRegex = /\(([^)]+)\)/g;

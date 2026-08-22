@@ -15,6 +15,68 @@ type EmptySchema = {
 export type Database = {
   app: Omit<EmptySchema, 'Views'> & {
     Tables: {
+      contact_requests: {
+        Row: {
+          id: string;
+          name: string;
+          email: string;
+          subject:
+            | 'Billing & Payments'
+            | 'Subscription Management'
+            | 'Login & Account Access'
+            | 'App Performance & Bugs'
+            | 'Audio & Playback Issues'
+            | 'Streak & Progress Issues'
+            | 'Content Feedback & Requests'
+            | 'Prayer Intentions'
+            | 'Grammar & Audio Mistakes'
+            | 'Parish & Church Programs'
+            | 'School & Ministry Licensing'
+            | 'Media & Press Inquiries'
+            | 'Other';
+          other_subject: string | null;
+          message: string;
+          created_at: string;
+        };
+        Insert: {
+          name: string;
+          email: string;
+          subject:
+            | 'Billing & Payments'
+            | 'Subscription Management'
+            | 'Login & Account Access'
+            | 'App Performance & Bugs'
+            | 'Audio & Playback Issues'
+            | 'Streak & Progress Issues'
+            | 'Content Feedback & Requests'
+            | 'Prayer Intentions'
+            | 'Grammar & Audio Mistakes'
+            | 'Parish & Church Programs'
+            | 'School & Ministry Licensing'
+            | 'Media & Press Inquiries'
+            | 'Other';
+          other_subject?: string | null;
+          message: string;
+        };
+        Update: never;
+        Relationships: [];
+      };
+      cities: {
+        Row: {
+          id: string;
+          country_code: string;
+          name: string;
+          region_name: string | null;
+          latitude: number;
+          longitude: number;
+          is_active: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
       user_profiles: {
         Row: {
           user_id: string;
@@ -22,6 +84,8 @@ export type Database = {
           username: string | null;
           avatar_url: string | null;
           title: string | null;
+          gender: 'male' | 'female';
+          saint_avatar_id: string | null;
           preferred_language: string;
           timezone: string;
           city_id: string | null;
@@ -37,6 +101,8 @@ export type Database = {
           username: string | null;
           avatar_url: string | null;
           title: string | null;
+          gender: 'male' | 'female';
+          saint_avatar_id: string | null;
           preferred_language: string;
           timezone: string;
           city_id: string | null;

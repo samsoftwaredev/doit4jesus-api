@@ -99,6 +99,31 @@
       ]
     },
     {
+      "name": "Contact us",
+      "description": "Public support form. No authentication is required. Choose `Other` only when also supplying `otherSubject`.",
+      "item": [
+        {
+          "name": "Submit a contact request",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Ada Lovelace\",\n  \"email\": \"ada@example.com\",\n  \"subject\": \"Billing & Payments\",\n  \"message\": \"Please send my receipt.\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/contact-requests",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "contact-requests"]
+            },
+            "description": "Stores the support request and returns only its ID and creation time. Valid subjects: Billing & Payments; Subscription Management; Login & Account Access; App Performance & Bugs; Audio & Playback Issues; Streak & Progress Issues; Content Feedback & Requests; Prayer Intentions; Grammar & Audio Mistakes; Parish & Church Programs; School & Ministry Licensing; Media & Press Inquiries; or Other. For Other, include `otherSubject` (2–120 characters)."
+          }
+        }
+      ]
+    },
+    {
       "name": "Liturgy",
       "description": "Catholic Mass readings backed by a local lectionary dataset. The API resolves the universal Roman-calendar day first, then maps every citation to NABRE verse text from the checked-in book files. No external liturgical API is called at request time.",
       "item": [
@@ -654,7 +679,7 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "me"]
             },
-            "description": "Returns the full profile for the authenticated user including display name, username, avatar, timezone, city, country, and visibility settings."
+            "description": "Returns the full profile for the authenticated user, including required `gender`, optional `saintAvatarId`, and resolved `cityName` and `state` (both `null` when no city is set)."
           }
         },
         {
@@ -664,7 +689,7 @@
             "header": [{ "key": "Content-Type", "value": "application/json" }],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"displayName\": \"Samuel Ruiz\",\n  \"username\": \"samsoftwaredev\",\n  \"avatarUrl\": \"https://example.com/avatar.png\",\n  \"title\": \"Prayer Warrior\",\n  \"preferredLanguage\": \"en\",\n  \"timezone\": \"America/Los_Angeles\",\n  \"cityId\": null,\n  \"countryCode\": \"US\",\n  \"leaderboardVisibility\": \"public\",\n  \"prayerMapVisibility\": \"aggregated\"\n}",
+              "raw": "{\n  \"displayName\": \"Samuel Ruiz\",\n  \"username\": \"samsoftwaredev\",\n  \"avatarUrl\": \"https://example.com/avatar.png\",\n  \"title\": \"Prayer Warrior\",\n  \"gender\": \"male\",\n  \"saintAvatarId\": null,\n  \"preferredLanguage\": \"en\",\n  \"timezone\": \"America/Los_Angeles\",\n  \"cityId\": null,\n  \"countryCode\": \"US\",\n  \"leaderboardVisibility\": \"public\",\n  \"prayerMapVisibility\": \"aggregated\"\n}",
               "options": { "raw": { "language": "json" } }
             },
             "url": {
@@ -672,7 +697,7 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "me"]
             },
-            "description": "Partially updates the user's profile. Send only the fields you want to change — at least one field is required.\n\n**Fields**\n- `displayName` (string, 2–80 chars)\n- `username` (string, 3–30 chars, letters/numbers/underscores, nullable)\n- `avatarUrl` (URL string, nullable)\n- `title` (string, max 100 chars, nullable)\n- `preferredLanguage` (string, 2–10 chars, e.g. `\"en\"`)\n- `timezone` (IANA timezone string, e.g. `\"America/Los_Angeles\"`)\n- `cityId` (UUID, nullable)\n- `countryCode` (2-letter ISO code, e.g. `\"US\"`, nullable)\n- `leaderboardVisibility` (`\"public\"` | `\"friends\"` | `\"private\"`)\n- `prayerMapVisibility` (`\"aggregated\"` | `\"hidden\"`)\n\nReturns **409** if the username is already taken."
+            "description": "Partially updates the user's profile. Send only the fields you want to change — at least one field is required.\n\n**Fields**\n- `displayName` (string, 2–80 chars)\n- `username` (string, 3–30 chars, letters/numbers/underscores, nullable)\n- `avatarUrl` (URL string, nullable)\n- `title` (string, max 100 chars, nullable)\n- `gender` (`\"male\"` | `\"female\"`)\n- `saintAvatarId` (saint UUID, nullable)\n- `preferredLanguage` (string, 2–10 chars, e.g. `\"en\"`)\n- `timezone` (IANA timezone string, e.g. `\"America/Los_Angeles\"`)\n- `cityId` (UUID, nullable; the response resolves it to `cityName` and `state`)\n- `countryCode` (2-letter ISO code, e.g. `\"US\"`, nullable)\n- `leaderboardVisibility` (`\"public\"` | `\"friends\"` | `\"private\"`)\n- `prayerMapVisibility` (`\"aggregated\"` | `\"hidden\"`)\n\nReturns **409** if the username is already taken."
           }
         }
       ]

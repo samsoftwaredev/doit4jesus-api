@@ -206,6 +206,7 @@ insert into app.user_profiles (
   username,
   avatar_url,
   title,
+  gender,
   preferred_language,
   timezone,
   city_id,
@@ -214,15 +215,16 @@ insert into app.user_profiles (
   prayer_map_visibility
 )
 values
-  ('9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002', 'Test User', 'testuser', 'https://i.pravatar.cc/256?u=testuser', 'Faithful Beginner', 'en', 'America/Chicago', 'e0000000-0000-4000-8000-000000000001', 'US', 'public', 'aggregated'),
-  ('11111111-1111-4111-8111-111111111111', 'Maria Santos', 'mariasantos', 'https://i.pravatar.cc/256?u=mariasantos', 'Prayer Champion', 'es', 'America/Mexico_City', 'e0000000-0000-4000-8000-000000000003', 'MX', 'public', 'aggregated'),
-  ('22222222-2222-4222-8222-222222222222', 'John Paul', 'johnpaul', 'https://i.pravatar.cc/256?u=johnpaul', 'Scripture Seeker', 'en', 'America/Chicago', 'e0000000-0000-4000-8000-000000000002', 'US', 'public', 'aggregated')
+  ('9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002', 'Test User', 'testuser', 'https://i.pravatar.cc/256?u=testuser', 'Faithful Beginner', 'male', 'en', 'America/Chicago', 'e0000000-0000-4000-8000-000000000001', 'US', 'public', 'aggregated'),
+  ('11111111-1111-4111-8111-111111111111', 'Maria Santos', 'mariasantos', 'https://i.pravatar.cc/256?u=mariasantos', 'Prayer Champion', 'female', 'es', 'America/Mexico_City', 'e0000000-0000-4000-8000-000000000003', 'MX', 'public', 'aggregated'),
+  ('22222222-2222-4222-8222-222222222222', 'John Paul', 'johnpaul', 'https://i.pravatar.cc/256?u=johnpaul', 'Scripture Seeker', 'male', 'en', 'America/Chicago', 'e0000000-0000-4000-8000-000000000002', 'US', 'public', 'aggregated')
 on conflict (user_id) do update
 set
   display_name = excluded.display_name,
   username = excluded.username,
   avatar_url = excluded.avatar_url,
   title = excluded.title,
+  gender = excluded.gender,
   preferred_language = excluded.preferred_language,
   timezone = excluded.timezone,
   city_id = excluded.city_id,

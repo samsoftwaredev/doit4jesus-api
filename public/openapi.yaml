@@ -26,6 +26,29 @@ paths:
                   status: ok
                   service: holy-competition-api
                   timestamp: '2026-08-17T12:00:00.000Z'
+  /api/v1/contact-requests:
+    post:
+      security: []
+      summary: Submit a contact-us request
+      description: >-
+        Public support form for people who can or cannot sign in. The response
+        deliberately returns only the request ID and timestamp; submitted
+        contact details and message are never exposed through this API.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateContactRequest' }
+      responses:
+        '201':
+          description: Contact request stored
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ContactRequestCreatedResponse' }
+              example:
+                data: { id: c9000000-0000-4000-8000-000000000001, createdAt: '2026-08-22T12:00:00Z' }
+        '400': { description: Request body is missing or is not JSON }
+        '422': { $ref: '#/components/responses/ValidationError' }
   /api/v1/liturgy/today:
     get:
       summary: Get today’s Mass readings
@@ -678,8 +701,9 @@ paths:
           description: Current profile
           content:
             application/json:
+              schema: { $ref: '#/components/schemas/CurrentProfileResponse' }
               example:
-                data: { userId: 9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002, displayName: Test User, username: testuser, avatarUrl: 'https://example.com/avatars/testuser.png', title: Faithful Beginner, preferredLanguage: en, timezone: America/Chicago, cityId: e0000000-0000-4000-8000-000000000001, countryCode: US, leaderboardVisibility: public, prayerMapVisibility: aggregated, createdAt: '2026-06-01T12:00:00Z', updatedAt: '2026-08-17T12:00:00Z' }
+                data: { userId: 9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002, displayName: Test User, username: testuser, avatarUrl: 'https://example.com/avatars/testuser.png', title: Faithful Beginner, gender: male, saintAvatarId: null, preferredLanguage: en, timezone: America/Chicago, cityId: e0000000-0000-4000-8000-000000000001, cityName: Chicago, state: Illinois, countryCode: US, leaderboardVisibility: public, prayerMapVisibility: aggregated, createdAt: '2026-06-01T12:00:00Z', updatedAt: '2026-08-17T12:00:00Z' }
         '401': { $ref: '#/components/responses/Unauthorized' }
     patch:
       summary: Update current profile
@@ -693,8 +717,9 @@ paths:
           description: Updated profile
           content:
             application/json:
+              schema: { $ref: '#/components/schemas/CurrentProfileResponse' }
               example:
-                data: { userId: 9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002, displayName: Test User, username: testuser, avatarUrl: 'https://example.com/avatars/testuser.png', title: Prayer Warrior, preferredLanguage: en, timezone: America/Chicago, cityId: e0000000-0000-4000-8000-000000000001, countryCode: US, leaderboardVisibility: public, prayerMapVisibility: aggregated, createdAt: '2026-06-01T12:00:00Z', updatedAt: '2026-08-17T12:00:00Z' }
+                data: { userId: 9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002, displayName: Test User, username: testuser, avatarUrl: 'https://example.com/avatars/testuser.png', title: Prayer Warrior, gender: male, saintAvatarId: null, preferredLanguage: en, timezone: America/Chicago, cityId: e0000000-0000-4000-8000-000000000001, cityName: Chicago, state: Illinois, countryCode: US, leaderboardVisibility: public, prayerMapVisibility: aggregated, createdAt: '2026-06-01T12:00:00Z', updatedAt: '2026-08-17T12:00:00Z' }
         '409': { description: Username conflict }
         '422': { $ref: '#/components/responses/ValidationError' }
   /api/v1/me/rosary/completion:
@@ -1276,6 +1301,62 @@ components:
     ValidationError:
       description: Request validation failed
   schemas:
+    ContactSubject:
+      type: string
+      description: |-
+        Select one category, or `Other` and provide `otherSubject`.
+        - Billing & Payments — Premium subscription issues, receipts, or promotion codes.
+        - Subscription Management — Trials, plan changes, or premium access.
+        - Login & Account Access — Passwords, verification, or deletion requests.
+        - App Performance & Bugs — Freezes, crashes, or offline downloads.
+        - Audio & Playback Issues — Missing audio, playback speed, or Bluetooth issues.
+        - Streak & Progress Issues — Restoring prayer streaks or missing progress.
+        - Content Feedback & Requests — Prayers, Novenas, saints, or Bible translations.
+        - Prayer Intentions — Questions about sharing community prayer requests.
+        - Grammar & Audio Mistakes — Scripture typos or spoken-audio errors.
+        - Parish & Church Programs — Parish-wide subscription inquiries.
+        - School & Ministry Licensing — Educational pricing inquiries.
+        - Media & Press Inquiries — Requests from journalists and media outlets.
+      enum:
+        - Billing & Payments
+        - Subscription Management
+        - Login & Account Access
+        - App Performance & Bugs
+        - Audio & Playback Issues
+        - Streak & Progress Issues
+        - Content Feedback & Requests
+        - Prayer Intentions
+        - Grammar & Audio Mistakes
+        - Parish & Church Programs
+        - School & Ministry Licensing
+        - Media & Press Inquiries
+        - Other
+    CreateContactRequest:
+      type: object
+      additionalProperties: false
+      required: [name, email, subject, message]
+      properties:
+        name: { type: string, minLength: 1, maxLength: 120 }
+        email: { type: string, format: email, maxLength: 320 }
+        subject: { $ref: '#/components/schemas/ContactSubject' }
+        otherSubject:
+          description: Required only when subject is Other; omit it for every listed subject.
+          type: string
+          minLength: 2
+          maxLength: 120
+        message: { type: string, minLength: 1, maxLength: 5000 }
+    ContactRequestCreatedResponse:
+      type: object
+      additionalProperties: false
+      required: [data]
+      properties:
+        data:
+          type: object
+          additionalProperties: false
+          required: [id, createdAt]
+          properties:
+            id: { type: string, format: uuid }
+            createdAt: { type: string, format: date-time }
     ScriptureReading:
       type: object
       additionalProperties: false
@@ -1374,6 +1455,12 @@ components:
           anyOf:
             - { type: string, maxLength: 100 }
             - { type: 'null' }
+        gender: { type: string, enum: [male, female] }
+        saintAvatarId:
+          description: Optional ID of the selected saint avatar.
+          anyOf:
+            - { type: string, format: uuid }
+            - { type: 'null' }
         preferredLanguage: { type: string, minLength: 2, maxLength: 10 }
         timezone: { type: string }
         cityId:
@@ -1390,6 +1477,77 @@ components:
         prayerMapVisibility:
           type: string
           enum: [aggregated, hidden]
+    CurrentProfile:
+      type: object
+      additionalProperties: false
+      required:
+        - userId
+        - displayName
+        - username
+        - avatarUrl
+        - title
+        - gender
+        - saintAvatarId
+        - preferredLanguage
+        - timezone
+        - cityId
+        - cityName
+        - state
+        - countryCode
+        - leaderboardVisibility
+        - prayerMapVisibility
+        - createdAt
+        - updatedAt
+      properties:
+        userId: { type: string, format: uuid }
+        displayName: { type: string }
+        username:
+          anyOf:
+            - { type: string }
+            - { type: 'null' }
+        avatarUrl:
+          anyOf:
+            - { type: string, format: uri }
+            - { type: 'null' }
+        title:
+          anyOf:
+            - { type: string }
+            - { type: 'null' }
+        gender: { type: string, enum: [male, female] }
+        saintAvatarId:
+          description: Null until the user selects a saint avatar.
+          anyOf:
+            - { type: string, format: uuid }
+            - { type: 'null' }
+        preferredLanguage: { type: string }
+        timezone: { type: string }
+        cityId:
+          anyOf:
+            - { type: string, format: uuid }
+            - { type: 'null' }
+        cityName:
+          anyOf:
+            - { type: string }
+            - { type: 'null' }
+        state:
+          description: City's region or state; null when no city or region is set.
+          anyOf:
+            - { type: string }
+            - { type: 'null' }
+        countryCode:
+          anyOf:
+            - { type: string, minLength: 2, maxLength: 2 }
+            - { type: 'null' }
+        leaderboardVisibility: { type: string, enum: [public, friends, private] }
+        prayerMapVisibility: { type: string, enum: [aggregated, hidden] }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+    CurrentProfileResponse:
+      type: object
+      additionalProperties: false
+      required: [data]
+      properties:
+        data: { $ref: '#/components/schemas/CurrentProfile' }
     RecordActivity:
       type: object
       additionalProperties: false
