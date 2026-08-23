@@ -56,7 +56,16 @@ const publicFilters = {
   date: z.iso.date().optional(),
 };
 
-export const examinationQuestionQuerySchema = z.object(publicFilters).strict();
+const randomQuestionQuery = {
+  randomQuestion: z
+    .enum(['true', 'false'])
+    .optional()
+    .transform((value) => value === 'true'),
+};
+
+export const examinationQuestionQuerySchema = z
+  .object({ ...publicFilters, ...randomQuestionQuery })
+  .strict();
 
 export const examinationAdminQuerySchema = z
   .object({

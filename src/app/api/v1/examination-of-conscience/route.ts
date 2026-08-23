@@ -3,12 +3,11 @@ import { ApiError } from '@/lib/api/errors';
 import { errorResponse, ok } from '@/lib/api/response';
 import {
   matchesExaminationFilters,
-  resolveExaminationDate,
-  selectDailyExaminationQuestion,
+  selectRandomExaminationQuestion,
 } from '@/lib/examination-of-conscience/daily-question';
 import { toExaminationQuestion } from '@/lib/examination-of-conscience/question';
 import { examinationQuestionQuerySchema } from '@/lib/schemas/examination-of-conscience';
-import { createAdminClient } from '@/lib/supabase/admin';
+import { createPublicClient } from '@/lib/supabase/public';
 
 export const dynamic = 'force-dynamic';
 
@@ -17,8 +16,7 @@ export async function GET(request: Request) {
     const query = examinationQuestionQuerySchema.parse(
       Object.fromEntries(new URL(request.url).searchParams.entries()),
     );
-    const asOfDate = resolveExaminationDate(query.date);
-    const supabase = createAdminClient();
+    const supabase = createPublicClient();
     let dbQuery = supabase
       .schema('app')
       .from('examination_of_conscience_questions')
@@ -36,19 +34,25 @@ export async function GET(request: Request) {
     const questions = (data ?? []).filter((question) =>
       matchesExaminationFilters(question, query),
     );
-    if (questions.length === 0) {
+
+    if (query.randomQuestion && questions.length === 0) {
       throw ApiError.notFound(
         'No examination-of-conscience question matches these filters.',
       );
     }
 
-    return ok(
-      toExaminationQuestion(
-        selectDailyExaminationQuestion(questions, asOfDate, query),
-      ),
-      { headers: { 'Cache-Control': 'public, max-age=3600, s-maxage=3600' } },
-      { asOfDate, filters: query },
-    );
+    if (query.randomQuestion) {
+      return ok(
+        toExaminationQuestion(selectRandomExaminationQuestion(questions)),
+        {
+          headers: { 'Cache-Control': 'no-store' },
+        },
+      );
+    }
+
+    return ok(questions.map(toExaminationQuestion), {
+      headers: { 'Cache-Control': 'public, max-age=3600, s-maxage=3600' },
+    });
   } catch (error) {
     return errorResponse(error, request);
   }

@@ -75,3 +75,9 @@ export function selectDailyExaminationQuestion(
 
   return orderedQuestions[hash(key) % orderedQuestions.length];
 }
+
+export function selectRandomExaminationQuestion(
+  questions: ExaminationQuestion[],
+) {
+  return questions[Math.floor(Math.random() * questions.length)]!;
+}

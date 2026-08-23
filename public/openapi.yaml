@@ -52,25 +52,28 @@ paths:
   /api/v1/examination-of-conscience:
     get:
       security: []
-      summary: Get the deterministic daily examination-of-conscience question
+      summary: List active examination-of-conscience questions or select one at random
       description: >-
-        Returns one active, curated question. The selection is deterministic for
-        the application date (America/Chicago by default) and supplied filters,
-        so identical requests receive the same question all day. Supplying date
-        is supported for clients that need to display a prior or future day.
+        Returns every active, curated question matching the supplied filters.
+        Set randomQuestion=true to return one randomly selected matching
+        question instead. This endpoint is public and does not require a
+        Supabase session.
       parameters:
         - { $ref: '#/components/parameters/ExaminationCategory' }
         - { $ref: '#/components/parameters/ExaminationSaint' }
         - { $ref: '#/components/parameters/ExaminationCommandment' }
         - { $ref: '#/components/parameters/ExaminationType' }
         - { $ref: '#/components/parameters/ExaminationDate' }
+        - { $ref: '#/components/parameters/ExaminationRandomQuestion' }
       responses:
         '200':
-          description: The question selected for the requested daily scope
+          description: A matching question when randomQuestion=true; otherwise the matching list
           content:
             application/json:
-              schema: { $ref: '#/components/schemas/ExaminationQuestionResponse' }
-        '404': { description: No active question matches the supplied filters }
+              oneOf:
+                - { $ref: '#/components/schemas/ExaminationQuestionResponse' }
+                - { $ref: '#/components/schemas/PublicExaminationQuestionListResponse' }
+        '404': { description: No active question matches the supplied filters when randomQuestion=true }
         '422': { $ref: '#/components/responses/ValidationError' }
   /api/v1/admin/examination-of-conscience:
     get:
@@ -1406,8 +1409,13 @@ components:
     ExaminationDate:
       in: query
       name: date
-      description: ISO date used for deterministic selection; defaults to today in EXAMINATION_TIMEZONE.
+      description: Deprecated. Accepted for backwards compatibility but ignored by this endpoint.
       schema: { type: string, format: date }
+    ExaminationRandomQuestion:
+      in: query
+      name: randomQuestion
+      description: When true, return one randomly selected matching question instead of a list.
+      schema: { type: boolean, default: false }
     ExaminationQuestionId:
       in: path
       name: questionId
@@ -1599,6 +1607,14 @@ components:
               anyOf:
                 - { type: integer }
                 - { type: 'null' }
+    PublicExaminationQuestionListResponse:
+      type: object
+      additionalProperties: false
+      required: [data]
+      properties:
+        data:
+          type: array
+          items: { $ref: '#/components/schemas/ExaminationQuestion' }
     ScriptureReading:
       type: object
       additionalProperties: false

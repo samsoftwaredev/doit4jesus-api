@@ -8,10 +8,10 @@ import {
 } from '../src/app/api/v1/admin/examination-of-conscience/route';
 import { GET as getDailyQuestion } from '../src/app/api/v1/examination-of-conscience/route';
 import { requireAdmin } from '../src/lib/auth/require-admin';
-import { createAdminClient } from '../src/lib/supabase/admin';
+import { createPublicClient } from '../src/lib/supabase/public';
 
-jest.mock('../src/lib/supabase/admin', () => ({
-  createAdminClient: jest.fn(),
+jest.mock('../src/lib/supabase/public', () => ({
+  createPublicClient: jest.fn(),
 }));
 jest.mock('../src/lib/auth/require-admin', () => ({ requireAdmin: jest.fn() }));
 jest.mock('../src/lib/api/response', () => ({
@@ -27,7 +27,7 @@ jest.mock('../src/lib/api/response', () => ({
   }),
 }));
 
-const mockedCreateAdminClient = jest.mocked(createAdminClient);
+const mockedCreatePublicClient = jest.mocked(createPublicClient);
 const mockedRequireAdmin = jest.mocked(requireAdmin);
 
 const QUESTION_ID = 'e1000000-0000-4000-8000-000000000001';
@@ -95,7 +95,7 @@ function request(url: string, body?: unknown) {
 describe('examination-of-conscience routes', () => {
   beforeEach(() => jest.clearAllMocks());
 
-  it('publicly returns the same selected question for identical date and filters', async () => {
+  it('publicly returns every active question matching the supplied filters', async () => {
     const fixture = supabase({
       data: [
         question,
@@ -103,24 +103,25 @@ describe('examination-of-conscience routes', () => {
       ],
       error: null,
     });
-    mockedCreateAdminClient.mockReturnValue(fixture.client as never);
+    mockedCreatePublicClient.mockReturnValue(fixture.client as never);
 
-    const url =
-      'http://localhost/api/v1/examination-of-conscience?date=2026-08-22&category=single';
-    const first = await getDailyQuestion(request(url));
-    const second = await getDailyQuestion(request(url));
+    const response = await getDailyQuestion(
+      request(
+        'http://localhost/api/v1/examination-of-conscience?category=single',
+      ),
+    );
 
-    expect((await first.json()).data).toEqual((await second.json()).data);
-    expect((await first.json()).data).toMatchObject({
-      type: 'mortal',
-      isActive: true,
-    });
+    expect((await response.json()).data).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ type: 'mortal', isActive: true }),
+      ]),
+    );
     expect(fixture.builder.eq).toHaveBeenCalledWith('is_active', true);
     expect(fixture.builder.eq).toHaveBeenCalledWith('category', 'single');
   });
 
-  it('returns 404 when public filters match no question', async () => {
-    mockedCreateAdminClient.mockReturnValue(
+  it('returns an empty list when no public questions match the filters', async () => {
+    mockedCreatePublicClient.mockReturnValue(
       supabase({ data: [], error: null }).client as never,
     );
 
@@ -130,7 +131,31 @@ describe('examination-of-conscience routes', () => {
       ),
     );
 
-    expect(response.status).toBe(404);
+    expect(response.status).toBe(200);
+    expect((await response.json()).data).toEqual([]);
+  });
+
+  it('returns one random matching question when randomQuestion is true', async () => {
+    const fixture = supabase({
+      data: [
+        question,
+        { ...question, id: 'e1000000-0000-4000-8000-000000000002' },
+      ],
+      error: null,
+    });
+    mockedCreatePublicClient.mockReturnValue(fixture.client as never);
+    jest.spyOn(Math, 'random').mockReturnValue(0.75);
+
+    const response = await getDailyQuestion(
+      request(
+        'http://localhost/api/v1/examination-of-conscience?category=single&randomQuestion=true',
+      ),
+    );
+
+    expect(response.status).toBe(200);
+    expect((await response.json()).data.id).toBe(
+      'e1000000-0000-4000-8000-000000000002',
+    );
   });
 
   it('lets an administrator create a question and maps API type to database severity', async () => {
