@@ -4,11 +4,13 @@ import {
   properReadings,
 } from '@/liturgy/data/lectionary/proper';
 import { temporalReadings } from '@/liturgy/data/lectionary/temporal';
+import { usccbDailyLectionary } from '@/liturgy/data/lectionary/usccb';
 import type {
   LectionaryEntry,
   LiturgicalCommon,
   LiturgicalSeason,
   SundayCycle,
+  UsccbDailyLectionaryEntry,
   WeekdayCycle,
 } from '@/liturgy/models';
 
@@ -21,6 +23,10 @@ export interface TemporalReadingsInput {
 }
 
 export interface LectionaryRepository {
+  getDateSpecificReadings(
+    date: string,
+    country?: string,
+  ): UsccbDailyLectionaryEntry | undefined;
   getProperReadings(
     eventId: string,
     sundayCycle: SundayCycle,
@@ -32,6 +38,10 @@ export interface LectionaryRepository {
 }
 
 export class LocalLectionaryRepository implements LectionaryRepository {
+  getDateSpecificReadings(date: string, country?: string) {
+    return country === 'US' ? usccbDailyLectionary.get(date) : undefined;
+  }
+
   getProperReadings(eventId: string, sundayCycle: SundayCycle) {
     return (
       cycleSpecificProperReadings[eventId]?.[sundayCycle] ??

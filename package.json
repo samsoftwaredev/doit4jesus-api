@@ -17,6 +17,8 @@
     "typecheck": "tsc --noEmit --project tsconfig.verify.json",
     "verify:commit": "pnpm run typecheck && pnpm run format && pnpm run lint && pnpm test",
     "verify:push": "pnpm run typecheck && pnpm run format:check && pnpm run lint:check && pnpm test",
+    "import:usccb-lectionary": "node scripts/import-usccb-lectionary.mjs",
+    "import:usccb-calendar": "node scripts/import-usccb-calendar-text.mjs",
     "export": "next export",
     "prepare": "husky",
     "test": "jest --watch=false --passWithNoTests",

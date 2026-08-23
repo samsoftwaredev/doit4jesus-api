@@ -15,6 +15,48 @@ type EmptySchema = {
 export type Database = {
   app: Omit<EmptySchema, 'Views'> & {
     Tables: {
+      examination_of_conscience_questions: {
+        Row: {
+          id: string;
+          category: 'single' | 'married' | 'religious';
+          title: string;
+          commandment: number;
+          severity: 'mortal' | 'grave';
+          question: string;
+          description: string;
+          counsels: string[];
+          prevention: string[];
+          saints: string[];
+          is_active: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          category: 'single' | 'married' | 'religious';
+          title: string;
+          commandment: number;
+          severity: 'mortal' | 'grave';
+          question: string;
+          description: string;
+          counsels: string[];
+          prevention: string[];
+          saints: string[];
+          is_active?: boolean;
+        };
+        Update: Partial<{
+          category: 'single' | 'married' | 'religious';
+          title: string;
+          commandment: number;
+          severity: 'mortal' | 'grave';
+          question: string;
+          description: string;
+          counsels: string[];
+          prevention: string[];
+          saints: string[];
+          is_active: boolean;
+        }>;
+        Relationships: [];
+      };
       contact_requests: {
         Row: {
           id: string;

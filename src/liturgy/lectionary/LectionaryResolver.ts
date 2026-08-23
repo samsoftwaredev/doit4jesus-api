@@ -1,10 +1,17 @@
 import type { LectionaryRepository } from '@/liturgy/lectionary/LectionaryRepository';
-import type { LiturgicalDay, ReadingSet } from '@/liturgy/models';
+import type {
+  LiturgicalCelebration,
+  LiturgicalDay,
+  ReadingSet,
+} from '@/liturgy/models';
 import { NabreScriptureRepository } from '@/liturgy/scripture/NabreScriptureRepository';
 
 export interface LectionaryResolution {
   primary: ReadingSet | undefined;
   readingSets: ReadingSet[];
+  celebration?: LiturgicalCelebration;
+  sourceUrl?: string;
+  lectionaryNumber?: string;
 }
 
 /**
@@ -18,6 +25,21 @@ export class LectionaryResolver {
   ) {}
 
   resolve(day: LiturgicalDay): LectionaryResolution {
+    const dateSpecific = this.repository.getDateSpecificReadings(
+      day.date,
+      day.country,
+    );
+    if (dateSpecific) {
+      this.assertReferencesExist(dateSpecific.readingSets);
+      return {
+        primary: dateSpecific.readingSets[0],
+        readingSets: dateSpecific.readingSets,
+        celebration: dateSpecific.celebration,
+        sourceUrl: dateSpecific.sourceUrl,
+        lectionaryNumber: dateSpecific.lectionaryNumber,
+      };
+    }
+
     const proper = this.repository.getProperReadings(
       day.primaryCelebration.id,
       day.sundayCycle,

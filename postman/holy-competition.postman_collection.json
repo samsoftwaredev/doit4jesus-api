@@ -124,8 +124,80 @@
       ]
     },
     {
+      "name": "Examination of conscience",
+      "description": "Public daily examination question. No authentication is required; the same date and filters deterministically select the same curated question.",
+      "item": [
+        {
+          "name": "Get daily question",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/examination-of-conscience?category=single&commandment=1&type=grave",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "examination-of-conscience"],
+              "query": [
+                { "key": "category", "value": "single" },
+                { "key": "commandment", "value": "1", "disabled": true },
+                { "key": "type", "value": "grave", "disabled": true },
+                { "key": "saint", "value": "St. Augustine", "disabled": true },
+                {
+                  "key": "date",
+                  "value": "2026-08-22",
+                  "description": "Optional ISO date for deterministic historical/preview requests.",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Returns one active question. Omit date to select from today's questions using EXAMINATION_TIMEZONE (America/Chicago by default)."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin — Examination of conscience",
+      "description": "Administrator-only question management. Database RLS independently enforces the admin role.",
+      "item": [
+        {
+          "name": "List questions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/examination-of-conscience?includeInactive=true&limit=50&offset=0",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "admin", "examination-of-conscience"],
+              "query": [
+                { "key": "includeInactive", "value": "true" },
+                { "key": "limit", "value": "50" },
+                { "key": "offset", "value": "0" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create question",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"category\": \"single\",\n  \"title\": \"Faith\",\n  \"commandment\": 1,\n  \"type\": \"grave\",\n  \"question\": \"Have I placed created things above God?\",\n  \"description\": \"Idolatry displaces God.\",\n  \"counsels\": [\"Return to prayer.\"],\n  \"prevention\": [\"Keep a daily prayer time.\"],\n  \"saints\": [\"St. Augustine\"]\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/examination-of-conscience",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "admin", "examination-of-conscience"]
+            }
+          }
+        }
+      ]
+    },
+    {
       "name": "Liturgy",
-      "description": "Catholic Mass readings backed by a local lectionary dataset. The API resolves the universal Roman-calendar day first, then maps every citation to NABRE verse text from the checked-in book files. No external liturgical API is called at request time.",
+      "description": "Catholic Mass readings backed by a local lectionary dataset. For country=US, a versioned local USCCB snapshot takes precedence; its source URL and lectionary number are returned in metadata. The API maps available citations to NABRE verse text from checked-in book files and makes no external liturgical request at runtime.",
       "item": [
         {
           "name": "Get today’s Mass readings",

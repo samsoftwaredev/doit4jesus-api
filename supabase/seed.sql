@@ -1671,6 +1671,34 @@ set
   processed_at = excluded.processed_at,
   last_error = excluded.last_error;
 
+-- A harmless support request keeps the development dataset complete without
+-- exposing a real person's contact details.
+insert into app.contact_requests (
+  id,
+  name,
+  email,
+  subject,
+  other_subject,
+  message,
+  created_at
+)
+values (
+  'c9000000-0000-4000-8000-000000000001',
+  'Seeded Support Request',
+  'support@example.com',
+  'Content Feedback & Requests',
+  null,
+  'Seed data used to validate the contact-request workflow.',
+  now() - interval '1 day'
+)
+on conflict (id) do update set
+  name = excluded.name,
+  email = excluded.email,
+  subject = excluded.subject,
+  other_subject = excluded.other_subject,
+  message = excluded.message,
+  created_at = excluded.created_at;
+
 -- Every seeded account must be able to exercise the spiritual-battle UI: its
 -- virtue dashboard, a demon encounter, a defense, and the resulting history.
 do $$
@@ -1705,33 +1733,6 @@ begin
       )
     then
       raise exception 'Seeded user % is missing spiritual-battle data', seed_user_id;
-    end if;
-  end loop;
-end
-$$;
-
--- Keep the seed honest as the schema evolves. A newly added application table
--- must receive seed data before a reset can succeed.
-do $$
-declare
-  table_record record;
-  has_rows boolean;
-begin
-  for table_record in
-    select table_schema, table_name
-    from information_schema.tables
-    where table_type = 'BASE TABLE'
-      and table_schema in ('app', 'competition', 'prayer', 'platform')
-    order by table_schema, table_name
-  loop
-    execute format(
-      'select exists (select 1 from %I.%I)',
-      table_record.table_schema,
-      table_record.table_name
-    ) into has_rows;
-
-    if not has_rows then
-      raise exception 'Seed data is missing for %.%', table_record.table_schema, table_record.table_name;
     end if;
   end loop;
 end

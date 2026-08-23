@@ -3,40 +3,75 @@ import type { CanonicalReference } from '@/liturgy/models';
 
 type BibleBook = { Book: string; Chapters: number };
 
+const canonicalBookNames = new Map(
+  (bibleBooks as BibleBook[]).map((book) => [
+    book.Book.toLowerCase().replace(/[^a-z0-9]/g, ''),
+    book.Book,
+  ]),
+);
+
 const aliases: Record<string, string> = {
+  am: 'Amos',
   acts: 'Acts',
   bar: 'Baruch',
+  chr: '1Chronicles',
   col: 'Colossians',
   cor: '1Corinthians',
   dan: 'Daniel',
   dn: 'Daniel',
   dt: 'Deuteronomy',
+  eccl: 'Ecclesiastes',
   eph: 'Ephesians',
+  est: 'Esther',
   ex: 'Exodus',
   ez: 'Ezekiel',
+  ezekiel: 'Ezekiel',
   gal: 'Galatians',
   gn: 'Genesis',
   gen: 'Genesis',
   heb: 'Hebrews',
+  hb: 'Hebrews',
+  hos: 'Hosea',
   is: 'Isaiah',
+  jas: 'James',
   jer: 'Jeremiah',
   jgs: 'Judges',
   jn: 'John',
   jl: 'Joel',
+  job: 'Job',
+  jon: 'Jonah',
+  jos: 'Joshua',
+  kgs: '1Kings',
+  lam: 'Lamentations',
   lk: 'Luke',
+  lv: 'Leviticus',
+  mal: 'Malachi',
+  mc: '1Maccabees',
   mk: 'Mark',
   mt: 'Matthew',
+  matthew: 'Matthew',
   nm: 'Numbers',
+  ob: 'Obadiah',
   phil: 'Philippians',
+  phlm: 'Philemon',
   pt: '1Peter',
+  prv: 'Proverbs',
   ps: 'Psalms',
+  psalm: 'Psalms',
+  psalms: 'Psalms',
   rom: 'Romans',
+  ru: 'Ruth',
   rv: 'Revelation',
+  sg: 'SongofSongs',
   sir: 'Sirach',
   sm: '1Samuel',
+  tb: 'Tobit',
   thes: '1Thessalonians',
   tm: '1Timothy',
   ti: 'Titus',
+  wis: 'Wisdom',
+  zec: 'Zechariah',
+  zep: 'Zephaniah',
 };
 
 function normalize(value: string) {
@@ -44,12 +79,19 @@ function normalize(value: string) {
 }
 
 export function canonicalBookForCitation(citation: string) {
-  const match = citation.match(/^([1-3])?\s*([A-Za-z]+)/);
+  const match = citation
+    .trim()
+    .match(/^((?:[1-3]\s*)?[A-Za-z]+(?:\s+[A-Za-z]+)*)\s+(?=\d)/);
   if (!match) return null;
 
-  const number = match[1] ?? '';
-  const shortName = normalize(match[2]);
-  const base = aliases[shortName];
+  const shortName = normalize(match[1]);
+  const directName = canonicalBookNames.get(shortName);
+  if (directName) return directName;
+
+  const numbered = shortName.match(/^([1-3])(.*)$/);
+  const number = numbered?.[1] ?? '';
+  const aliasName = numbered?.[2] ?? shortName;
+  const base = aliases[aliasName];
   if (!base) return null;
 
   if (

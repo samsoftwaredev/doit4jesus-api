@@ -12,6 +12,14 @@ type VerseRange = {
   endVerse: number;
 };
 
+const singleChapterBooks = new Set([
+  'Obadiah',
+  'Philemon',
+  'Jude',
+  '2John',
+  '3John',
+]);
+
 export class NabreVerseMappingError extends Error {
   constructor(message: string) {
     super(message);
@@ -105,29 +113,37 @@ function parseVerseNumber(value: string) {
 }
 
 function parseRanges(citation: string): { book: string; ranges: VerseRange[] } {
-  const match = citation.match(/^([1-3])?\s*([A-Za-z]+)\s+(.+)$/);
-  const book = canonicalBookForCitation(citation);
+  // USCCB calendar entries occasionally annotate an otherwise valid citation,
+  // for example "(second choice)". The note is not part of the reference.
+  const normalizedCitation = citation
+    .trim()
+    .replace(/\s+\((?!\d)[^)]+\)\s*$/, '');
+  const match = normalizedCitation
+    .trim()
+    .match(/^((?:[1-3]\s*)?[A-Za-z]+(?:\s+[A-Za-z]+)*)\s+(\d.+)$/);
+  const book = canonicalBookForCitation(normalizedCitation);
   if (!match || !book) {
     throw new NabreVerseMappingError(`Unsupported NABRE citation: ${citation}`);
   }
 
   let activeChapter: number | null = null;
   const ranges: VerseRange[] = [];
-  const references = match[3]
+  const references = match[2]
     .replace(/[–—]/g, '-')
     .replace(/\band\b/gi, ',')
     .split(';');
 
   for (const reference of references) {
     const chapterMatch = reference.trim().match(/^(\d+)\s*:\s*(.+)$/);
-    if (!chapterMatch) {
+    const verseExpression = chapterMatch?.[2] ?? reference.trim();
+    if (!chapterMatch && !singleChapterBooks.has(book)) {
       throw new NabreVerseMappingError(
         `Unsupported NABRE citation segment: ${citation}`,
       );
     }
-    activeChapter = Number.parseInt(chapterMatch[1], 10);
+    activeChapter = chapterMatch ? Number.parseInt(chapterMatch[1], 10) : 1;
 
-    for (const rawRange of chapterMatch[2].split(',')) {
+    for (const rawRange of verseExpression.split(',')) {
       const range = rawRange.trim();
       if (!range) continue;
       const rangeMatch = range.match(
@@ -181,7 +197,19 @@ export class NabreVerseMapper {
   }
 
   async mapReadings(readings: ScriptureReading[]) {
-    return Promise.all(readings.map((reading) => this.mapReading(reading)));
+    return Promise.all(
+      readings.map(async (reading) => {
+        try {
+          return await this.mapReading(reading);
+        } catch (error) {
+          // A reference remains useful even if the currently checked-in NABRE
+          // book file has not yet supplied those verses. Do not turn a valid
+          // USCCB lectionary result into a server error or fabricate text.
+          if (error instanceof NabreVerseMappingError) return reading;
+          throw error;
+        }
+      }),
+    );
   }
 
   private async getBook(book: string) {

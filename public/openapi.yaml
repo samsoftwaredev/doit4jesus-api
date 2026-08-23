@@ -49,6 +49,96 @@ paths:
                 data: { id: c9000000-0000-4000-8000-000000000001, createdAt: '2026-08-22T12:00:00Z' }
         '400': { description: Request body is missing or is not JSON }
         '422': { $ref: '#/components/responses/ValidationError' }
+  /api/v1/examination-of-conscience:
+    get:
+      security: []
+      summary: Get the deterministic daily examination-of-conscience question
+      description: >-
+        Returns one active, curated question. The selection is deterministic for
+        the application date (America/Chicago by default) and supplied filters,
+        so identical requests receive the same question all day. Supplying date
+        is supported for clients that need to display a prior or future day.
+      parameters:
+        - { $ref: '#/components/parameters/ExaminationCategory' }
+        - { $ref: '#/components/parameters/ExaminationSaint' }
+        - { $ref: '#/components/parameters/ExaminationCommandment' }
+        - { $ref: '#/components/parameters/ExaminationType' }
+        - { $ref: '#/components/parameters/ExaminationDate' }
+      responses:
+        '200':
+          description: The question selected for the requested daily scope
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ExaminationQuestionResponse' }
+        '404': { description: No active question matches the supplied filters }
+        '422': { $ref: '#/components/responses/ValidationError' }
+  /api/v1/admin/examination-of-conscience:
+    get:
+      summary: List examination-of-conscience questions for administration
+      parameters:
+        - { $ref: '#/components/parameters/ExaminationCategory' }
+        - { $ref: '#/components/parameters/ExaminationSaint' }
+        - { $ref: '#/components/parameters/ExaminationCommandment' }
+        - { $ref: '#/components/parameters/ExaminationType' }
+        - in: query
+          name: includeInactive
+          schema: { type: boolean, default: false }
+        - { $ref: '#/components/parameters/Limit' }
+        - { $ref: '#/components/parameters/Offset' }
+      responses:
+        '200':
+          description: Page of questions
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ExaminationQuestionListResponse' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { description: Administrator role required }
+    post:
+      summary: Create an examination-of-conscience question
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateExaminationQuestion' }
+      responses:
+        '201':
+          description: Question created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ExaminationQuestionResponse' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { description: Administrator role required }
+        '409': { description: A question with identical text already exists }
+        '422': { $ref: '#/components/responses/ValidationError' }
+  /api/v1/admin/examination-of-conscience/{questionId}:
+    patch:
+      summary: Update an examination-of-conscience question
+      parameters:
+        - { $ref: '#/components/parameters/ExaminationQuestionId' }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateExaminationQuestion' }
+      responses:
+        '200':
+          description: Question updated
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ExaminationQuestionResponse' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { description: Administrator role required }
+        '404': { description: Question not found }
+        '422': { $ref: '#/components/responses/ValidationError' }
+    delete:
+      summary: Delete an examination-of-conscience question
+      parameters:
+        - { $ref: '#/components/parameters/ExaminationQuestionId' }
+      responses:
+        '204': { description: Question deleted }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { description: Administrator role required }
+        '404': { description: Question not found }
   /api/v1/liturgy/today:
     get:
       summary: Get today’s Mass readings
@@ -56,8 +146,9 @@ paths:
         Resolves today in the configured LITURGY_TIMEZONE, then returns the
         universal Roman-calendar celebration and locally curated NABRE
         Scripture references and NABRE verse text from the checked-in local
-        book files. No external liturgical or Bible service is called at
-        request time.
+        book files. For country=US, a versioned local USCCB snapshot takes
+        precedence and returns its source metadata. No external liturgical or
+        Bible service is called at request time.
       parameters:
         - { $ref: '#/components/parameters/LiturgyCountry' }
         - { $ref: '#/components/parameters/LiturgyDiocese' }
@@ -1295,6 +1386,41 @@ components:
       name: locale
       description: Optional BCP 47 locale metadata; citations remain translation-neutral.
       schema: { type: string, example: en-US }
+    ExaminationCategory:
+      in: query
+      name: category
+      schema: { type: string, enum: [single, married, religious] }
+    ExaminationSaint:
+      in: query
+      name: saint
+      description: Exact saint-name match, case-insensitive.
+      schema: { type: string, minLength: 1, maxLength: 120 }
+    ExaminationCommandment:
+      in: query
+      name: commandment
+      schema: { type: integer, minimum: 1, maximum: 10 }
+    ExaminationType:
+      in: query
+      name: type
+      schema: { type: string, enum: [mortal, grave] }
+    ExaminationDate:
+      in: query
+      name: date
+      description: ISO date used for deterministic selection; defaults to today in EXAMINATION_TIMEZONE.
+      schema: { type: string, format: date }
+    ExaminationQuestionId:
+      in: path
+      name: questionId
+      required: true
+      schema: { type: string, format: uuid }
+    Limit:
+      in: query
+      name: limit
+      schema: { type: integer, minimum: 1, maximum: 100, default: 50 }
+    Offset:
+      in: query
+      name: offset
+      schema: { type: integer, minimum: 0, default: 0 }
   responses:
     Unauthorized:
       description: Missing or invalid Supabase Auth session
@@ -1357,6 +1483,122 @@ components:
           properties:
             id: { type: string, format: uuid }
             createdAt: { type: string, format: date-time }
+    ExaminationQuestion:
+      type: object
+      additionalProperties: false
+      required: [id, category, title, commandment, type, question, description, counsels, prevention, saints, isActive, createdAt, updatedAt]
+      properties:
+        id: { type: string, format: uuid }
+        category: { type: string, enum: [single, married, religious] }
+        title: { type: string, minLength: 1, maxLength: 120 }
+        commandment: { type: integer, minimum: 1, maximum: 10 }
+        type: { type: string, enum: [mortal, grave] }
+        question: { type: string, minLength: 1, maxLength: 1000 }
+        description: { type: string, minLength: 1, maxLength: 4000 }
+        counsels:
+          type: array
+          minItems: 1
+          maxItems: 12
+          items: { type: string, minLength: 1, maxLength: 500 }
+        prevention:
+          type: array
+          minItems: 1
+          maxItems: 12
+          items: { type: string, minLength: 1, maxLength: 500 }
+        saints:
+          type: array
+          minItems: 1
+          maxItems: 12
+          items: { type: string, minLength: 1, maxLength: 500 }
+        isActive: { type: boolean }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+    CreateExaminationQuestion:
+      type: object
+      additionalProperties: false
+      required: [category, title, commandment, type, question, description, counsels, prevention, saints]
+      properties:
+        category: { type: string, enum: [single, married, religious] }
+        title: { type: string, minLength: 1, maxLength: 120 }
+        commandment: { type: integer, minimum: 1, maximum: 10 }
+        type: { type: string, enum: [mortal, grave] }
+        question: { type: string, minLength: 1, maxLength: 1000 }
+        description: { type: string, minLength: 1, maxLength: 4000 }
+        counsels:
+          type: array
+          minItems: 1
+          maxItems: 12
+          items: { type: string, minLength: 1, maxLength: 500 }
+        prevention:
+          type: array
+          minItems: 1
+          maxItems: 12
+          items: { type: string, minLength: 1, maxLength: 500 }
+        saints:
+          type: array
+          minItems: 1
+          maxItems: 12
+          items: { type: string, minLength: 1, maxLength: 500 }
+        isActive: { type: boolean, default: true }
+    UpdateExaminationQuestion:
+      type: object
+      additionalProperties: false
+      minProperties: 1
+      properties:
+        category: { type: string, enum: [single, married, religious] }
+        title: { type: string, minLength: 1, maxLength: 120 }
+        commandment: { type: integer, minimum: 1, maximum: 10 }
+        type: { type: string, enum: [mortal, grave] }
+        question: { type: string, minLength: 1, maxLength: 1000 }
+        description: { type: string, minLength: 1, maxLength: 4000 }
+        counsels:
+          type: array
+          minItems: 1
+          maxItems: 12
+          items: { type: string, minLength: 1, maxLength: 500 }
+        prevention:
+          type: array
+          minItems: 1
+          maxItems: 12
+          items: { type: string, minLength: 1, maxLength: 500 }
+        saints:
+          type: array
+          minItems: 1
+          maxItems: 12
+          items: { type: string, minLength: 1, maxLength: 500 }
+        isActive: { type: boolean }
+    ExaminationQuestionResponse:
+      type: object
+      additionalProperties: false
+      required: [data]
+      properties:
+        data: { $ref: '#/components/schemas/ExaminationQuestion' }
+        meta:
+          type: object
+          additionalProperties: false
+          properties:
+            asOfDate: { type: string, format: date }
+            filters: { type: object }
+    ExaminationQuestionListResponse:
+      type: object
+      additionalProperties: false
+      required: [data, meta]
+      properties:
+        data:
+          type: array
+          items: { $ref: '#/components/schemas/ExaminationQuestion' }
+        meta:
+          type: object
+          additionalProperties: false
+          required: [limit, offset, hasMore, nextOffset]
+          properties:
+            limit: { type: integer }
+            offset: { type: integer }
+            hasMore: { type: boolean }
+            nextOffset:
+              anyOf:
+                - { type: integer }
+                - { type: 'null' }
     ScriptureReading:
       type: object
       additionalProperties: false
@@ -1424,8 +1666,14 @@ components:
             country: { type: string }
             diocese: { type: string }
             locale: { type: string }
-            dataVersion: { type: string, example: v1 }
+            dataVersion: { type: string, example: v2 }
             scriptureTextSource: { type: string, enum: [NABRE] }
+            scriptureTextUnavailable:
+              type: boolean
+              description: True when a cited passage is not yet present in the local NABRE book files.
+            lectionarySource: { type: string, enum: [USCCB, LOCAL] }
+            lectionaryNumber: { type: string, example: '423' }
+            sourceUrl: { type: string, format: uri }
     MassReadingsResponse:
       type: object
       additionalProperties: false

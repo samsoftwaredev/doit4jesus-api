@@ -115,6 +115,11 @@ export interface DailyMassReadings {
     locale?: string;
     dataVersion: string;
     scriptureTextSource?: 'NABRE';
+    /** True when at least one cited passage is not present in local Bible files. */
+    scriptureTextUnavailable?: boolean;
+    lectionarySource?: 'USCCB' | 'LOCAL';
+    lectionaryNumber?: string;
+    sourceUrl?: string;
   };
 }
 
@@ -123,6 +128,15 @@ export interface LectionaryEntry {
   selectionRule: ReadingSelectionRule;
   readingSets: ReadingSet[];
   common?: LiturgicalCommon;
+}
+
+/** A date-specific USCCB lectionary record imported during data generation. */
+export interface UsccbDailyLectionaryEntry {
+  date: string;
+  celebration: LiturgicalCelebration;
+  lectionaryNumber?: string;
+  readingSets: ReadingSet[];
+  sourceUrl: string;
 }
 
 /**

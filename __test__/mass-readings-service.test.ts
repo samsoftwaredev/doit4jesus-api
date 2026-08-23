@@ -4,6 +4,7 @@ import {
   getMassReadings,
 } from '../src/liturgy/MassReadingsService';
 import { LiturgicalDayResolver } from '../src/liturgy/calendar/LiturgicalDayResolver';
+import { usccbDailyLectionary } from '../src/liturgy/data/lectionary/usccb';
 import { LocalLectionaryRepository } from '../src/liturgy/lectionary/LectionaryRepository';
 import { LectionaryResolver } from '../src/liturgy/lectionary/LectionaryResolver';
 import { NabreScriptureRepository } from '../src/liturgy/scripture/NabreScriptureRepository';
@@ -159,6 +160,29 @@ describe('LectionaryResolver', () => {
 });
 
 describe('MassReadingsService', () => {
+  it('has a local USCCB record for every day in the 2026 civil year', () => {
+    const start = new Date('2026-01-01T00:00:00.000Z');
+    for (let offset = 0; offset < 365; offset += 1) {
+      const date = new Date(start);
+      date.setUTCDate(date.getUTCDate() + offset);
+      expect(usccbDailyLectionary.has(date.toISOString().slice(0, 10))).toBe(
+        true,
+      );
+    }
+  });
+
+  it('resolves every 2026 USCCB reading and maps available local NABRE text', async () => {
+    for (const date of usccbDailyLectionary.keys()) {
+      const result = await getMassReadings({ date, country: 'US' });
+      expect(result.readings).not.toHaveLength(0);
+      for (const reading of result.readings) {
+        expect(reading.citation).toEqual(expect.any(String));
+        if (reading.text !== undefined)
+          expect(reading.text).not.toHaveLength(0);
+      }
+    }
+  });
+
   it('returns a daily payload with local Scripture text and regional metadata', async () => {
     const result = await getMassReadings({
       date: '2026-08-21',
@@ -170,7 +194,7 @@ describe('MassReadingsService', () => {
     expect(result).toMatchObject({
       date: '2026-08-21',
       celebration: {
-        id: 'saint-pius-x',
+        id: 'saint-pius-x-pope',
         season: 'ORDINARY_TIME',
         color: ['WHITE'],
       },
@@ -179,7 +203,9 @@ describe('MassReadingsService', () => {
         country: 'US',
         diocese: 'dallas',
         locale: 'en-US',
-        dataVersion: 'v1',
+        dataVersion: 'v2',
+        lectionarySource: 'USCCB',
+        lectionaryNumber: '423',
       },
     });
     expect(result.readings[0].text).toContain('Ezekiel 37:1');
@@ -189,6 +215,33 @@ describe('MassReadingsService', () => {
   it('returns Christmas reading sets from the service', async () => {
     const result = await getMassReadings({ date: '2026-12-25', country: 'US' });
     expect(result.readingSets).toHaveLength(4);
+  });
+
+  it('uses the local USCCB record for the Queenship of Mary', async () => {
+    const result = await getMassReadings({
+      date: '2026-08-22',
+      country: 'US',
+    });
+
+    expect(result.celebration).toMatchObject({
+      id: 'memorial-of-the-queenship-of-the-blessed-virgin-mary',
+      name: 'Memorial of the Queenship of the Blessed Virgin Mary',
+      grade: 'MEMORIAL',
+      color: ['WHITE'],
+    });
+    expect(result.readings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          type: 'FIRST_READING',
+          citation: 'Ezekiel 43:1-7ab',
+        }),
+        expect.objectContaining({
+          type: 'GOSPEL',
+          citation: 'Matthew 23:1-12',
+        }),
+      ]),
+    );
+    expect(result.readings[0].text).toContain('Ezekiel 43:1');
   });
 
   it('maps local NABRE book text into the standard response body', async () => {
@@ -237,6 +290,8 @@ describe('MassReadingsService', () => {
   it('uses the local NABRE catalogue for citation validation', () => {
     const nabre = new NabreScriptureRepository();
     expect(nabre.supportsCitation('Ez 37:1-14')).toBe(true);
+    expect(nabre.supportsCitation('Ezekiel 43:1-7ab')).toBe(true);
+    expect(nabre.supportsCitation('1 Corinthians 1:1-9')).toBe(true);
     expect(nabre.supportsCitation('Mt 22:34-40')).toBe(true);
     expect(nabre.supportsCitation('Unknown 1:1')).toBe(false);
   });

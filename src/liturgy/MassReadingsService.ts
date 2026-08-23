@@ -5,7 +5,7 @@ import { LectionaryResolver } from '@/liturgy/lectionary/LectionaryResolver';
 import type { DailyMassReadings } from '@/liturgy/models';
 import { NabreVerseMapper } from '@/liturgy/scripture/NabreVerseMapper';
 
-const DATA_VERSION = 'v1';
+const DATA_VERSION = 'v2';
 const DEFAULT_TIMEZONE = 'America/Chicago';
 const CACHE_TTL_MILLISECONDS = 5 * 60 * 1_000;
 
@@ -187,15 +187,20 @@ export class MassReadingsService {
         'No readings are available for this date.',
       );
     }
+    const scriptureTextUnavailable =
+      normalized.includeVerseText !== false &&
+      readingSets.some((readingSet) =>
+        readingSet.readings.some((reading) => reading.text === undefined),
+      );
 
     const result: DailyMassReadings = {
       date: day.date,
       celebration: {
-        id: day.primaryCelebration.id,
-        name: day.primaryCelebration.name,
-        grade: day.primaryCelebration.grade,
+        id: resolution.celebration?.id ?? day.primaryCelebration.id,
+        name: resolution.celebration?.name ?? day.primaryCelebration.name,
+        grade: resolution.celebration?.grade ?? day.primaryCelebration.grade,
         season: day.season,
-        color: day.primaryCelebration.colors,
+        color: resolution.celebration?.colors ?? day.primaryCelebration.colors,
       },
       cycles: {
         sunday: day.sundayCycle,
@@ -210,6 +215,16 @@ export class MassReadingsService {
         ...(normalized.locale ? { locale: normalized.locale } : {}),
         dataVersion: DATA_VERSION,
         scriptureTextSource: 'NABRE',
+        ...(scriptureTextUnavailable ? { scriptureTextUnavailable: true } : {}),
+        ...(resolution.sourceUrl
+          ? {
+              lectionarySource: 'USCCB' as const,
+              ...(resolution.lectionaryNumber
+                ? { lectionaryNumber: resolution.lectionaryNumber }
+                : {}),
+              sourceUrl: resolution.sourceUrl,
+            }
+          : { lectionarySource: 'LOCAL' as const }),
       },
     };
     this.cache.set(key, result, CACHE_TTL_MILLISECONDS);
