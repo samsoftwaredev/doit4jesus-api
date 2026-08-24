@@ -49,6 +49,40 @@ paths:
                 data: { id: c9000000-0000-4000-8000-000000000001, createdAt: '2026-08-22T12:00:00Z' }
         '400': { description: Request body is missing or is not JSON }
         '422': { $ref: '#/components/responses/ValidationError' }
+  /api/v1/admin/contact-requests:
+    get:
+      summary: List contact requests for administrator review
+      description: >-
+        Returns contact details and messages only to authenticated administrators.
+        The created_at filter represents a full UTC calendar day; name is a
+        case-insensitive substring match and email is a case-insensitive exact match.
+      parameters:
+        - in: query
+          name: status
+          schema: { type: string, enum: [todo, inprogress, done, all], default: all }
+        - in: query
+          name: created_at
+          schema: { type: string, format: date }
+        - in: query
+          name: email
+          schema: { type: string, format: email, maxLength: 320 }
+        - in: query
+          name: name
+          schema: { type: string, minLength: 1, maxLength: 120 }
+        - in: query
+          name: subject
+          schema: { $ref: '#/components/schemas/ContactSubject' }
+        - { $ref: '#/components/parameters/Limit' }
+        - { $ref: '#/components/parameters/Offset' }
+      responses:
+        '200':
+          description: Contact-request page
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ContactRequestListResponse' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { description: Administrator role required }
+        '422': { $ref: '#/components/responses/ValidationError' }
   /api/v1/examination-of-conscience:
     get:
       security: []
@@ -1491,6 +1525,31 @@ components:
           properties:
             id: { type: string, format: uuid }
             createdAt: { type: string, format: date-time }
+    ContactRequest:
+      type: object
+      additionalProperties: false
+      required: [id, name, email, subject, other_subject, message, status, created_at]
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        email: { type: string, format: email }
+        subject: { $ref: '#/components/schemas/ContactSubject' }
+        other_subject:
+          anyOf:
+            - { type: string }
+            - { type: 'null' }
+        message: { type: string }
+        status: { type: string, enum: [todo, inprogress, done] }
+        created_at: { type: string, format: date-time }
+    ContactRequestListResponse:
+      type: object
+      additionalProperties: false
+      required: [data, meta]
+      properties:
+        data:
+          type: array
+          items: { $ref: '#/components/schemas/ContactRequest' }
+        meta: { $ref: '#/components/schemas/OffsetPageMeta' }
     ExaminationQuestion:
       type: object
       additionalProperties: false

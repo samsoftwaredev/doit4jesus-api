@@ -115,3 +115,17 @@ export const createContactRequestSchema = z
       });
     }
   });
+
+export const contactRequestAdminQuerySchema = z
+  .object({
+    status: z.enum(['todo', 'inprogress', 'done', 'all']).default('all'),
+    // A calendar date is interpreted as the full UTC day, rather than an
+    // impractical exact match against a timestamp with milliseconds.
+    created_at: z.iso.date().optional(),
+    email: z.string().trim().email().max(320).optional(),
+    name: z.string().trim().min(1).max(120).optional(),
+    subject: z.enum(contactSubjectValues).optional(),
+    limit: z.coerce.number().int().min(1).max(100).default(20),
+    offset: z.coerce.number().int().min(0).default(0),
+  })
+  .strict();

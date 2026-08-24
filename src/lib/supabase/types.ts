@@ -78,6 +78,7 @@ export type Database = {
             | 'Other';
           other_subject: string | null;
           message: string;
+          status: 'todo' | 'inprogress' | 'done';
           created_at: string;
         };
         Insert: {
@@ -99,8 +100,29 @@ export type Database = {
             | 'Other';
           other_subject?: string | null;
           message: string;
+          status?: 'todo' | 'inprogress' | 'done';
         };
-        Update: never;
+        Update: Partial<{
+          name: string;
+          email: string;
+          subject:
+            | 'Billing & Payments'
+            | 'Subscription Management'
+            | 'Login & Account Access'
+            | 'App Performance & Bugs'
+            | 'Audio & Playback Issues'
+            | 'Streak & Progress Issues'
+            | 'Content Feedback & Requests'
+            | 'Prayer Intentions'
+            | 'Grammar & Audio Mistakes'
+            | 'Parish & Church Programs'
+            | 'School & Ministry Licensing'
+            | 'Media & Press Inquiries'
+            | 'Other';
+          other_subject: string | null;
+          message: string;
+          status: 'todo' | 'inprogress' | 'done';
+        }>;
         Relationships: [];
       };
       cities: {
