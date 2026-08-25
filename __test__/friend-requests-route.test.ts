@@ -33,6 +33,7 @@ describe('GET /api/v1/me/friend-requests', () => {
           username: 'sender',
           avatar_url: null,
           title: null,
+          country_code: 'US',
         },
         {
           id: '44444444-4444-4444-8444-444444444444',
@@ -46,6 +47,7 @@ describe('GET /api/v1/me/friend-requests', () => {
           username: 'recipient',
           avatar_url: null,
           title: null,
+          country_code: 'CA',
         },
       ],
       error: null,
@@ -64,11 +66,19 @@ describe('GET /api/v1/me/friend-requests', () => {
       data: [
         {
           direction: 'incoming',
-          user: { id: senderId, displayName: 'Request Sender' },
+          user: {
+            id: senderId,
+            displayName: 'Request Sender',
+            countryCode: 'US',
+          },
         },
         {
           direction: 'outgoing',
-          user: { id: recipientId, displayName: 'Request Recipient' },
+          user: {
+            id: recipientId,
+            displayName: 'Request Recipient',
+            countryCode: 'CA',
+          },
         },
       ],
       meta: { limit: 20, offset: 0, hasMore: false, nextOffset: null },

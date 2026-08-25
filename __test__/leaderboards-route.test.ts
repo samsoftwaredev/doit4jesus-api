@@ -84,6 +84,7 @@ describe('GET /api/v1/leaderboards', () => {
           username: 'pageplayer',
           avatar_url: null,
           title: null,
+          country_code: 'US',
         },
         {
           user_id: currentUserId,
@@ -91,6 +92,7 @@ describe('GET /api/v1/leaderboards', () => {
           username: 'currentplayer',
           avatar_url: null,
           title: null,
+          country_code: 'CA',
         },
       ],
       error: null,
@@ -125,13 +127,21 @@ describe('GET /api/v1/leaderboards', () => {
           {
             ...pageEntry,
             isCurrentUser: false,
-            profile: { user_id: otherUserId, display_name: 'Page Player' },
+            profile: {
+              user_id: otherUserId,
+              display_name: 'Page Player',
+              countryCode: 'US',
+            },
           },
         ],
         currentUserEntry: {
           ...currentUserEntry,
           isCurrentUser: true,
-          profile: { user_id: currentUserId, display_name: 'Current Player' },
+          profile: {
+            user_id: currentUserId,
+            display_name: 'Current Player',
+            countryCode: 'CA',
+          },
         },
       },
       meta: { total: 100, limit: 1, offset: 0 },

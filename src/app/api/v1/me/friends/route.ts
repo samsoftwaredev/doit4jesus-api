@@ -30,6 +30,7 @@ export async function GET(request: Request) {
         username: friend.username,
         avatarUrl: friend.avatar_url,
         title: friend.title,
+        countryCode: friend.country_code,
         totalXp: friend.total_xp,
         currentLevel: {
           levelNumber: friend.current_level,

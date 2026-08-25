@@ -583,6 +583,7 @@ paths:
                       username: johnpaul
                       avatarUrl: 'https://example.com/avatars/johnpaul.png'
                       title: Scripture Seeker
+                      countryCode: US
                 meta: { limit: 20, offset: 0, hasMore: false, nextOffset: null }
     post:
       summary: Send a username-based friend request
@@ -680,6 +681,7 @@ paths:
                     username: mariasantos
                     avatarUrl: 'https://example.com/avatars/mariasantos.png'
                     title: Prayer Champion
+                    countryCode: MX
                     totalXp: 920
                     currentLevel: { levelNumber: 3, code: disciple, name: Disciple }
                     rosaryTotal: 14
@@ -722,7 +724,7 @@ paths:
                       scriptureReadingsCount: 4
                       prayersCount: 9
                       isCurrentUser: false
-                      friend: { id: 11111111-1111-4111-8111-111111111111, displayName: Maria Santos, username: mariasantos, avatarUrl: 'https://example.com/avatars/mariasantos.png', title: Prayer Champion }
+                      friend: { id: 11111111-1111-4111-8111-111111111111, displayName: Maria Santos, username: mariasantos, avatarUrl: 'https://example.com/avatars/mariasantos.png', title: Prayer Champion, countryCode: MX }
                   currentUserEntry:
                     rank: 2
                     points: 120
@@ -730,7 +732,7 @@ paths:
                     scriptureReadingsCount: 2
                     prayersCount: 5
                     isCurrentUser: true
-                    friend: { id: 9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002, displayName: Test User, username: testuser, avatarUrl: 'https://example.com/avatars/testuser.png', title: Faithful Beginner }
+                    friend: { id: 9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002, displayName: Test User, username: testuser, avatarUrl: 'https://example.com/avatars/testuser.png', title: Faithful Beginner, countryCode: US }
                   total: 2
   /api/v1/me/friends/comparison:
     get:
@@ -767,7 +769,7 @@ paths:
                       periodPoints: 240
                       periodActivity: { rosariesCount: 3, scriptureReadingsCount: 4, prayersCount: 9 }
                       isCurrentUser: false
-                      profile: { id: 11111111-1111-4111-8111-111111111111, displayName: Maria Santos, username: mariasantos, avatarUrl: 'https://example.com/avatars/mariasantos.png', title: Prayer Champion }
+                      profile: { id: 11111111-1111-4111-8111-111111111111, displayName: Maria Santos, username: mariasantos, avatarUrl: 'https://example.com/avatars/mariasantos.png', title: Prayer Champion, countryCode: MX }
                       totalXp: 920
                       lifetimePoints: 2050
                       currentLevel: { levelNumber: 3, code: disciple, name: Disciple }
@@ -803,7 +805,7 @@ paths:
               schema: { $ref: '#/components/schemas/FriendDetailResponse' }
               example:
                 data:
-                  friend: { id: 11111111-1111-4111-8111-111111111111, displayName: Maria Santos, username: mariasantos, avatarUrl: 'https://example.com/avatars/mariasantos.png', title: Prayer Champion }
+                  friend: { id: 11111111-1111-4111-8111-111111111111, displayName: Maria Santos, username: mariasantos, avatarUrl: 'https://example.com/avatars/mariasantos.png', title: Prayer Champion, countryCode: MX }
                   progress:
                     totalXp: 920
                     currentLevel: { levelNumber: 3, code: disciple, name: Disciple, description: Growing in faithful discipleship., minimumTotalXp: 750, iconUrl: null, imageUrl: null }
@@ -1301,7 +1303,7 @@ paths:
                       prayers_count: 9
                       updated_at: '2026-08-17T10:00:00Z'
                       isCurrentUser: false
-                      profile: { user_id: 11111111-1111-4111-8111-111111111111, display_name: Maria Santos, username: mariasantos, avatar_url: 'https://example.com/avatars/mariasantos.png', title: Prayer Champion }
+                      profile: { user_id: 11111111-1111-4111-8111-111111111111, display_name: Maria Santos, username: mariasantos, avatar_url: 'https://example.com/avatars/mariasantos.png', title: Prayer Champion, countryCode: MX }
                   currentUserEntry: null
                 meta: { total: 1, limit: 50, offset: 0 }
   /api/v1/prayer-map:
@@ -1946,7 +1948,7 @@ components:
     FriendRequestUser:
       type: object
       additionalProperties: false
-      required: [id, displayName, username, avatarUrl, title]
+      required: [id, displayName, username, avatarUrl, title, countryCode]
       properties:
         id: { type: string, format: uuid }
         displayName: { type: string }
@@ -1961,6 +1963,10 @@ components:
         title:
           anyOf:
             - { type: string }
+            - { type: 'null' }
+        countryCode:
+          anyOf:
+            - { type: string, minLength: 2, maxLength: 2 }
             - { type: 'null' }
     FriendRequest:
       type: object
@@ -2012,6 +2018,7 @@ components:
         - username
         - avatarUrl
         - title
+        - countryCode
         - totalXp
         - currentLevel
         - rosaryTotal
@@ -2031,6 +2038,10 @@ components:
         title:
           anyOf:
             - { type: string }
+            - { type: 'null' }
+        countryCode:
+          anyOf:
+            - { type: string, minLength: 2, maxLength: 2 }
             - { type: 'null' }
         totalXp: { type: integer, format: int64, minimum: 0 }
         currentLevel: { $ref: '#/components/schemas/CurrentLevel' }
@@ -2064,7 +2075,7 @@ components:
     FriendProfile:
       type: object
       additionalProperties: false
-      required: [id, displayName, username, avatarUrl, title]
+      required: [id, displayName, username, avatarUrl, title, countryCode]
       properties:
         id: { type: string, format: uuid }
         displayName: { type: string }
@@ -2079,6 +2090,10 @@ components:
         title:
           anyOf:
             - { type: string }
+            - { type: 'null' }
+        countryCode:
+          anyOf:
+            - { type: string, minLength: 2, maxLength: 2 }
             - { type: 'null' }
     FriendDetailLevel:
       type: object
@@ -2293,7 +2308,7 @@ components:
     GlobalLeaderboardProfile:
       type: object
       additionalProperties: false
-      required: [user_id, display_name, username, avatar_url, title]
+      required: [user_id, display_name, username, avatar_url, title, countryCode]
       properties:
         user_id: { type: string, format: uuid }
         display_name: { type: string }
@@ -2308,6 +2323,10 @@ components:
         title:
           anyOf:
             - { type: string }
+            - { type: 'null' }
+        countryCode:
+          anyOf:
+            - { type: string, minLength: 2, maxLength: 2 }
             - { type: 'null' }
     GlobalLeaderboardEntry:
       type: object

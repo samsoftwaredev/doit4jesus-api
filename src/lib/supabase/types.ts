@@ -324,6 +324,7 @@ export type Database = {
           username: string | null;
           avatar_url: string | null;
           title: string | null;
+          country_code: string | null;
         };
         Relationships: [];
       };
@@ -920,6 +921,7 @@ export type Database = {
           username: string | null;
           avatar_url: string | null;
           title: string | null;
+          country_code: string | null;
         }>;
       };
       list_current_user_friends: {
@@ -942,6 +944,7 @@ export type Database = {
           badge_count: number;
           friends_since: string;
           rosary_streak: Json | null;
+          country_code: string | null;
         }>;
       };
       get_current_user_friend_details: {
