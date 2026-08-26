@@ -44,6 +44,14 @@ export function throwDatabaseError(
         throw ApiError.conflict(
           'The church change request has already been reviewed.',
         );
+      case 'PRAYER_INTENTION_NOT_FOUND':
+        throw ApiError.notFound('The prayer intention was not found.');
+      case 'PRAYER_INTENTION_NOT_AVAILABLE':
+        throw ApiError.notFound('The prayer intention is not available.');
+      case 'PRAYER_INTENTION_NOT_PENDING':
+        throw ApiError.conflict(
+          'The prayer intention has already been reviewed.',
+        );
       case 'FRIEND_USERNAME_NOT_FOUND':
       case 'FRIEND_REQUEST_NOT_FOUND':
       case 'FRIENDSHIP_NOT_FOUND':
@@ -102,6 +110,7 @@ export function throwDatabaseError(
       case 'USER_TIMEZONE_INVALID':
       case 'INVALID_CHURCH_CHANGE_DECISION':
       case 'INVALID_CHURCH_SERVICE_TIMES':
+      case 'INVALID_PRAYER_INTENTION_DECISION':
       case 'INVALID_FRIEND_USERNAME':
       case 'INVALID_USER_SEARCH_QUERY':
       case 'CANNOT_FRIEND_SELF':

@@ -83,6 +83,173 @@ paths:
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { description: Administrator role required }
         '422': { $ref: '#/components/responses/ValidationError' }
+  /api/v1/prayer-intentions:
+    get:
+      summary: List approved, unexpired prayer-intention cards
+      description: >-
+        Only intentions made visible by an administrator are returned. Each
+        card expires one month after its approval and includes the creator's
+        current display name, avatar, and country code.
+      parameters:
+        - { $ref: '#/components/parameters/Limit' }
+        - { $ref: '#/components/parameters/Offset' }
+      responses:
+        '200':
+          description: Visible prayer-intention card page
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PrayerIntentionCardListResponse' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+    post:
+      summary: Submit a prayer intention for administrator approval
+      description: >-
+        The intention begins as pending and is not visible to other users.
+        Descriptions are limited to 250 characters.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreatePrayerIntention' }
+      responses:
+        '201':
+          description: Pending prayer intention created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PrayerIntentionResponse' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+  /api/v1/me/prayer-intentions:
+    get:
+      summary: List the current user's unexpired prayer intentions
+      description: >-
+        Includes the user's pending, visible, and rejected intentions. A
+        rejected intention remains available until its review-based expiry.
+      parameters:
+        - in: query
+          name: status
+          schema: { type: string, enum: [pending, visible, rejected, all], default: all }
+        - { $ref: '#/components/parameters/Limit' }
+        - { $ref: '#/components/parameters/Offset' }
+      responses:
+        '200':
+          description: Current-user prayer-intention page
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MyPrayerIntentionsResponse' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+  /api/v1/prayer-intentions/{intentionId}:
+    get:
+      summary: Get one approved, unexpired prayer-intention card
+      description: >-
+        Returns only an administrator-approved, unexpired intention. Pending,
+        rejected, expired, and unknown intentions all return 404.
+      parameters:
+        - in: path
+          name: intentionId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Visible prayer-intention card
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PrayerIntentionCardResponse' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { description: No approved, unexpired prayer intention matches the ID }
+        '422': { $ref: '#/components/responses/ValidationError' }
+  /api/v1/prayer-intentions/{intentionId}/prayers:
+    get:
+      summary: List people who prayed for an intention
+      description: >-
+        The list is limited to the intention's creator and administrators. It
+        includes one record per prayer, so a person may appear more than once.
+      parameters:
+        - in: path
+          name: intentionId
+          required: true
+          schema: { type: string, format: uuid }
+        - { $ref: '#/components/parameters/Limit' }
+        - { $ref: '#/components/parameters/Offset' }
+      responses:
+        '200':
+          description: Prayer-record page
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PrayerIntentionPrayerListResponse' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { description: Prayer intention not found or not accessible }
+        '422': { $ref: '#/components/responses/ValidationError' }
+    post:
+      summary: Record one prayer for an approved intention
+      description: >-
+        Records an append-only prayer for the authenticated user. A user may
+        pray for the same visible intention more than once; no undo is offered.
+      parameters:
+        - in: path
+          name: intentionId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '201':
+          description: Prayer recorded
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PrayerIntentionPrayerCreatedResponse' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { description: No approved, unexpired prayer intention matches the ID }
+        '422': { $ref: '#/components/responses/ValidationError' }
+  /api/v1/admin/prayer-intentions:
+    get:
+      summary: List prayer intentions for administrator review
+      parameters:
+        - in: query
+          name: status
+          schema: { type: string, enum: [pending, visible, rejected, all], default: pending }
+        - in: query
+          name: createdAt
+          description: Full UTC calendar-day filter.
+          schema: { type: string, format: date }
+        - { $ref: '#/components/parameters/Limit' }
+        - { $ref: '#/components/parameters/Offset' }
+      responses:
+        '200':
+          description: Administrator prayer-intention page
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AdminPrayerIntentionsResponse' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { description: Administrator role required }
+        '422': { $ref: '#/components/responses/ValidationError' }
+  /api/v1/admin/prayer-intentions/{intentionId}:
+    patch:
+      summary: Make a pending prayer intention visible or reject it
+      description: >-
+        Visible and rejected intentions expire one month after this review.
+        A visible approval increments the creator's lifetime approved count and
+        awards the 1, 3, or 7-intention badge when a threshold is reached.
+      parameters:
+        - in: path
+          name: intentionId
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ReviewPrayerIntention' }
+      responses:
+        '200':
+          description: Prayer intention reviewed
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PrayerIntentionReviewResponse' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { description: Administrator role required }
+        '404': { description: Prayer intention not found }
+        '409': { description: Prayer intention was already reviewed }
+        '422': { $ref: '#/components/responses/ValidationError' }
   /api/v1/examination-of-conscience:
     get:
       security: []
@@ -1552,6 +1719,210 @@ components:
           type: array
           items: { $ref: '#/components/schemas/ContactRequest' }
         meta: { $ref: '#/components/schemas/OffsetPageMeta' }
+    PrayerIntentionStatus:
+      type: string
+      enum: [pending, visible, rejected]
+    PrayerIntentionSymbol:
+      type: string
+      enum: [candle, cross, dove, olive_branch]
+    CreatePrayerIntention:
+      type: object
+      additionalProperties: false
+      required: [title, description]
+      properties:
+        title: { type: string, minLength: 1, maxLength: 120 }
+        description: { type: string, minLength: 1, maxLength: 250 }
+        symbol:
+          anyOf:
+            - { $ref: '#/components/schemas/PrayerIntentionSymbol' }
+            - { type: 'null' }
+    MyPrayerIntention:
+      type: object
+      additionalProperties: false
+      required: [id, title, description, symbol, status, createdAt, reviewedAt, expiresAt, prayerCount]
+      properties:
+        id: { type: string, format: uuid }
+        title: { type: string, maxLength: 120 }
+        description: { type: string, maxLength: 250 }
+        symbol:
+          anyOf:
+            - { $ref: '#/components/schemas/PrayerIntentionSymbol' }
+            - { type: 'null' }
+        status: { $ref: '#/components/schemas/PrayerIntentionStatus' }
+        createdAt: { type: string, format: date-time }
+        reviewedAt:
+          anyOf:
+            - { type: string, format: date-time }
+            - { type: 'null' }
+        expiresAt:
+          anyOf:
+            - { type: string, format: date-time }
+            - { type: 'null' }
+        prayerCount: { type: integer, format: int64, minimum: 0 }
+    PrayerIntentionResponse:
+      type: object
+      additionalProperties: false
+      required: [data]
+      properties:
+        data: { $ref: '#/components/schemas/MyPrayerIntention' }
+    MyPrayerIntentionsResponse:
+      type: object
+      additionalProperties: false
+      required: [data, meta]
+      properties:
+        data:
+          type: array
+          items: { $ref: '#/components/schemas/MyPrayerIntention' }
+        meta: { $ref: '#/components/schemas/OffsetPageMeta' }
+    PrayerIntentionCreator:
+      type: object
+      additionalProperties: false
+      required: [displayName, avatarUrl, countryCode]
+      properties:
+        displayName: { type: string }
+        avatarUrl:
+          anyOf:
+            - { type: string }
+            - { type: 'null' }
+        countryCode:
+          anyOf:
+            - { type: string, minLength: 2, maxLength: 2 }
+            - { type: 'null' }
+    PrayerIntentionCard:
+      type: object
+      additionalProperties: false
+      required: [id, title, description, symbol, approvedAt, expiresAt, createdAt, prayerCount, creator]
+      properties:
+        id: { type: string, format: uuid }
+        title: { type: string, maxLength: 120 }
+        description: { type: string, maxLength: 250 }
+        symbol:
+          anyOf:
+            - { $ref: '#/components/schemas/PrayerIntentionSymbol' }
+            - { type: 'null' }
+        approvedAt: { type: string, format: date-time }
+        expiresAt: { type: string, format: date-time }
+        createdAt: { type: string, format: date-time }
+        prayerCount: { type: integer, format: int64, minimum: 0 }
+        creator: { $ref: '#/components/schemas/PrayerIntentionCreator' }
+    PrayerIntentionCardListResponse:
+      type: object
+      additionalProperties: false
+      required: [data, meta]
+      properties:
+        data:
+          type: array
+          items: { $ref: '#/components/schemas/PrayerIntentionCard' }
+        meta: { $ref: '#/components/schemas/OffsetPageMeta' }
+    PrayerIntentionCardResponse:
+      type: object
+      additionalProperties: false
+      required: [data]
+      properties:
+        data: { $ref: '#/components/schemas/PrayerIntentionCard' }
+    PrayerIntentionPrayerUser:
+      type: object
+      additionalProperties: false
+      required: [id, displayName, avatarUrl, countryCode]
+      properties:
+        id: { type: string, format: uuid }
+        displayName: { type: string }
+        avatarUrl:
+          anyOf:
+            - { type: string }
+            - { type: 'null' }
+        countryCode:
+          anyOf:
+            - { type: string, minLength: 2, maxLength: 2 }
+            - { type: 'null' }
+    PrayerIntentionPrayer:
+      type: object
+      additionalProperties: false
+      required: [id, user, prayedAt]
+      properties:
+        id: { type: string, format: uuid }
+        user: { $ref: '#/components/schemas/PrayerIntentionPrayerUser' }
+        prayedAt: { type: string, format: date-time }
+    PrayerIntentionPrayerListResponse:
+      type: object
+      additionalProperties: false
+      required: [data, meta]
+      properties:
+        data:
+          type: array
+          items: { $ref: '#/components/schemas/PrayerIntentionPrayer' }
+        meta: { $ref: '#/components/schemas/OffsetPageMeta' }
+    PrayerIntentionPrayerCreated:
+      type: object
+      additionalProperties: false
+      required: [id, intentionId, prayedAt, prayerCount]
+      properties:
+        id: { type: string, format: uuid }
+        intentionId: { type: string, format: uuid }
+        prayedAt: { type: string, format: date-time }
+        prayerCount: { type: integer, format: int64, minimum: 1 }
+    PrayerIntentionPrayerCreatedResponse:
+      type: object
+      additionalProperties: false
+      required: [data]
+      properties:
+        data: { $ref: '#/components/schemas/PrayerIntentionPrayerCreated' }
+    AdminPrayerIntention:
+      type: object
+      additionalProperties: false
+      required: [id, creatorId, title, description, symbol, status, createdAt, reviewedBy, reviewedAt, expiresAt]
+      properties:
+        id: { type: string, format: uuid }
+        creatorId: { type: string, format: uuid }
+        title: { type: string, maxLength: 120 }
+        description: { type: string, maxLength: 250 }
+        symbol:
+          anyOf:
+            - { $ref: '#/components/schemas/PrayerIntentionSymbol' }
+            - { type: 'null' }
+        status: { $ref: '#/components/schemas/PrayerIntentionStatus' }
+        createdAt: { type: string, format: date-time }
+        reviewedBy:
+          anyOf:
+            - { type: string, format: uuid }
+            - { type: 'null' }
+        reviewedAt:
+          anyOf:
+            - { type: string, format: date-time }
+            - { type: 'null' }
+        expiresAt:
+          anyOf:
+            - { type: string, format: date-time }
+            - { type: 'null' }
+    AdminPrayerIntentionsResponse:
+      type: object
+      additionalProperties: false
+      required: [data, meta]
+      properties:
+        data:
+          type: array
+          items: { $ref: '#/components/schemas/AdminPrayerIntention' }
+        meta: { $ref: '#/components/schemas/OffsetPageMeta' }
+    ReviewPrayerIntention:
+      type: object
+      additionalProperties: false
+      required: [decision]
+      properties:
+        decision: { type: string, enum: [visible, rejected] }
+    PrayerIntentionReviewResponse:
+      type: object
+      additionalProperties: false
+      required: [data]
+      properties:
+        data:
+          type: object
+          additionalProperties: false
+          required: [id, status, reviewedAt, expiresAt]
+          properties:
+            id: { type: string, format: uuid }
+            status: { type: string, enum: [visible, rejected] }
+            reviewedAt: { type: string, format: date-time }
+            expiresAt: { type: string, format: date-time }
     ExaminationQuestion:
       type: object
       additionalProperties: false

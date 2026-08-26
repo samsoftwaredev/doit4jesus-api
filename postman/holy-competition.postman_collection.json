@@ -52,6 +52,16 @@
       "description": "UUID of a church change request. The default is the seeded pending request."
     },
     {
+      "key": "prayerIntentionId",
+      "value": "d9000000-0000-4000-8000-000000000002",
+      "description": "UUID of a prayer intention for administrator review. The default is the seeded pending intention."
+    },
+    {
+      "key": "visiblePrayerIntentionId",
+      "value": "d9000000-0000-4000-8000-000000000001",
+      "description": "UUID of a visible prayer intention. The default is the seeded approved intention."
+    },
+    {
       "key": "friendId",
       "value": "11111111-1111-4111-8111-111111111111",
       "description": "UUID of a confirmed friend. The default is the seeded Maria Santos friendship."
@@ -119,6 +129,219 @@
               "path": ["api", "v1", "contact-requests"]
             },
             "description": "Stores the support request and returns only its ID and creation time. Valid subjects: Billing & Payments; Subscription Management; Login & Account Access; App Performance & Bugs; Audio & Playback Issues; Streak & Progress Issues; Content Feedback & Requests; Prayer Intentions; Grammar & Audio Mistakes; Parish & Church Programs; School & Ministry Licensing; Media & Press Inquiries; or Other. For Other, include `otherSubject` (2–120 characters)."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Prayer Intentions",
+      "description": "Submit prayer intentions for administrator approval, browse approved intentions, and review the authenticated user's submissions. All requests require a Supabase JWT.",
+      "item": [
+        {
+          "name": "List approved prayer intentions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/prayer-intentions?limit=20&offset=0",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "prayer-intentions"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "description": "Results per page (1–100)."
+                },
+                {
+                  "key": "offset",
+                  "value": "0",
+                  "description": "Zero-based page offset."
+                }
+              ]
+            },
+            "description": "Lists only administrator-approved, unexpired prayer-intention cards with the creator's display name, avatar, country code, and aggregate prayerCount."
+          }
+        },
+        {
+          "name": "Submit a prayer intention",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Praying for my brother\",\n  \"description\": \"He is currently having back pain.\",\n  \"symbol\": \"candle\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/prayer-intentions",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "prayer-intentions"]
+            },
+            "description": "Creates a pending intention. Title is limited to 120 characters and description to 250 characters. It is not public until an administrator makes it visible."
+          }
+        },
+        {
+          "name": "Get one approved prayer intention",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/prayer-intentions/{{visiblePrayerIntentionId}}",
+              "host": ["{{baseUrl}}"],
+              "path": [
+                "api",
+                "v1",
+                "prayer-intentions",
+                "{{visiblePrayerIntentionId}}"
+              ]
+            },
+            "description": "Returns one approved, unexpired card with aggregate prayerCount. Pending, rejected, expired, and unknown IDs all return 404."
+          }
+        },
+        {
+          "name": "Pray for an approved intention",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/prayer-intentions/{{visiblePrayerIntentionId}}/prayers",
+              "host": ["{{baseUrl}}"],
+              "path": [
+                "api",
+                "v1",
+                "prayer-intentions",
+                "{{visiblePrayerIntentionId}}",
+                "prayers"
+              ]
+            },
+            "description": "Records one append-only prayer for the authenticated user. Repeat prayers are allowed; there is no undo. Only visible, unexpired intentions can receive prayers."
+          }
+        },
+        {
+          "name": "List people who prayed (creator or admin)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/prayer-intentions/{{visiblePrayerIntentionId}}/prayers?limit=20&offset=0",
+              "host": ["{{baseUrl}}"],
+              "path": [
+                "api",
+                "v1",
+                "prayer-intentions",
+                "{{visiblePrayerIntentionId}}",
+                "prayers"
+              ],
+              "query": [
+                { "key": "limit", "value": "20" },
+                { "key": "offset", "value": "0" }
+              ]
+            },
+            "description": "Lists one record per prayer, including who prayed and when. Only the intention creator or an administrator can use this request."
+          }
+        },
+        {
+          "name": "List my prayer intentions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/me/prayer-intentions?status=all&limit=20&offset=0",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "me", "prayer-intentions"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "all",
+                  "description": "pending | visible | rejected | all"
+                },
+                { "key": "limit", "value": "20" },
+                { "key": "offset", "value": "0" }
+              ]
+            },
+            "description": "Lists the authenticated user's pending, visible, and rejected intentions until each reviewed intention expires, including each intention's aggregate prayerCount."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin · Prayer Intentions",
+      "description": "Administrator-only moderation queue. Use the seeded test@test.com account's JWT locally. Only pending intentions can be reviewed.",
+      "item": [
+        {
+          "name": "List prayer intentions for review",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/prayer-intentions?status=pending&limit=20&offset=0",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "admin", "prayer-intentions"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "pending",
+                  "description": "pending | visible | rejected | all"
+                },
+                {
+                  "key": "createdAt",
+                  "value": "2026-08-25",
+                  "description": "Optional full UTC calendar-day filter.",
+                  "disabled": true
+                },
+                { "key": "limit", "value": "20" },
+                { "key": "offset", "value": "0" }
+              ]
+            },
+            "description": "Lists submitted prayer intentions for an administrator. Set status=all to inspect reviewed records too."
+          }
+        },
+        {
+          "name": "Make a prayer intention visible",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"decision\": \"visible\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/prayer-intentions/{{prayerIntentionId}}",
+              "host": ["{{baseUrl}}"],
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "prayer-intentions",
+                "{{prayerIntentionId}}"
+              ]
+            },
+            "description": "Approves a pending intention, makes it visible for one month, and awards its creator a badge if this reaches an approved-intention threshold of 1, 3, or 7."
+          }
+        },
+        {
+          "name": "Reject a prayer intention",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"decision\": \"rejected\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/prayer-intentions/{{prayerIntentionId}}",
+              "host": ["{{baseUrl}}"],
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "prayer-intentions",
+                "{{prayerIntentionId}}"
+              ]
+            },
+            "description": "Rejects a pending intention. It remains in the creator's history until its one-month review-based expiry, but is never public and earns no badge."
           }
         }
       ]

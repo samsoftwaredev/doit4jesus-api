@@ -233,6 +233,111 @@ set
   prayer_map_visibility = excluded.prayer_map_visibility;
 
 -- ---------------------------------------------------------------------------
+-- Prayer intention moderation examples
+-- ---------------------------------------------------------------------------
+
+insert into prayer.prayer_intentions (
+  id,
+  creator_id,
+  title,
+  description,
+  symbol,
+  status,
+  reviewed_by,
+  reviewed_at,
+  expires_at,
+  created_at
+)
+values
+  (
+    'd9000000-0000-4000-8000-000000000001',
+    '11111111-1111-4111-8111-111111111111',
+    'Praying for my brother',
+    'He is currently having back pain.',
+    'candle',
+    'visible',
+    '9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002',
+    now() - interval '3 days',
+    now() + interval '27 days',
+    now() - interval '3 days'
+  ),
+  (
+    'd9000000-0000-4000-8000-000000000002',
+    '22222222-2222-4222-8222-222222222222',
+    'Praying for my family',
+    'Please pray for patience and peace at home.',
+    'dove',
+    'pending',
+    null,
+    null,
+    null,
+    now() - interval '1 day'
+  ),
+  (
+    'd9000000-0000-4000-8000-000000000003',
+    '9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002',
+    'Praying for healing',
+    'Please pray for healing and strength during recovery.',
+    'cross',
+    'rejected',
+    '9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002',
+    now() - interval '2 days',
+    now() + interval '28 days',
+    now() - interval '2 days'
+  )
+on conflict (id) do update
+set
+  creator_id = excluded.creator_id,
+  title = excluded.title,
+  description = excluded.description,
+  symbol = excluded.symbol,
+  status = excluded.status,
+  reviewed_by = excluded.reviewed_by,
+  reviewed_at = excluded.reviewed_at,
+  expires_at = excluded.expires_at,
+  created_at = excluded.created_at;
+
+insert into prayer.prayer_intention_approval_counts (
+  user_id,
+  approved_count,
+  updated_at
+)
+values (
+  '11111111-1111-4111-8111-111111111111',
+  1,
+  now() - interval '3 days'
+)
+on conflict (user_id) do update
+set
+  approved_count = excluded.approved_count,
+  updated_at = excluded.updated_at;
+
+insert into prayer.prayer_intention_prayers (
+  id,
+  intention_id,
+  user_id,
+  created_at
+)
+values
+  (
+    'd9100000-0000-4000-8000-000000000001',
+    'd9000000-0000-4000-8000-000000000001',
+    '9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002',
+    now() - interval '2 days'
+  ),
+  (
+    'd9100000-0000-4000-8000-000000000002',
+    'd9000000-0000-4000-8000-000000000001',
+    '22222222-2222-4222-8222-222222222222',
+    now() - interval '1 day'
+  )
+on conflict (id) do update
+set
+  intention_id = excluded.intention_id,
+  user_id = excluded.user_id,
+  created_at = excluded.created_at;
+
+-- ---------------------------------------------------------------------------
 -- Friendships and request examples
 -- ---------------------------------------------------------------------------
 

@@ -759,7 +759,7 @@ export type Database = {
     };
     Functions: Record<string, never>;
   };
-  prayer: EmptySchema & {
+  prayer: Omit<EmptySchema, 'Views'> & {
     Tables: {
       map_markers: {
         Row: {
@@ -779,6 +779,93 @@ export type Database = {
         };
         Insert: never;
         Update: never;
+        Relationships: [];
+      };
+      prayer_intentions: {
+        Row: {
+          id: string;
+          creator_id: string;
+          title: string;
+          description: string;
+          symbol: 'candle' | 'cross' | 'dove' | 'olive_branch' | null;
+          status: 'pending' | 'visible' | 'rejected';
+          reviewed_by: string | null;
+          reviewed_at: string | null;
+          expires_at: string | null;
+          created_at: string;
+        };
+        Insert: {
+          creator_id: string;
+          title: string;
+          description: string;
+          symbol?: 'candle' | 'cross' | 'dove' | 'olive_branch' | null;
+        };
+        Update: never;
+        Relationships: [];
+      };
+      prayer_intention_approval_counts: {
+        Row: {
+          user_id: string;
+          approved_count: number;
+          updated_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      prayer_intention_prayers: {
+        Row: {
+          id: string;
+          intention_id: string;
+          user_id: string;
+          created_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+    };
+    Views: {
+      prayer_intention_cards: {
+        Row: {
+          id: string;
+          title: string;
+          description: string;
+          symbol: 'candle' | 'cross' | 'dove' | 'olive_branch' | null;
+          approved_at: string;
+          expires_at: string;
+          created_at: string;
+          creator_display_name: string;
+          creator_avatar_url: string | null;
+          creator_country_code: string | null;
+          prayer_count: number;
+        };
+        Relationships: [];
+      };
+      my_prayer_intention_summaries: {
+        Row: {
+          id: string;
+          title: string;
+          description: string;
+          symbol: 'candle' | 'cross' | 'dove' | 'olive_branch' | null;
+          status: 'pending' | 'visible' | 'rejected';
+          created_at: string;
+          reviewed_at: string | null;
+          expires_at: string | null;
+          prayer_count: number;
+        };
+        Relationships: [];
+      };
+      prayer_intention_prayer_participants: {
+        Row: {
+          id: string;
+          intention_id: string;
+          user_id: string;
+          created_at: string;
+          display_name: string;
+          avatar_url: string | null;
+          country_code: string | null;
+        };
         Relationships: [];
       };
     };
@@ -884,6 +971,14 @@ export type Database = {
           p_decision: string;
           p_rejection_reason?: string | null;
         };
+        Returns: Json;
+      };
+      review_prayer_intention: {
+        Args: { p_intention_id: string; p_decision: string };
+        Returns: Json;
+      };
+      record_prayer_intention_prayer: {
+        Args: { p_intention_id: string };
         Returns: Json;
       };
       send_current_user_friend_request: {
