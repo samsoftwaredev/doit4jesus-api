@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 const LOCALHOST_ORIGIN = /^http:\/\/localhost(:\d+)?$/;
+const ALLOWED_HEADERS = 'Content-Type, Authorization, Idempotency-Key';
 
 export function middleware(request: NextRequest) {
   const origin = request.headers.get('origin') ?? '';
@@ -17,10 +18,7 @@ export function middleware(request: NextRequest) {
       'Access-Control-Allow-Methods',
       'GET, POST, PUT, PATCH, DELETE, OPTIONS',
     );
-    response.headers.set(
-      'Access-Control-Allow-Headers',
-      'Content-Type, Authorization',
-    );
+    response.headers.set('Access-Control-Allow-Headers', ALLOWED_HEADERS);
     response.headers.set('Access-Control-Max-Age', '86400');
     return response;
   }
@@ -34,10 +32,7 @@ export function middleware(request: NextRequest) {
       'Access-Control-Allow-Methods',
       'GET, POST, PUT, PATCH, DELETE, OPTIONS',
     );
-    response.headers.set(
-      'Access-Control-Allow-Headers',
-      'Content-Type, Authorization',
-    );
+    response.headers.set('Access-Control-Allow-Headers', ALLOWED_HEADERS);
   }
 
   return response;
