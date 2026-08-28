@@ -1075,6 +1075,21 @@ paths:
               example:
                 data: { asOfDate: '2026-08-17', currentStreak: 7, longestStreak: 12, timezone: America/Chicago }
         '401': { $ref: '#/components/responses/Unauthorized' }
+  /api/v1/me/rosary/stats:
+    get:
+      summary: Get the authenticated user's lifetime Rosary total
+      description: >-
+        Returns the sum of quantities from all self-reported and verified
+        Rosary activities. Rejected activities are excluded.
+      responses:
+        '200':
+          description: Lifetime Rosary statistic
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/RosaryStatsResponse' }
+              example:
+                data: { rosariesPrayed: 42 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
   /api/v1/progress:
     get:
       summary: Get XP and level progress
@@ -2290,6 +2305,18 @@ components:
         currentStreak: { type: integer, minimum: 0 }
         longestStreak: { type: integer, minimum: 0 }
         timezone: { type: string, description: IANA time zone used for the streak boundary. }
+    RosaryStats:
+      type: object
+      additionalProperties: false
+      required: [rosariesPrayed]
+      properties:
+        rosariesPrayed: { type: integer, format: int64, minimum: 0 }
+    RosaryStatsResponse:
+      type: object
+      additionalProperties: false
+      required: [data]
+      properties:
+        data: { $ref: '#/components/schemas/RosaryStats' }
     UserSearchResult:
       type: object
       additionalProperties: false

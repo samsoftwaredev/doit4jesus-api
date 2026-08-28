@@ -1082,6 +1082,19 @@
             },
             "description": "Returns the authenticated user's active Rosary streak and the longest streak in their current local calendar year. A local day counts when at least one self-reported or verified Rosary is completed. The active streak can end yesterday while the current local day remains incomplete; it resets after a full missed local day."
           }
+        },
+        {
+          "name": "Get lifetime Rosaries prayed",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/me/rosary/stats",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "me", "rosary", "stats"]
+            },
+            "description": "Returns `rosariesPrayed`, the authenticated user's lifetime sum of self-reported and verified Rosary activity quantities. Rejected activities are excluded."
+          }
         }
       ]
     },

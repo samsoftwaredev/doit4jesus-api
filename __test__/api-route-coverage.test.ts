@@ -42,6 +42,7 @@ import { GET as getFriendsComparison } from '../src/app/api/v1/me/friends/compar
 import { GET as getFriendsLeaderboard } from '../src/app/api/v1/me/friends/leaderboard/route';
 import { GET as getFriends } from '../src/app/api/v1/me/friends/route';
 import { GET as getRosaryCompletion } from '../src/app/api/v1/me/rosary/completion/route';
+import { GET as getRosaryStats } from '../src/app/api/v1/me/rosary/stats/route';
 import { GET as getRosaryStreak } from '../src/app/api/v1/me/rosary/streak/route';
 import { PATCH as markNotificationRead } from '../src/app/api/v1/notifications/[notificationId]/read/route';
 import { GET as getNotifications } from '../src/app/api/v1/notifications/route';
@@ -524,8 +525,10 @@ describe('previously uncovered API route handlers', () => {
     );
   });
 
-  it('returns Rosary completion and streak summaries', async () => {
-    createSupabase();
+  it('returns Rosary completion, lifetime total, and streak summaries', async () => {
+    const { rpc } = createSupabase({
+      rpcResults: { get_my_rosary_stats: result({ rosariesPrayed: 42 }) },
+    });
     expectOk(
       await getRosaryCompletion(
         request(
@@ -538,6 +541,12 @@ describe('previously uncovered API route handlers', () => {
         request('http://localhost/api/v1/me/rosary/streak'),
       ),
     );
+    const stats = await getRosaryStats(
+      request('http://localhost/api/v1/me/rosary/stats'),
+    );
+    expectOk(stats);
+    expect(rpc).toHaveBeenCalledWith('get_my_rosary_stats');
+    expect(await stats.json()).toEqual({ data: { rosariesPrayed: 42 } });
   });
 
   it('lists and marks notifications as read', async () => {

@@ -916,6 +916,10 @@ export type Database = {
         Args: Record<string, never>;
         Returns: Json;
       };
+      get_my_rosary_stats: {
+        Args: Record<string, never>;
+        Returns: Json;
+      };
       search_users: {
         Args: {
           p_query: string;
