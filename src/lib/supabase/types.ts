@@ -951,6 +951,13 @@ export type Database = {
             | 'friends';
         }>;
       };
+      check_username_availability: {
+        Args: { p_usernames: string[] };
+        Returns: Array<{
+          username: string;
+          is_available: boolean;
+        }>;
+      };
       search_countries: {
         Args: {
           p_query?: string | null;

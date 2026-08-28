@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import { usernameValueSchema } from '@/lib/schemas/username';
+
 function isValidTimeZone(value: string) {
   try {
     new Intl.DateTimeFormat('en-US', { timeZone: value }).format();
@@ -12,17 +14,7 @@ function isValidTimeZone(value: string) {
 export const updateProfileSchema = z
   .object({
     displayName: z.string().trim().min(2).max(80).optional(),
-    username: z
-      .string()
-      .trim()
-      .min(3)
-      .max(30)
-      .regex(
-        /^[a-zA-Z0-9_]+$/,
-        'Username may contain letters, numbers, and underscores.',
-      )
-      .nullable()
-      .optional(),
+    username: usernameValueSchema.nullable().optional(),
     avatarUrl: z.url().nullable().optional(),
     title: z.string().trim().max(100).nullable().optional(),
     gender: z.enum(['male', 'female']).optional(),

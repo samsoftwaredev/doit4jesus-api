@@ -110,22 +110,23 @@ Never send the service-role key to a browser or native application.
 
 ## API surface
 
-| Method    | Route                                        | Purpose                                      |
-| --------- | -------------------------------------------- | -------------------------------------------- |
-| GET       | `/api/v1/health`                             | Health check                                 |
-| GET/PATCH | `/api/v1/me`                                 | Current profile                              |
-| GET       | `/api/v1/progress`                           | XP and current/next level                    |
-| GET       | `/api/v1/levels`                             | Level definitions                            |
-| GET       | `/api/v1/locations/countries`                | Country list and autocomplete                |
-| GET       | `/api/v1/locations/cities`                   | Country-scoped city autocomplete             |
-| GET/POST  | `/api/v1/activities`                         | Activity history and transactional recording |
-| GET       | `/api/v1/challenges`                         | Challenge assignments                        |
-| POST      | `/api/v1/challenges/:assignmentId/claim`     | Claim completed challenge reward             |
-| GET       | `/api/v1/badges`                             | Badge catalog, earned badges, and progress   |
-| GET       | `/api/v1/leaderboards`                       | Period/scope leaderboard                     |
-| GET       | `/api/v1/prayer-map`                         | Aggregated privacy-filtered markers          |
-| GET       | `/api/v1/notifications`                      | Notification inbox                           |
-| PATCH     | `/api/v1/notifications/:notificationId/read` | Mark notification read                       |
+| Method    | Route                                        | Purpose                                       |
+| --------- | -------------------------------------------- | --------------------------------------------- |
+| GET       | `/api/v1/health`                             | Health check                                  |
+| GET/PATCH | `/api/v1/me`                                 | Current profile                               |
+| GET       | `/api/v1/usernames/validate`                 | Username rules, availability, and suggestions |
+| GET       | `/api/v1/progress`                           | XP and current/next level                     |
+| GET       | `/api/v1/levels`                             | Level definitions                             |
+| GET       | `/api/v1/locations/countries`                | Country list and autocomplete                 |
+| GET       | `/api/v1/locations/cities`                   | Country-scoped city autocomplete              |
+| GET/POST  | `/api/v1/activities`                         | Activity history and transactional recording  |
+| GET       | `/api/v1/challenges`                         | Challenge assignments                         |
+| POST      | `/api/v1/challenges/:assignmentId/claim`     | Claim completed challenge reward              |
+| GET       | `/api/v1/badges`                             | Badge catalog, earned badges, and progress    |
+| GET       | `/api/v1/leaderboards`                       | Period/scope leaderboard                      |
+| GET       | `/api/v1/prayer-map`                         | Aggregated privacy-filtered markers           |
+| GET       | `/api/v1/notifications`                      | Notification inbox                            |
+| PATCH     | `/api/v1/notifications/:notificationId/read` | Mark notification read                        |
 
 ## Record an activity
 

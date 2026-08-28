@@ -1,4 +1,5 @@
 import { GET, PATCH } from '../src/app/api/v1/me/route';
+import { errorResponse } from '../src/lib/api/response';
 import { requireUser } from '../src/lib/auth/require-user';
 
 jest.mock('../src/lib/auth/require-user', () => ({
@@ -11,6 +12,7 @@ jest.mock('../src/lib/api/response', () => ({
 }));
 
 const mockedRequireUser = jest.mocked(requireUser);
+const mockedErrorResponse = jest.mocked(errorResponse);
 const userId = '9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002';
 const cityId = 'e0000000-0000-4000-8000-000000000001';
 const saintAvatarId = 'a1000000-0000-4000-8000-000000000002';
@@ -141,5 +143,31 @@ describe('/api/v1/me', () => {
         state: 'Illinois',
       }),
     });
+  });
+
+  it('blocks a prohibited username before updating the profile', async () => {
+    const from = jest.fn();
+    const supabase = { schema: jest.fn(() => ({ from })) };
+    mockedRequireUser.mockResolvedValue({ supabase, userId } as never);
+    mockedErrorResponse.mockClear();
+
+    await PATCH({
+      url: 'http://localhost/api/v1/me',
+      headers: {
+        get: (name: string) =>
+          name === 'content-type' ? 'application/json' : null,
+      },
+      json: async () => ({ username: 'faithful_fuck' }),
+    } as Request);
+
+    expect(from).not.toHaveBeenCalled();
+    expect(mockedErrorResponse).toHaveBeenCalledWith(
+      expect.objectContaining({
+        status: 422,
+        code: 'VALIDATION_ERROR',
+        details: { reason: 'PROHIBITED_TERM' },
+      }),
+      expect.anything(),
+    );
   });
 });

@@ -7,6 +7,7 @@ import {
 } from '@/lib/auth/require-user';
 import { updateProfileSchema } from '@/lib/schemas/profile';
 import type { Database } from '@/lib/supabase/types';
+import { assertUsernameAllowed } from '@/lib/usernames/moderation';
 
 export const dynamic = 'force-dynamic';
 
@@ -77,6 +78,10 @@ export async function PATCH(request: Request) {
   try {
     const { supabase, userId } = await requireUser(request);
     const input = updateProfileSchema.parse(await readJson(request));
+
+    if (input.username !== undefined && input.username !== null) {
+      assertUsernameAllowed(input.username);
+    }
 
     const sanitized: Database['app']['Tables']['user_profiles']['Update'] = {};
     if (input.displayName !== undefined)

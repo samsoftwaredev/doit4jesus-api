@@ -1051,8 +1051,28 @@
     },
     {
       "name": "Profile (me)",
-      "description": "Read and update the authenticated user's profile.",
+      "description": "Validate usernames, then read and update the authenticated user's profile.",
       "item": [
+        {
+          "name": "Validate username and get suggestions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/usernames/validate?username=joyful_clare",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "usernames", "validate"],
+              "query": [
+                {
+                  "key": "username",
+                  "value": "joyful_clare",
+                  "description": "Required candidate. The API checks format, prohibited terms, and case-insensitive availability."
+                }
+              ]
+            },
+            "description": "Returns `valid`, `available`, and a machine-readable reason (`INVALID_LENGTH`, `INVALID_CHARACTERS`, `PROHIBITED_TERM`, or `USERNAME_TAKEN`). The response always includes five available, time-seeded Christian and saint-themed username suggestions."
+          }
+        },
         {
           "name": "Get current profile",
           "request": {
@@ -1081,7 +1101,7 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "me"]
             },
-            "description": "Partially updates the user's profile. Send only the fields you want to change — at least one field is required.\n\n**Fields**\n- `displayName` (string, 2–80 chars)\n- `username` (string, 3–30 chars, letters/numbers/underscores, nullable)\n- `avatarUrl` (URL string, nullable)\n- `title` (string, max 100 chars, nullable)\n- `gender` (`\"male\"` | `\"female\"`)\n- `saintAvatarId` (saint UUID, nullable)\n- `preferredLanguage` (string, 2–10 chars, e.g. `\"en\"`)\n- `timezone` (IANA timezone string, e.g. `\"America/Los_Angeles\"`)\n- `cityId` (UUID, nullable; the response resolves it to `cityName` and `state`)\n- `countryCode` (2-letter ISO code, e.g. `\"US\"`, nullable)\n- `leaderboardVisibility` (`\"public\"` | `\"friends\"` | `\"private\"`)\n- `prayerMapVisibility` (`\"aggregated\"` | `\"hidden\"`)\n\nReturns **409** if the username is already taken."
+            "description": "Partially updates the user's profile. Send only the fields you want to change — at least one field is required.\n\n**Fields**\n- `displayName` (string, 2–80 chars)\n- `username` (string, 3–30 chars, letters/numbers/underscores, nullable; screened against English and Spanish prohibited-term data)\n- `avatarUrl` (URL string, nullable)\n- `title` (string, max 100 chars, nullable)\n- `gender` (`\"male\"` | `\"female\"`)\n- `saintAvatarId` (saint UUID, nullable)\n- `preferredLanguage` (string, 2–10 chars, e.g. `\"en\"`)\n- `timezone` (IANA timezone string, e.g. `\"America/Los_Angeles\"`)\n- `cityId` (UUID, nullable; the response resolves it to `cityName` and `state`)\n- `countryCode` (2-letter ISO code, e.g. `\"US\"`, nullable)\n- `leaderboardVisibility` (`\"public\"` | `\"friends\"` | `\"private\"`)\n- `prayerMapVisibility` (`\"aggregated\"` | `\"hidden\"`)\n\nReturns **409** if the username is already taken and **422** when it fails moderation."
           }
         }
       ]

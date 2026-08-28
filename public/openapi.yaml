@@ -1063,6 +1063,10 @@ paths:
         '401': { $ref: '#/components/responses/Unauthorized' }
     patch:
       summary: Update current profile
+      description: >-
+        Usernames are checked case-insensitively for duplicates and screened
+        against the same English and Spanish moderation data used by the
+        username validation endpoint.
       requestBody:
         required: true
         content:
@@ -1077,6 +1081,47 @@ paths:
               example:
                 data: { userId: 9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002, displayName: Test User, username: testuser, avatarUrl: 'https://example.com/avatars/testuser.png', title: Prayer Warrior, gender: male, saintAvatarId: null, preferredLanguage: en, timezone: America/Chicago, cityId: e0000000-0000-4000-8000-000000000001, cityName: Chicago, state: Illinois, countryCode: US, leaderboardVisibility: public, prayerMapVisibility: aggregated, createdAt: '2026-06-01T12:00:00Z', updatedAt: '2026-08-17T12:00:00Z' }
         '409': { description: Username conflict }
+        '422': { $ref: '#/components/responses/ValidationError' }
+  /api/v1/usernames/validate:
+    get:
+      summary: Validate a username and get available suggestions
+      description: >-
+        Checks the username format, English and Spanish prohibited-term data,
+        and case-insensitive availability. Always returns five currently
+        available, time-seeded Christian and saint-themed suggestions. A
+        username already assigned to the current user remains available.
+      parameters:
+        - in: query
+          name: username
+          required: true
+          description: Username candidate to validate. Leading and trailing whitespace is trimmed.
+          schema: { type: string, minLength: 1, maxLength: 100, example: joyful_clare }
+      responses:
+        '200':
+          description: Validation result and five available suggestions
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/UsernameValidationResponse' }
+              examples:
+                available:
+                  value:
+                    data:
+                      username: joyful_clare
+                      normalizedUsername: joyful_clare
+                      valid: true
+                      available: true
+                      reason: null
+                      suggestions: [faithful_clare1842, monica_dove7391, hopeful_pilgrim2318, dominic_witness4430, joyful_rosary8724]
+                taken:
+                  value:
+                    data:
+                      username: TakenName
+                      normalizedUsername: takenname
+                      valid: true
+                      available: false
+                      reason: USERNAME_TAKEN
+                      suggestions: [humble_teresa1842, kolbe_fisher7391, peaceful_lantern2318, francis_witness4430, prayerful_dove8724]
+        '401': { $ref: '#/components/responses/Unauthorized' }
         '422': { $ref: '#/components/responses/ValidationError' }
   /api/v1/me/rosary/completion:
     get:
@@ -2253,6 +2298,43 @@ components:
           type: array
           items: { $ref: '#/components/schemas/CitySearchResult' }
         meta: { $ref: '#/components/schemas/OffsetPageMeta' }
+    UsernameValidationReason:
+      description: Null only when the submitted username is valid and available.
+      anyOf:
+        - type: string
+          enum: [INVALID_LENGTH, INVALID_CHARACTERS, PROHIBITED_TERM, USERNAME_TAKEN]
+        - { type: 'null' }
+    UsernameValidation:
+      type: object
+      additionalProperties: false
+      required: [username, normalizedUsername, valid, available, reason, suggestions]
+      properties:
+        username: { type: string }
+        normalizedUsername:
+          type: string
+          description: Trimmed username converted to lowercase for client-side comparison.
+        valid:
+          type: boolean
+          description: Whether length, allowed-character, and prohibited-term rules pass.
+        available:
+          type: boolean
+          description: True only when valid and not assigned to another user.
+        reason: { $ref: '#/components/schemas/UsernameValidationReason' }
+        suggestions:
+          type: array
+          minItems: 5
+          maxItems: 5
+          items:
+            type: string
+            minLength: 3
+            maxLength: 30
+            pattern: '^[a-zA-Z0-9_]+$'
+    UsernameValidationResponse:
+      type: object
+      additionalProperties: false
+      required: [data]
+      properties:
+        data: { $ref: '#/components/schemas/UsernameValidation' }
     StartEncounter:
       type: object
       additionalProperties: false
@@ -2265,6 +2347,7 @@ components:
       properties:
         displayName: { type: string, minLength: 2, maxLength: 80 }
         username:
+          description: Must also pass English and Spanish prohibited-term screening.
           anyOf:
             - { type: string, minLength: 3, maxLength: 30, pattern: '^[a-zA-Z0-9_]+$' }
             - { type: 'null' }

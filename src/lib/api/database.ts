@@ -119,6 +119,7 @@ export function throwDatabaseError(
       case 'INVALID_FRIEND_REQUEST_STATUS':
       case 'INVALID_FRIEND_LEADERBOARD_PERIOD_TYPE':
       case 'INVALID_LOCATION_SEARCH_QUERY':
+      case 'INVALID_USERNAME_CANDIDATES':
         throw new ApiError(422, 'VALIDATION_ERROR', error.message);
       default:
         break;
