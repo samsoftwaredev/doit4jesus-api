@@ -114,6 +114,8 @@ Never send the service-role key to a browser or native application.
 | --------- | -------------------------------------------- | --------------------------------------------- |
 | GET       | `/api/v1/health`                             | Health check                                  |
 | GET/PATCH | `/api/v1/me`                                 | Current profile                               |
+| GET/PATCH | `/api/v1/me/notification-preferences`        | Onboarding reminder preferences               |
+| POST      | `/api/v1/me/onboarding/complete`             | Transactional profile-setup completion        |
 | GET       | `/api/v1/usernames/validate`                 | Username rules, availability, and suggestions |
 | GET       | `/api/v1/progress`                           | XP and current/next level                     |
 | GET       | `/api/v1/levels`                             | Level definitions                             |

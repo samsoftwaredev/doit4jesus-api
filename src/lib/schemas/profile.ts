@@ -11,9 +11,18 @@ function isValidTimeZone(value: string) {
   }
 }
 
+export function normalizeDisplayName(value: string) {
+  return value.trim().replace(/\s+/g, ' ');
+}
+
+export const displayNameSchema = z
+  .string()
+  .transform(normalizeDisplayName)
+  .pipe(z.string().min(1).max(80));
+
 export const updateProfileSchema = z
   .object({
-    displayName: z.string().trim().min(2).max(80).optional(),
+    displayName: displayNameSchema.optional(),
     username: usernameValueSchema.nullable().optional(),
     avatarUrl: z.url().nullable().optional(),
     title: z.string().trim().max(100).nullable().optional(),

@@ -31,15 +31,28 @@ const profile = {
   country_code: 'US',
   leaderboard_visibility: 'public' as const,
   prayer_map_visibility: 'aggregated' as const,
+  profile_setup_completed_at: '2026-08-22T00:00:00.000Z',
   created_at: '2026-06-01T00:00:00.000Z',
   updated_at: '2026-08-22T00:00:00.000Z',
 };
 
-function cityQuery(city = { name: 'Chicago', region_name: 'Illinois' }) {
+function cityQuery(
+  city = { name: 'Chicago', region_name: 'Illinois', country_code: 'US' },
+) {
   const query: Record<string, jest.Mock> = {};
   query.select = jest.fn().mockReturnValue(query);
   query.eq = jest.fn().mockReturnValue(query);
   query.maybeSingle = jest.fn().mockResolvedValue({ data: city, error: null });
+  return query;
+}
+
+function countryQuery(country = { name: 'United States' }) {
+  const query: Record<string, jest.Mock> = {};
+  query.select = jest.fn().mockReturnValue(query);
+  query.eq = jest.fn().mockReturnValue(query);
+  query.maybeSingle = jest
+    .fn()
+    .mockResolvedValue({ data: country, error: null });
   return query;
 }
 
@@ -52,10 +65,12 @@ describe('/api/v1/me', () => {
       .fn()
       .mockResolvedValue({ data: profile, error: null });
     const resolvedCityQuery = cityQuery();
+    const resolvedCountryQuery = countryQuery();
     const from = jest
       .fn()
       .mockReturnValueOnce(profileQuery)
-      .mockReturnValueOnce(resolvedCityQuery);
+      .mockReturnValueOnce(resolvedCityQuery)
+      .mockReturnValueOnce(resolvedCountryQuery);
     const supabase = { schema: jest.fn(() => ({ from })) };
     mockedRequireUser.mockResolvedValue({ supabase, userId } as never);
 
@@ -69,10 +84,18 @@ describe('/api/v1/me', () => {
         saintAvatarId,
         cityName: 'Chicago',
         state: 'Illinois',
+        countryName: 'United States',
+        profileSetup: {
+          complete: true,
+          missingFields: [],
+          nextStep: null,
+          completedAt: '2026-08-22T00:00:00.000Z',
+        },
       }),
     });
     expect(from).toHaveBeenNthCalledWith(1, 'user_profiles');
     expect(from).toHaveBeenNthCalledWith(2, 'cities');
+    expect(from).toHaveBeenNthCalledWith(3, 'countries');
   });
 
   it('returns null cityName and state when no city is stored', async () => {
@@ -83,7 +106,11 @@ describe('/api/v1/me', () => {
       data: { ...profile, city_id: null },
       error: null,
     });
-    const from = jest.fn().mockReturnValue(profileQuery);
+    const resolvedCountryQuery = countryQuery();
+    const from = jest
+      .fn()
+      .mockReturnValueOnce(profileQuery)
+      .mockReturnValueOnce(resolvedCountryQuery);
     const supabase = { schema: jest.fn(() => ({ from })) };
     mockedRequireUser.mockResolvedValue({ supabase, userId } as never);
 
@@ -96,9 +123,15 @@ describe('/api/v1/me', () => {
         cityId: null,
         cityName: null,
         state: null,
+        profileSetup: expect.objectContaining({
+          complete: false,
+          missingFields: ['city'],
+          nextStep: 'city',
+        }),
       }),
     });
-    expect(from).toHaveBeenCalledTimes(1);
+    expect(from).toHaveBeenCalledTimes(2);
+    expect(from).toHaveBeenNthCalledWith(2, 'countries');
   });
 
   it('persists gender and an optional saint avatar through PATCH', async () => {
@@ -115,10 +148,12 @@ describe('/api/v1/me', () => {
       .fn()
       .mockResolvedValue({ data: updatedProfile, error: null });
     const resolvedCityQuery = cityQuery();
+    const resolvedCountryQuery = countryQuery();
     const from = jest
       .fn()
       .mockReturnValueOnce(profileQuery)
-      .mockReturnValueOnce(resolvedCityQuery);
+      .mockReturnValueOnce(resolvedCityQuery)
+      .mockReturnValueOnce(resolvedCountryQuery);
     const supabase = { schema: jest.fn(() => ({ from })) };
     mockedRequireUser.mockResolvedValue({ supabase, userId } as never);
 

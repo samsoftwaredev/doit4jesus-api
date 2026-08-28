@@ -508,7 +508,20 @@
               ]
             },
             "description": "Returns active countries with code, name, latitude, and longitude. Exact ISO code or name matches rank first, followed by name-prefix and substring matches. The response includes limit, offset, hasMore, and nextOffset metadata."
-          }
+          },
+          "response": [
+            {
+              "name": "200 OK — Country results",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "cookie": [],
+              "body": "{\n  \"data\": [\n    {\n      \"code\": \"US\",\n      \"name\": \"United States\",\n      \"latitude\": 39.8283,\n      \"longitude\": -98.5795\n    }\n  ],\n  \"meta\": {\n    \"limit\": 20,\n    \"offset\": 0,\n    \"hasMore\": false,\n    \"nextOffset\": null\n  }\n}"
+            }
+          ]
         },
         {
           "name": "Search cities within a country",
@@ -543,7 +556,20 @@
               ]
             },
             "description": "Returns active cities inside the selected country. Exact names rank first, followed by prefix and substring matches. Each result includes the app city UUID, region/state, country code, IANA timezone, latitude, and longitude."
-          }
+          },
+          "response": [
+            {
+              "name": "200 OK — City results",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "cookie": [],
+              "body": "{\n  \"data\": [\n    {\n      \"id\": \"e0000000-0000-4000-8000-000000000001\",\n      \"name\": \"Austin\",\n      \"regionName\": \"Texas\",\n      \"countryCode\": \"US\",\n      \"timezone\": \"America/Chicago\",\n      \"latitude\": 30.26715,\n      \"longitude\": -97.74306\n    }\n  ],\n  \"meta\": {\n    \"limit\": 20,\n    \"offset\": 0,\n    \"hasMore\": false,\n    \"nextOffset\": null\n  }\n}"
+            }
+          ]
         }
       ]
     },
@@ -1071,7 +1097,31 @@
               ]
             },
             "description": "Returns `valid`, `available`, and a machine-readable reason (`INVALID_LENGTH`, `INVALID_CHARACTERS`, `PROHIBITED_TERM`, or `USERNAME_TAKEN`). The response always includes five available, time-seeded Christian and saint-themed username suggestions."
-          }
+          },
+          "response": [
+            {
+              "name": "200 OK — Username available",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "cookie": [],
+              "body": "{\n  \"data\": {\n    \"username\": \"joyful_clare\",\n    \"normalizedUsername\": \"joyful_clare\",\n    \"valid\": true,\n    \"available\": true,\n    \"reason\": null,\n    \"suggestions\": [\n      \"faithful_clare1842\",\n      \"monica_dove7391\",\n      \"hopeful_pilgrim2318\",\n      \"dominic_witness4430\",\n      \"joyful_rosary8724\"\n    ]\n  }\n}"
+            },
+            {
+              "name": "200 OK — Username taken",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "cookie": [],
+              "body": "{\n  \"data\": {\n    \"username\": \"TakenName\",\n    \"normalizedUsername\": \"takenname\",\n    \"valid\": true,\n    \"available\": false,\n    \"reason\": \"USERNAME_TAKEN\",\n    \"suggestions\": [\n      \"humble_teresa1842\",\n      \"kolbe_fisher7391\",\n      \"peaceful_lantern2318\",\n      \"francis_witness4430\",\n      \"prayerful_dove8724\"\n    ]\n  }\n}"
+            }
+          ]
         },
         {
           "name": "Get current profile",
@@ -1084,7 +1134,20 @@
               "path": ["api", "v1", "me"]
             },
             "description": "Returns the full profile for the authenticated user, including required `gender`, optional `saintAvatarId`, and resolved `cityName` and `state` (both `null` when no city is set)."
-          }
+          },
+          "response": [
+            {
+              "name": "200 OK — Incomplete profile",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "cookie": [],
+              "body": "{\n  \"data\": {\n    \"userId\": \"9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002\",\n    \"displayName\": \"Samuel Ruiz\",\n    \"username\": \"SamuelR\",\n    \"avatarUrl\": null,\n    \"title\": null,\n    \"gender\": \"male\",\n    \"saintAvatarId\": null,\n    \"preferredLanguage\": \"en\",\n    \"timezone\": \"America/Chicago\",\n    \"cityId\": null,\n    \"cityName\": null,\n    \"state\": null,\n    \"countryCode\": \"US\",\n    \"countryName\": \"United States\",\n    \"leaderboardVisibility\": \"public\",\n    \"prayerMapVisibility\": \"aggregated\",\n    \"profileSetup\": {\n      \"complete\": false,\n      \"missingFields\": [\"city\"],\n      \"nextStep\": \"city\",\n      \"completedAt\": null\n    },\n    \"createdAt\": \"2026-08-28T18:40:00.000Z\",\n    \"updatedAt\": \"2026-08-28T18:48:00.000Z\"\n  }\n}"
+            }
+          ]
         },
         {
           "name": "Update current profile",
@@ -1101,8 +1164,109 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "me"]
             },
-            "description": "Partially updates the user's profile. Send only the fields you want to change — at least one field is required.\n\n**Fields**\n- `displayName` (string, 2–80 chars)\n- `username` (string, 3–30 chars, letters/numbers/underscores, nullable; screened against English and Spanish prohibited-term data)\n- `avatarUrl` (URL string, nullable)\n- `title` (string, max 100 chars, nullable)\n- `gender` (`\"male\"` | `\"female\"`)\n- `saintAvatarId` (saint UUID, nullable)\n- `preferredLanguage` (string, 2–10 chars, e.g. `\"en\"`)\n- `timezone` (IANA timezone string, e.g. `\"America/Los_Angeles\"`)\n- `cityId` (UUID, nullable; the response resolves it to `cityName` and `state`)\n- `countryCode` (2-letter ISO code, e.g. `\"US\"`, nullable)\n- `leaderboardVisibility` (`\"public\"` | `\"friends\"` | `\"private\"`)\n- `prayerMapVisibility` (`\"aggregated\"` | `\"hidden\"`)\n\nReturns **409** if the username is already taken and **422** when it fails moderation."
-          }
+            "description": "Partially updates the user's profile. Send only the fields you want to change — at least one field is required.\n\n**Fields**\n- `displayName` (canonical name string, 1–80 chars; surrounding whitespace is trimmed and repeated whitespace is collapsed)\n- `username` (string, 3–30 chars, letters/numbers/underscores, nullable; screened against English and Spanish prohibited-term data)\n- `avatarUrl` (URL string, nullable)\n- `title` (string, max 100 chars, nullable)\n- `gender` (`\"male\"` | `\"female\"`)\n- `saintAvatarId` (saint UUID, nullable)\n- `preferredLanguage` (string, 2–10 chars, e.g. `\"en\"`)\n- `timezone` (IANA timezone string, e.g. `\"America/Los_Angeles\"`)\n- `cityId` (UUID, nullable; the response resolves it to `cityName` and `state`)\n- `countryCode` (2-letter ISO code, e.g. `\"US\"`, nullable)\n- `leaderboardVisibility` (`\"public\"` | `\"friends\"` | `\"private\"`)\n- `prayerMapVisibility` (`\"aggregated\"` | `\"hidden\"`)\n\nReturns the derived `profileSetup` status. Returns **409** if the username is already taken and **422** when it fails moderation."
+          },
+          "response": [
+            {
+              "name": "200 OK — Profile saved incrementally",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "cookie": [],
+              "body": "{\n  \"data\": {\n    \"userId\": \"9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002\",\n    \"displayName\": \"Samuel Ruiz\",\n    \"username\": \"samsoftwaredev\",\n    \"avatarUrl\": \"https://example.com/avatar.png\",\n    \"title\": \"Prayer Warrior\",\n    \"gender\": \"male\",\n    \"saintAvatarId\": null,\n    \"preferredLanguage\": \"en\",\n    \"timezone\": \"America/Los_Angeles\",\n    \"cityId\": null,\n    \"cityName\": null,\n    \"state\": null,\n    \"countryCode\": \"US\",\n    \"countryName\": \"United States\",\n    \"leaderboardVisibility\": \"public\",\n    \"prayerMapVisibility\": \"aggregated\",\n    \"profileSetup\": {\n      \"complete\": false,\n      \"missingFields\": [\"city\"],\n      \"nextStep\": \"city\",\n      \"completedAt\": null\n    },\n    \"createdAt\": \"2026-08-28T18:40:00.000Z\",\n    \"updatedAt\": \"2026-08-28T18:50:00.000Z\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get notification preferences",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/me/notification-preferences",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "me", "notification-preferences"]
+            },
+            "description": "Loads the three onboarding reminder choices. Legacy profiles without a saved row receive enabled defaults. This request does not ask for OS notification permission."
+          },
+          "response": [
+            {
+              "name": "200 OK — Notification preferences",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "cookie": [],
+              "body": "{\n  \"data\": {\n    \"dailyRosaryReminder\": true,\n    \"confessionReminder\": true,\n    \"eucharisticAdoration\": true\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Update notification preferences",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dailyRosaryReminder\": true,\n  \"confessionReminder\": true,\n  \"eucharisticAdoration\": false\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/me/notification-preferences",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "me", "notification-preferences"]
+            },
+            "description": "Incrementally saves one or more reminder toggles. The API stores product preferences only; OS push permission remains a client responsibility."
+          },
+          "response": [
+            {
+              "name": "200 OK — Notification preferences updated",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "cookie": [],
+              "body": "{\n  \"data\": {\n    \"dailyRosaryReminder\": true,\n    \"confessionReminder\": true,\n    \"eucharisticAdoration\": false\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Complete profile onboarding",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"displayName\": \"Samuel Ruiz\",\n  \"username\": \"SamuelR\",\n  \"gender\": \"male\",\n  \"countryCode\": \"US\",\n  \"cityId\": \"e0000000-0000-4000-8000-000000000001\",\n  \"notificationPreferences\": {\n    \"dailyRosaryReminder\": true,\n    \"confessionReminder\": true,\n    \"eucharisticAdoration\": false\n  }\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/me/onboarding/complete",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "me", "onboarding", "complete"]
+            },
+            "description": "Use for Enter the Mission. Atomically validates and persists the required profile plus reminder preferences. The city must belong to the selected country. Navigate with replacement only after this succeeds."
+          },
+          "response": [
+            {
+              "name": "200 OK — Onboarding completed",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "cookie": [],
+              "body": "{\n  \"data\": {\n    \"profile\": {\n      \"userId\": \"9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002\",\n      \"displayName\": \"Samuel Ruiz\",\n      \"username\": \"SamuelR\",\n      \"avatarUrl\": null,\n      \"title\": null,\n      \"gender\": \"male\",\n      \"saintAvatarId\": null,\n      \"preferredLanguage\": \"en\",\n      \"timezone\": \"America/Chicago\",\n      \"cityId\": \"e0000000-0000-4000-8000-000000000001\",\n      \"cityName\": \"Austin\",\n      \"state\": \"Texas\",\n      \"countryCode\": \"US\",\n      \"countryName\": \"United States\",\n      \"leaderboardVisibility\": \"public\",\n      \"prayerMapVisibility\": \"aggregated\",\n      \"profileSetup\": {\n        \"complete\": true,\n        \"missingFields\": [],\n        \"nextStep\": null,\n        \"completedAt\": \"2026-08-28T18:52:34.591Z\"\n      },\n      \"createdAt\": \"2026-08-28T18:40:00.000Z\",\n      \"updatedAt\": \"2026-08-28T18:52:34.591Z\"\n    },\n    \"notificationPreferences\": {\n      \"dailyRosaryReminder\": true,\n      \"confessionReminder\": true,\n      \"eucharisticAdoration\": false\n    }\n  }\n}"
+            }
+          ]
         }
       ]
     },

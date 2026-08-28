@@ -419,6 +419,13 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/CountrySearchResponse' }
+              example:
+                data:
+                  - code: US
+                    name: United States
+                    latitude: 39.8283
+                    longitude: -98.5795
+                meta: { limit: 20, offset: 0, hasMore: false, nextOffset: null }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '422': { $ref: '#/components/responses/ValidationError' }
   /api/v1/locations/cities:
@@ -449,6 +456,16 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/CitySearchResponse' }
+              example:
+                data:
+                  - id: e0000000-0000-4000-8000-000000000001
+                    name: Austin
+                    regionName: Texas
+                    countryCode: US
+                    timezone: America/Chicago
+                    latitude: 30.26715
+                    longitude: -97.74306
+                meta: { limit: 20, offset: 0, hasMore: false, nextOffset: null }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '422': { $ref: '#/components/responses/ValidationError' }
   /api/v1/churches:
@@ -1059,7 +1076,7 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/CurrentProfileResponse' }
               example:
-                data: { userId: 9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002, displayName: Test User, username: testuser, avatarUrl: 'https://example.com/avatars/testuser.png', title: Faithful Beginner, gender: male, saintAvatarId: null, preferredLanguage: en, timezone: America/Chicago, cityId: e0000000-0000-4000-8000-000000000001, cityName: Chicago, state: Illinois, countryCode: US, leaderboardVisibility: public, prayerMapVisibility: aggregated, createdAt: '2026-06-01T12:00:00Z', updatedAt: '2026-08-17T12:00:00Z' }
+                data: { userId: 9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002, displayName: Test User, username: testuser, avatarUrl: 'https://example.com/avatars/testuser.png', title: Faithful Beginner, gender: male, saintAvatarId: null, preferredLanguage: en, timezone: America/Chicago, cityId: e0000000-0000-4000-8000-000000000001, cityName: Chicago, state: Illinois, countryCode: US, countryName: United States, leaderboardVisibility: public, prayerMapVisibility: aggregated, profileSetup: { complete: true, missingFields: [], nextStep: null, completedAt: '2026-08-17T12:00:00Z' }, createdAt: '2026-06-01T12:00:00Z', updatedAt: '2026-08-17T12:00:00Z' }
         '401': { $ref: '#/components/responses/Unauthorized' }
     patch:
       summary: Update current profile
@@ -1079,7 +1096,99 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/CurrentProfileResponse' }
               example:
-                data: { userId: 9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002, displayName: Test User, username: testuser, avatarUrl: 'https://example.com/avatars/testuser.png', title: Prayer Warrior, gender: male, saintAvatarId: null, preferredLanguage: en, timezone: America/Chicago, cityId: e0000000-0000-4000-8000-000000000001, cityName: Chicago, state: Illinois, countryCode: US, leaderboardVisibility: public, prayerMapVisibility: aggregated, createdAt: '2026-06-01T12:00:00Z', updatedAt: '2026-08-17T12:00:00Z' }
+                data: { userId: 9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002, displayName: Test User, username: testuser, avatarUrl: 'https://example.com/avatars/testuser.png', title: Prayer Warrior, gender: male, saintAvatarId: null, preferredLanguage: en, timezone: America/Chicago, cityId: e0000000-0000-4000-8000-000000000001, cityName: Chicago, state: Illinois, countryCode: US, countryName: United States, leaderboardVisibility: public, prayerMapVisibility: aggregated, profileSetup: { complete: true, missingFields: [], nextStep: null, completedAt: '2026-08-17T12:00:00Z' }, createdAt: '2026-06-01T12:00:00Z', updatedAt: '2026-08-17T12:00:00Z' }
+        '409': { description: Username conflict }
+        '422': { $ref: '#/components/responses/ValidationError' }
+  /api/v1/me/notification-preferences:
+    get:
+      summary: Get the current user's reminder preferences
+      description: >-
+        Returns persisted onboarding reminder choices. Missing legacy rows use
+        enabled defaults. Loading this endpoint never requests OS notification
+        permission.
+      responses:
+        '200':
+          description: Current notification preferences
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/NotificationPreferencesResponse' }
+              example:
+                data:
+                  dailyRosaryReminder: true
+                  confessionReminder: true
+                  eucharisticAdoration: true
+        '401': { $ref: '#/components/responses/Unauthorized' }
+    patch:
+      summary: Incrementally update reminder preferences
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateNotificationPreferences' }
+      responses:
+        '200':
+          description: Updated notification preferences
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/NotificationPreferencesResponse' }
+              example:
+                data:
+                  dailyRosaryReminder: true
+                  confessionReminder: true
+                  eucharisticAdoration: false
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+  /api/v1/me/onboarding/complete:
+    post:
+      summary: Complete required profile onboarding
+      description: >-
+        Atomically validates and saves the canonical display name, optional
+        username, gender, country, structured city, and reminder preferences.
+        The city must belong to the selected country. Completion is still
+        derived from the required persisted values rather than the audit
+        timestamp alone.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CompleteProfileSetup' }
+      responses:
+        '200':
+          description: Refreshed completed profile and reminder preferences
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CompleteProfileSetupResponse' }
+              example:
+                data:
+                  profile:
+                    userId: 9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002
+                    displayName: Samuel Ruiz
+                    username: SamuelR
+                    avatarUrl: null
+                    title: null
+                    gender: male
+                    saintAvatarId: null
+                    preferredLanguage: en
+                    timezone: America/Chicago
+                    cityId: e0000000-0000-4000-8000-000000000001
+                    cityName: Austin
+                    state: Texas
+                    countryCode: US
+                    countryName: United States
+                    leaderboardVisibility: public
+                    prayerMapVisibility: aggregated
+                    profileSetup:
+                      complete: true
+                      missingFields: []
+                      nextStep: null
+                      completedAt: '2026-08-28T18:52:34.591Z'
+                    createdAt: '2026-08-28T18:40:00.000Z'
+                    updatedAt: '2026-08-28T18:52:34.591Z'
+                  notificationPreferences:
+                    dailyRosaryReminder: true
+                    confessionReminder: true
+                    eucharisticAdoration: false
+        '401': { $ref: '#/components/responses/Unauthorized' }
         '409': { description: Username conflict }
         '422': { $ref: '#/components/responses/ValidationError' }
   /api/v1/usernames/validate:
@@ -2345,7 +2454,7 @@ components:
       type: object
       additionalProperties: false
       properties:
-        displayName: { type: string, minLength: 2, maxLength: 80 }
+        displayName: { type: string, minLength: 1, maxLength: 80 }
         username:
           description: Must also pass English and Spanish prohibited-term screening.
           anyOf:
@@ -2398,13 +2507,18 @@ components:
         - cityName
         - state
         - countryCode
+        - countryName
         - leaderboardVisibility
         - prayerMapVisibility
+        - profileSetup
         - createdAt
         - updatedAt
       properties:
         userId: { type: string, format: uuid }
-        displayName: { type: string }
+        displayName:
+          anyOf:
+            - { type: string, minLength: 1, maxLength: 80 }
+            - { type: 'null' }
         username:
           anyOf:
             - { type: string }
@@ -2417,7 +2531,10 @@ components:
           anyOf:
             - { type: string }
             - { type: 'null' }
-        gender: { type: string, enum: [male, female] }
+        gender:
+          anyOf:
+            - { type: string, enum: [male, female] }
+            - { type: 'null' }
         saintAvatarId:
           description: Null until the user selects a saint avatar.
           anyOf:
@@ -2442,8 +2559,13 @@ components:
           anyOf:
             - { type: string, minLength: 2, maxLength: 2 }
             - { type: 'null' }
+        countryName:
+          anyOf:
+            - { type: string }
+            - { type: 'null' }
         leaderboardVisibility: { type: string, enum: [public, friends, private] }
         prayerMapVisibility: { type: string, enum: [aggregated, hidden] }
+        profileSetup: { $ref: '#/components/schemas/ProfileSetupStatus' }
         createdAt: { type: string, format: date-time }
         updatedAt: { type: string, format: date-time }
     CurrentProfileResponse:
@@ -2452,6 +2574,75 @@ components:
       required: [data]
       properties:
         data: { $ref: '#/components/schemas/CurrentProfile' }
+    ProfileSetupStatus:
+      type: object
+      additionalProperties: false
+      required: [complete, missingFields, nextStep, completedAt]
+      properties:
+        complete:
+          type: boolean
+          description: Derived from a display name, gender, active country, and active city belonging to that country.
+        missingFields:
+          type: array
+          uniqueItems: true
+          items: { type: string, enum: [displayName, gender, country, city] }
+        nextStep:
+          anyOf:
+            - { type: string, enum: [name, gender, country, city] }
+            - { type: 'null' }
+        completedAt:
+          description: Audit timestamp only; never the sole source of completeness.
+          anyOf:
+            - { type: string, format: date-time }
+            - { type: 'null' }
+    NotificationPreferences:
+      type: object
+      additionalProperties: false
+      required: [dailyRosaryReminder, confessionReminder, eucharisticAdoration]
+      properties:
+        dailyRosaryReminder: { type: boolean, default: true }
+        confessionReminder: { type: boolean, default: true }
+        eucharisticAdoration: { type: boolean, default: true }
+    UpdateNotificationPreferences:
+      type: object
+      additionalProperties: false
+      minProperties: 1
+      properties:
+        dailyRosaryReminder: { type: boolean }
+        confessionReminder: { type: boolean }
+        eucharisticAdoration: { type: boolean }
+    NotificationPreferencesResponse:
+      type: object
+      additionalProperties: false
+      required: [data]
+      properties:
+        data: { $ref: '#/components/schemas/NotificationPreferences' }
+    CompleteProfileSetup:
+      type: object
+      additionalProperties: false
+      required: [displayName, username, gender, countryCode, cityId, notificationPreferences]
+      properties:
+        displayName: { type: string, minLength: 1, maxLength: 80, example: Samuel Ruiz }
+        username:
+          anyOf:
+            - { type: string, minLength: 3, maxLength: 30, pattern: '^[A-Za-z0-9_]+$' }
+            - { type: 'null' }
+        gender: { type: string, enum: [male, female] }
+        countryCode: { type: string, minLength: 2, maxLength: 2, example: US }
+        cityId: { type: string, format: uuid }
+        notificationPreferences: { $ref: '#/components/schemas/NotificationPreferences' }
+    CompleteProfileSetupResponse:
+      type: object
+      additionalProperties: false
+      required: [data]
+      properties:
+        data:
+          type: object
+          additionalProperties: false
+          required: [profile, notificationPreferences]
+          properties:
+            profile: { $ref: '#/components/schemas/CurrentProfile' }
+            notificationPreferences: { $ref: '#/components/schemas/NotificationPreferences' }
     RecordActivity:
       type: object
       additionalProperties: false

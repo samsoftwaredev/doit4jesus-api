@@ -158,11 +158,11 @@ export type Database = {
       user_profiles: {
         Row: {
           user_id: string;
-          display_name: string;
+          display_name: string | null;
           username: string | null;
           avatar_url: string | null;
           title: string | null;
-          gender: 'male' | 'female';
+          gender: 'male' | 'female' | null;
           saint_avatar_id: string | null;
           preferred_language: string;
           timezone: string;
@@ -170,16 +170,17 @@ export type Database = {
           country_code: string | null;
           leaderboard_visibility: 'public' | 'friends' | 'private';
           prayer_map_visibility: 'aggregated' | 'hidden';
+          profile_setup_completed_at: string | null;
           created_at: string;
           updated_at: string;
         };
         Insert: never;
         Update: Partial<{
-          display_name: string;
+          display_name: string | null;
           username: string | null;
           avatar_url: string | null;
           title: string | null;
-          gender: 'male' | 'female';
+          gender: 'male' | 'female' | null;
           saint_avatar_id: string | null;
           preferred_language: string;
           timezone: string;
@@ -187,6 +188,29 @@ export type Database = {
           country_code: string | null;
           leaderboard_visibility: 'public' | 'friends' | 'private';
           prayer_map_visibility: 'aggregated' | 'hidden';
+          profile_setup_completed_at: string | null;
+        }>;
+        Relationships: [];
+      };
+      notification_preferences: {
+        Row: {
+          user_id: string;
+          daily_rosary_reminder: boolean;
+          confession_reminder: boolean;
+          eucharistic_adoration: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          user_id: string;
+          daily_rosary_reminder?: boolean;
+          confession_reminder?: boolean;
+          eucharistic_adoration?: boolean;
+        };
+        Update: Partial<{
+          daily_rosary_reminder: boolean;
+          confession_reminder: boolean;
+          eucharistic_adoration: boolean;
         }>;
         Relationships: [];
       };
@@ -957,6 +981,19 @@ export type Database = {
           username: string;
           is_available: boolean;
         }>;
+      };
+      complete_current_user_profile_setup: {
+        Args: {
+          p_display_name: string;
+          p_username: string | null;
+          p_gender: 'male' | 'female';
+          p_country_code: string;
+          p_city_id: string;
+          p_daily_rosary_reminder: boolean;
+          p_confession_reminder: boolean;
+          p_eucharistic_adoration: boolean;
+        };
+        Returns: Json;
       };
       search_countries: {
         Args: {
