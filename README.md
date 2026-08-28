@@ -32,6 +32,20 @@ supabase db push
 
 The migrations in this repository assume the baseline tables already exist.
 
+Load the complete country/city catalog after the location migration is
+applied:
+
+```bash
+pnpm import:locations
+```
+
+The administrative importer reads `NEXT_PUBLIC_SUPABASE_URL` and
+`SUPABASE_SERVICE_ROLE_KEY` from `.env.local`, downloads a pinned upstream
+release, verifies its SHA-256 checksum, and upserts the catalog in batches. Run
+`pnpm import:locations -- --dry-run` to download and validate without changing
+the database. See [location data and licensing](docs/location-data.md) for the
+source attribution and ODbL obligations.
+
 ### 2. Expose only the required schemas
 
 In Supabase **Project Settings → API → Exposed schemas**, add:
@@ -102,6 +116,8 @@ Never send the service-role key to a browser or native application.
 | GET/PATCH | `/api/v1/me`                                 | Current profile                              |
 | GET       | `/api/v1/progress`                           | XP and current/next level                    |
 | GET       | `/api/v1/levels`                             | Level definitions                            |
+| GET       | `/api/v1/locations/countries`                | Country list and autocomplete                |
+| GET       | `/api/v1/locations/cities`                   | Country-scoped city autocomplete             |
 | GET/POST  | `/api/v1/activities`                         | Activity history and transactional recording |
 | GET       | `/api/v1/challenges`                         | Challenge assignments                        |
 | POST      | `/api/v1/challenges/:assignmentId/claim`     | Claim completed challenge reward             |

@@ -5,7 +5,9 @@ info:
   description: >-
     REST API implemented with Next.js 16 Route Handlers and Supabase Auth.
     Browser clients may authenticate with Supabase SSR cookies; native clients
-    may send a Supabase access token as a Bearer token.
+    may send a Supabase access token as a Bearer token. Location records are
+    derived from the Countries States Cities Database under ODbL v1.0; see
+    docs/location-data.md for attribution.
 servers:
   - url: https://api.example.com
   - url: http://localhost:3000
@@ -392,6 +394,63 @@ paths:
         '400': { description: INVALID_DATE, INVALID_COUNTRY, INVALID_DIOCESE, or INVALID_LOCALE }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '404': { description: READINGS_NOT_FOUND; no citation is guessed }
+  /api/v1/locations/countries:
+    get:
+      summary: List or autocomplete countries
+      description: >-
+        Returns active countries alphabetically. When q is supplied, exact ISO
+        code and name matches rank first, followed by prefix and substring
+        matches. Data is derived from the Countries States Cities Database
+        under ODbL v1.0.
+      parameters:
+        - in: query
+          name: q
+          description: Optional case-insensitive country name or ISO2 search.
+          schema: { type: string, minLength: 1, maxLength: 120 }
+        - in: query
+          name: limit
+          schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+        - in: query
+          name: offset
+          schema: { type: integer, minimum: 0, maximum: 10000, default: 0 }
+      responses:
+        '200':
+          description: Country autocomplete page
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CountrySearchResponse' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+  /api/v1/locations/cities:
+    get:
+      summary: Autocomplete cities within a country
+      description: >-
+        Searches active city names case-insensitively inside one ISO2 country.
+        Exact and prefix matches rank ahead of substring matches. q requires at
+        least two characters to keep autocomplete queries bounded.
+      parameters:
+        - in: query
+          name: countryCode
+          required: true
+          schema: { type: string, minLength: 2, maxLength: 2, example: US }
+        - in: query
+          name: q
+          required: true
+          schema: { type: string, minLength: 2, maxLength: 150, example: aus }
+        - in: query
+          name: limit
+          schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+        - in: query
+          name: offset
+          schema: { type: integer, minimum: 0, maximum: 10000, default: 0 }
+      responses:
+        '200':
+          description: Country-scoped city autocomplete page
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CitySearchResponse' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '422': { $ref: '#/components/responses/ValidationError' }
   /api/v1/churches:
     get:
       summary: Search approved churches
@@ -2143,6 +2202,57 @@ components:
       required: [data]
       properties:
         data: { $ref: '#/components/schemas/DailyMassReadings' }
+    CountrySearchResult:
+      type: object
+      additionalProperties: false
+      required: [code, name, latitude, longitude]
+      properties:
+        code: { type: string, minLength: 2, maxLength: 2, example: US }
+        name: { type: string, example: United States }
+        latitude:
+          anyOf:
+            - { type: number, format: double }
+            - { type: 'null' }
+        longitude:
+          anyOf:
+            - { type: number, format: double }
+            - { type: 'null' }
+    CountrySearchResponse:
+      type: object
+      additionalProperties: false
+      required: [data, meta]
+      properties:
+        data:
+          type: array
+          items: { $ref: '#/components/schemas/CountrySearchResult' }
+        meta: { $ref: '#/components/schemas/OffsetPageMeta' }
+    CitySearchResult:
+      type: object
+      additionalProperties: false
+      required: [id, name, regionName, countryCode, timezone, latitude, longitude]
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string, example: Austin }
+        regionName:
+          anyOf:
+            - { type: string, example: Texas }
+            - { type: 'null' }
+        countryCode: { type: string, minLength: 2, maxLength: 2, example: US }
+        timezone:
+          anyOf:
+            - { type: string, example: America/Chicago }
+            - { type: 'null' }
+        latitude: { type: number, format: double, example: 30.26715 }
+        longitude: { type: number, format: double, example: -97.74306 }
+    CitySearchResponse:
+      type: object
+      additionalProperties: false
+      required: [data, meta]
+      properties:
+        data:
+          type: array
+          items: { $ref: '#/components/schemas/CitySearchResult' }
+        meta: { $ref: '#/components/schemas/OffsetPageMeta' }
     StartEncounter:
       type: object
       additionalProperties: false

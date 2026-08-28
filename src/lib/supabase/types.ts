@@ -125,14 +125,28 @@ export type Database = {
         }>;
         Relationships: [];
       };
+      countries: {
+        Row: {
+          code: string;
+          name: string;
+          latitude: number | null;
+          longitude: number | null;
+          is_active: boolean;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
       cities: {
         Row: {
           id: string;
+          source_id: number | null;
           country_code: string;
           name: string;
           region_name: string | null;
           latitude: number;
           longitude: number;
+          timezone: string | null;
           is_active: boolean;
           created_at: string;
           updated_at: string;
@@ -935,6 +949,36 @@ export type Database = {
             | 'outgoingPending'
             | 'incomingPending'
             | 'friends';
+        }>;
+      };
+      search_countries: {
+        Args: {
+          p_query?: string | null;
+          p_limit?: number | null;
+          p_offset?: number | null;
+        };
+        Returns: Array<{
+          code: string;
+          name: string;
+          latitude: number | null;
+          longitude: number | null;
+        }>;
+      };
+      search_cities: {
+        Args: {
+          p_country_code: string;
+          p_query: string;
+          p_limit?: number | null;
+          p_offset?: number | null;
+        };
+        Returns: Array<{
+          id: string;
+          name: string;
+          region_name: string | null;
+          country_code: string;
+          timezone: string | null;
+          latitude: number;
+          longitude: number;
         }>;
       };
       search_churches: {

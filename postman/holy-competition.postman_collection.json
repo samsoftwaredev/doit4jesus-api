@@ -477,6 +477,77 @@
       ]
     },
     {
+      "name": "Locations",
+      "description": "Authenticated country and city autocomplete. Location records are derived from the Countries States Cities Database under ODbL v1.0: https://github.com/dr5hn/countries-states-cities-database",
+      "item": [
+        {
+          "name": "List or search countries",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/locations/countries?q=united&limit=20&offset=0",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "locations", "countries"],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "united",
+                  "description": "Optional case-insensitive country name or ISO2 search (1–120 characters). Disable this parameter to list all countries alphabetically."
+                },
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "description": "Results per page (1–100)."
+                },
+                {
+                  "key": "offset",
+                  "value": "0",
+                  "description": "Zero-based page offset (maximum 10,000)."
+                }
+              ]
+            },
+            "description": "Returns active countries with code, name, latitude, and longitude. Exact ISO code or name matches rank first, followed by name-prefix and substring matches. The response includes limit, offset, hasMore, and nextOffset metadata."
+          }
+        },
+        {
+          "name": "Search cities within a country",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/locations/cities?countryCode=US&q=aus&limit=20&offset=0",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "locations", "cities"],
+              "query": [
+                {
+                  "key": "countryCode",
+                  "value": "US",
+                  "description": "Required two-letter ISO country code."
+                },
+                {
+                  "key": "q",
+                  "value": "aus",
+                  "description": "Required case-insensitive city-name search (2–150 characters)."
+                },
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "description": "Results per page (1–100)."
+                },
+                {
+                  "key": "offset",
+                  "value": "0",
+                  "description": "Zero-based page offset (maximum 10,000)."
+                }
+              ]
+            },
+            "description": "Returns active cities inside the selected country. Exact names rank first, followed by prefix and substring matches. Each result includes the app city UUID, region/state, country code, IANA timezone, latitude, and longitude."
+          }
+        }
+      ]
+    },
+    {
       "name": "Churches",
       "description": "Search the approved church directory and retrieve a church's recurring services with its live status.",
       "item": [
