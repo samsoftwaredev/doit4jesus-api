@@ -42,6 +42,7 @@ import { GET as getFriendsComparison } from '../src/app/api/v1/me/friends/compar
 import { GET as getFriendsLeaderboard } from '../src/app/api/v1/me/friends/leaderboard/route';
 import { GET as getFriends } from '../src/app/api/v1/me/friends/route';
 import { GET as getRosaryCompletion } from '../src/app/api/v1/me/rosary/completion/route';
+import { GET as getRosaryReminder } from '../src/app/api/v1/me/rosary/reminder/route';
 import { GET as getRosaryStats } from '../src/app/api/v1/me/rosary/stats/route';
 import { GET as getRosaryStreak } from '../src/app/api/v1/me/rosary/streak/route';
 import { PATCH as markNotificationRead } from '../src/app/api/v1/notifications/[notificationId]/read/route';
@@ -525,7 +526,7 @@ describe('previously uncovered API route handlers', () => {
     );
   });
 
-  it('returns Rosary completion, lifetime total, and streak summaries', async () => {
+  it('returns Rosary completion, reminder, lifetime total, and streak summaries', async () => {
     const { rpc } = createSupabase({
       rpcResults: { get_my_rosary_stats: result({ rosariesPrayed: 42 }) },
     });
@@ -534,6 +535,11 @@ describe('previously uncovered API route handlers', () => {
         request(
           'http://localhost/api/v1/me/rosary/completion?selectedYear=2026&selectedMonth=8',
         ),
+      ),
+    );
+    expectOk(
+      await getRosaryReminder(
+        request('http://localhost/api/v1/me/rosary/reminder'),
       ),
     );
     expectOk(

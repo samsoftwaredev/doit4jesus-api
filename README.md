@@ -138,6 +138,8 @@ Never send the service-role key to a browser or native application.
 | GET       | `/api/v1/levels`                             | Level definitions                             |
 | GET       | `/api/v1/locations/countries`                | Country list and autocomplete                 |
 | GET       | `/api/v1/locations/cities`                   | Country-scoped city autocomplete              |
+| GET       | `/api/v1/examination-of-conscience`          | Public question list or random selection      |
+| GET       | `/api/v1/examination-of-conscience/daily`    | Deterministic public daily question           |
 | GET/POST  | `/api/v1/activities`                         | Activity history and transactional recording  |
 | GET       | `/api/v1/challenges`                         | Challenge assignments                         |
 | POST      | `/api/v1/challenges/:assignmentId/claim`     | Claim completed challenge reward              |

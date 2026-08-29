@@ -6,7 +6,8 @@ import {
   POST,
   GET as getAdminQuestions,
 } from '../src/app/api/v1/admin/examination-of-conscience/route';
-import { GET as getDailyQuestion } from '../src/app/api/v1/examination-of-conscience/route';
+import { GET as getDailyQuestion } from '../src/app/api/v1/examination-of-conscience/daily/route';
+import { GET as getQuestions } from '../src/app/api/v1/examination-of-conscience/route';
 import { requireAdmin } from '../src/lib/auth/require-admin';
 import { createPublicClient } from '../src/lib/supabase/public';
 
@@ -105,7 +106,7 @@ describe('examination-of-conscience routes', () => {
     });
     mockedCreatePublicClient.mockReturnValue(fixture.client as never);
 
-    const response = await getDailyQuestion(
+    const response = await getQuestions(
       request(
         'http://localhost/api/v1/examination-of-conscience?category=single',
       ),
@@ -125,7 +126,7 @@ describe('examination-of-conscience routes', () => {
       supabase({ data: [], error: null }).client as never,
     );
 
-    const response = await getDailyQuestion(
+    const response = await getQuestions(
       request(
         'http://localhost/api/v1/examination-of-conscience?saint=St.%20Joseph',
       ),
@@ -146,7 +147,7 @@ describe('examination-of-conscience routes', () => {
     mockedCreatePublicClient.mockReturnValue(fixture.client as never);
     jest.spyOn(Math, 'random').mockReturnValue(0.75);
 
-    const response = await getDailyQuestion(
+    const response = await getQuestions(
       request(
         'http://localhost/api/v1/examination-of-conscience?category=single&randomQuestion=true',
       ),
@@ -156,6 +157,51 @@ describe('examination-of-conscience routes', () => {
     expect((await response.json()).data.id).toBe(
       'e1000000-0000-4000-8000-000000000002',
     );
+  });
+
+  it('returns the same daily question for the same date and filters', async () => {
+    const fixture = supabase({
+      data: [
+        question,
+        {
+          ...question,
+          id: 'e1000000-0000-4000-8000-000000000002',
+          question: 'Have I neglected daily prayer?',
+        },
+      ],
+      error: null,
+    });
+    mockedCreatePublicClient.mockReturnValue(fixture.client as never);
+    const url =
+      'http://localhost/api/v1/examination-of-conscience/daily?date=2026-08-29&category=single';
+
+    const first = await getDailyQuestion(request(url));
+    const second = await getDailyQuestion(request(url));
+
+    expect(first.status).toBe(200);
+    expect((await first.json()).data).toEqual((await second.json()).data);
+    expect(await first.json()).toMatchObject({
+      meta: {
+        asOfDate: '2026-08-29',
+        filters: { date: '2026-08-29', category: 'single' },
+      },
+    });
+    expect(fixture.builder.eq).toHaveBeenCalledWith('is_active', true);
+    expect(fixture.builder.eq).toHaveBeenCalledWith('category', 'single');
+  });
+
+  it('returns 404 when no daily question matches the filters', async () => {
+    mockedCreatePublicClient.mockReturnValue(
+      supabase({ data: [], error: null }).client as never,
+    );
+
+    const response = await getDailyQuestion(
+      request(
+        'http://localhost/api/v1/examination-of-conscience/daily?saint=St.%20Joseph',
+      ),
+    );
+
+    expect(response.status).toBe(404);
   });
 
   it('lets an administrator create a question and maps API type to database severity', async () => {

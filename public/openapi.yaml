@@ -278,6 +278,51 @@ paths:
                 - { $ref: '#/components/schemas/PublicExaminationQuestionListResponse' }
         '404': { description: No active question matches the supplied filters when randomQuestion=true }
         '422': { $ref: '#/components/responses/ValidationError' }
+  /api/v1/examination-of-conscience/daily:
+    get:
+      security: []
+      summary: Get the deterministic daily examination-of-conscience question
+      description: >-
+        Returns one active, curated question for the resolved calendar date and
+        supplied filters. The same date and filters always select the same
+        question. When date is omitted, the endpoint resolves today using
+        EXAMINATION_TIMEZONE (America/Chicago by default). This endpoint is
+        public and does not require a Supabase session.
+      parameters:
+        - { $ref: '#/components/parameters/ExaminationCategory' }
+        - { $ref: '#/components/parameters/ExaminationSaint' }
+        - { $ref: '#/components/parameters/ExaminationCommandment' }
+        - { $ref: '#/components/parameters/ExaminationType' }
+        - in: query
+          name: date
+          description: Optional ISO calendar date for historical or preview selection.
+          schema: { type: string, format: date }
+      responses:
+        '200':
+          description: The question selected for the resolved date and filters
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ExaminationQuestionResponse' }
+              example:
+                data:
+                  id: e1000000-0000-4000-8000-000000000001
+                  category: single
+                  title: Faith
+                  commandment: 1
+                  type: mortal
+                  question: Have I denied or deliberately doubted the Catholic faith?
+                  description: Deliberate rejection of the faith concerns our relationship with God.
+                  counsels: [Return to Christ through prayer and Confession.]
+                  prevention: [Keep a faithful daily prayer routine.]
+                  saints: [St. Augustine]
+                  isActive: true
+                  createdAt: '2026-08-22T00:00:00.000Z'
+                  updatedAt: '2026-08-22T00:00:00.000Z'
+                meta:
+                  asOfDate: '2026-08-29'
+                  filters: { category: single, date: '2026-08-29' }
+        '404': { description: No active question matches the supplied filters }
+        '422': { $ref: '#/components/responses/ValidationError' }
   /api/v1/admin/examination-of-conscience:
     get:
       summary: List examination-of-conscience questions for administration

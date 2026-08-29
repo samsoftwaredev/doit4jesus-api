@@ -67,6 +67,10 @@ export const examinationQuestionQuerySchema = z
   .object({ ...publicFilters, ...randomQuestionQuery })
   .strict();
 
+export const examinationDailyQuestionQuerySchema = z
+  .object(publicFilters)
+  .strict();
+
 export const examinationAdminQuerySchema = z
   .object({
     ...publicFilters,
