@@ -2,6 +2,7 @@
 --
 -- Login credentials (all passwords are 12345678):
 --   test@test.com
+--   test@admin.com (admin)
 --   maria@example.com
 --   john@example.com
 --
@@ -43,6 +44,23 @@ values
     '{"provider":"email","providers":["email"]}'::jsonb,
     '{"display_name":"Test User"}'::jsonb,
     now() - interval '90 days',
+    now(),
+    '',
+    '',
+    '',
+    ''
+  ),
+  (
+    '00000000-0000-0000-0000-000000000000',
+    '33333333-3333-4333-8333-333333333333',
+    'authenticated',
+    'authenticated',
+    'test@admin.com',
+    crypt('12345678', gen_salt('bf')),
+    now(),
+    '{"provider":"email","providers":["email"]}'::jsonb,
+    '{"display_name":"Test Administrator"}'::jsonb,
+    now() - interval '14 days',
     now(),
     '',
     '',
@@ -111,6 +129,16 @@ values
     'email',
     now(),
     now() - interval '90 days',
+    now()
+  ),
+  (
+    '33333333-3333-4333-8333-333333333333',
+    '33333333-3333-4333-8333-333333333333',
+    '33333333-3333-4333-8333-333333333333',
+    '{"sub":"33333333-3333-4333-8333-333333333333","email":"test@admin.com","email_verified":true,"phone_verified":false}'::jsonb,
+    'email',
+    now(),
+    now() - interval '14 days',
     now()
   ),
   (
@@ -191,6 +219,7 @@ insert into app.users (
 )
 values
   ('9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002', 'test@test.com', 'active', now() - interval '90 days', now() - interval '2 hours', now() - interval '90 days'),
+  ('33333333-3333-4333-8333-333333333333', 'test@admin.com', 'active', now() - interval '14 days', now() - interval '30 minutes', now() - interval '14 days'),
   ('11111111-1111-4111-8111-111111111111', 'maria@example.com', 'active', now() - interval '60 days', now() - interval '1 hour', now() - interval '60 days'),
   ('22222222-2222-4222-8222-222222222222', 'john@example.com', 'active', now() - interval '30 days', now() - interval '3 hours', now() - interval '30 days')
 on conflict (id) do update
@@ -216,6 +245,7 @@ insert into app.user_profiles (
 )
 values
   ('9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002', 'Test User', 'testuser', 'https://i.pravatar.cc/256?u=testuser', 'Faithful Beginner', 'male', 'en', 'America/Chicago', 'e0000000-0000-4000-8000-000000000001', 'US', 'public', 'aggregated'),
+  ('33333333-3333-4333-8333-333333333333', 'Test Administrator', 'testadmin', 'https://i.pravatar.cc/256?u=testadmin', 'Administrator', 'male', 'en', 'America/Chicago', 'e0000000-0000-4000-8000-000000000001', 'US', 'public', 'aggregated'),
   ('11111111-1111-4111-8111-111111111111', 'Maria Santos', 'mariasantos', 'https://i.pravatar.cc/256?u=mariasantos', 'Prayer Champion', 'female', 'es', 'America/Mexico_City', 'e0000000-0000-4000-8000-000000000003', 'MX', 'public', 'aggregated'),
   ('22222222-2222-4222-8222-222222222222', 'John Paul', 'johnpaul', 'https://i.pravatar.cc/256?u=johnpaul', 'Scripture Seeker', 'male', 'en', 'America/Chicago', 'e0000000-0000-4000-8000-000000000002', 'US', 'public', 'aggregated')
 on conflict (user_id) do update
@@ -389,7 +419,8 @@ set
 
 insert into app.user_roles (user_id, role)
 values
-  ('9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002', 'admin')
+  ('9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002', 'admin'),
+  ('33333333-3333-4333-8333-333333333333', 'admin')
 on conflict (user_id) do update
 set role = excluded.role;
 
