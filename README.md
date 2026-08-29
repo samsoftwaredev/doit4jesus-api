@@ -96,6 +96,23 @@ http://localhost:3000/auth/callback
 https://YOUR_DOMAIN/auth/callback
 ```
 
+### 6. Enable Google sign-in
+
+Create a **Web application** OAuth client in [Google Cloud](https://console.cloud.google.com/auth/clients). Add the app's origins (for example, `http://localhost:3000` and `https://YOUR_DOMAIN`) and this Supabase callback URI:
+
+```text
+https://YOUR_PROJECT_REF.supabase.co/auth/v1/callback
+```
+
+In **Supabase Dashboard → Authentication → Sign In / Providers → Google**, enable Google and enter the client ID and secret. Keep the local development values in `.env.local`:
+
+```text
+SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID="..."
+SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_SECRET="..."
+```
+
+For local Supabase, add `http://127.0.0.1:54321/auth/v1/callback` to the Google OAuth client's authorized redirect URIs, then restart Supabase after setting those environment variables.
+
 ## Authentication
 
 Browser clients can use Supabase Auth normally; `@supabase/ssr` stores and refreshes the session in cookies.
