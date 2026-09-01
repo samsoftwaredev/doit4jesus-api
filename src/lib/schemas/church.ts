@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import { countryCodeSchema } from '@/lib/schemas/profile';
+
 export const churchIdSchema = z.uuid();
 
 export const churchServiceTypes = ['mass', 'confession', 'adoration'] as const;
@@ -49,7 +51,7 @@ const churchDetailsSchema = z.object({
   city: z.string().trim().min(1).max(150),
   regionName: z.string().trim().max(150).nullable().optional(),
   postalCode: z.string().trim().max(32).nullable().optional(),
-  countryCode: z.string().trim().length(2).toUpperCase(),
+  countryCode: countryCodeSchema,
   timezone: timezoneSchema,
   latitude: z.number().finite().gte(-90).lte(90),
   longitude: z.number().finite().gte(-180).lte(180),
@@ -77,7 +79,7 @@ export const createChurchChangeRequestSchema = z.discriminatedUnion(
 
 export const churchSearchQuerySchema = z
   .object({
-    countryCode: z.string().trim().length(2).toUpperCase().optional(),
+    countryCode: countryCodeSchema.optional(),
     city: z.string().trim().min(1).max(150).optional(),
     diocese: z.string().trim().min(1).max(160).optional(),
     limit: z.coerce.number().int().min(1).max(100).default(20),

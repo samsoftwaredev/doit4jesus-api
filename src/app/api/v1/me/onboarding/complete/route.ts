@@ -23,7 +23,6 @@ export async function POST(request: Request) {
         p_username: input.username,
         p_gender: input.gender,
         p_country_code: input.countryCode,
-        p_city_id: input.cityId,
         p_daily_rosary_reminder:
           input.notificationPreferences.dailyRosaryReminder,
         p_confession_reminder: input.notificationPreferences.confessionReminder,

@@ -21,7 +21,6 @@
     "verify:push": "pnpm run typecheck && pnpm run format:check && pnpm run lint:check && pnpm test && pnpm run check:outdated:strict",
     "import:usccb-lectionary": "node scripts/import-usccb-lectionary.mjs",
     "import:usccb-calendar": "node scripts/import-usccb-calendar-text.mjs",
-    "import:locations": "node --env-file-if-exists=.env.local scripts/import-locations.mjs",
     "build:username-profanity": "node scripts/build-username-profanity-data.mjs",
     "export": "next export",
     "prepare": "husky",

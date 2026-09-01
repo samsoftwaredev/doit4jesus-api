@@ -61,7 +61,6 @@ export async function POST(request: Request) {
         p_completed_at: input.completedAt ?? null,
         p_duration_seconds: input.durationSeconds ?? null,
         p_quantity: input.quantity,
-        p_city_id: input.cityId ?? null,
         p_country_code: input.countryCode ?? null,
         p_idempotency_key: idempotencyKey,
         p_metadata: input.metadata as Json,

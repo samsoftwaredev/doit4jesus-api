@@ -490,7 +490,7 @@
     },
     {
       "name": "Locations",
-      "description": "Authenticated country and city autocomplete. Location records are derived from the Countries States Cities Database under ODbL v1.0: https://github.com/dr5hn/countries-states-cities-database",
+      "description": "Authenticated country autocomplete.",
       "item": [
         {
           "name": "List or search countries",
@@ -534,54 +534,6 @@
               "body": "{\n  \"data\": [\n    {\n      \"code\": \"US\",\n      \"name\": \"United States\",\n      \"latitude\": 39.8283,\n      \"longitude\": -98.5795\n    }\n  ],\n  \"meta\": {\n    \"limit\": 20,\n    \"offset\": 0,\n    \"hasMore\": false,\n    \"nextOffset\": null\n  }\n}"
             }
           ]
-        },
-        {
-          "name": "Search cities within a country",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/locations/cities?countryCode=US&q=aus&limit=20&offset=0",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "locations", "cities"],
-              "query": [
-                {
-                  "key": "countryCode",
-                  "value": "US",
-                  "description": "Required two-letter ISO country code."
-                },
-                {
-                  "key": "q",
-                  "value": "aus",
-                  "description": "Required case-insensitive city-name search (2–150 characters)."
-                },
-                {
-                  "key": "limit",
-                  "value": "20",
-                  "description": "Results per page (1–100)."
-                },
-                {
-                  "key": "offset",
-                  "value": "0",
-                  "description": "Zero-based page offset (maximum 10,000)."
-                }
-              ]
-            },
-            "description": "Returns active cities inside the selected country. Exact names rank first, followed by prefix and substring matches. Each result includes the app city UUID, region/state, country code, IANA timezone, latitude, and longitude."
-          },
-          "response": [
-            {
-              "name": "200 OK — City results",
-              "status": "OK",
-              "code": 200,
-              "_postman_previewlanguage": "json",
-              "header": [
-                { "key": "Content-Type", "value": "application/json" }
-              ],
-              "cookie": [],
-              "body": "{\n  \"data\": [\n    {\n      \"id\": \"e0000000-0000-4000-8000-000000000001\",\n      \"name\": \"Austin\",\n      \"regionName\": \"Texas\",\n      \"countryCode\": \"US\",\n      \"timezone\": \"America/Chicago\",\n      \"latitude\": 30.26715,\n      \"longitude\": -97.74306\n    }\n  ],\n  \"meta\": {\n    \"limit\": 20,\n    \"offset\": 0,\n    \"hasMore\": false,\n    \"nextOffset\": null\n  }\n}"
-            }
-          ]
         }
       ]
     },
@@ -607,7 +559,7 @@
                 {
                   "key": "city",
                   "value": "Austin",
-                  "description": "Optional church-city name. This is not an app.cities ID. If multiple filters are supplied, each must match the same church."
+                  "description": "Optional church-city name used only for directory search and display. If multiple filters are supplied, each must match the same church."
                 },
                 {
                   "key": "diocese",
@@ -1145,7 +1097,7 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "me"]
             },
-            "description": "Returns the full profile for the authenticated user, including required `gender`, optional `saintAvatarId`, and resolved `cityName` and `state` (both `null` when no city is set)."
+            "description": "Returns the full profile for the authenticated user, including required `gender` and optional `saintAvatarId`."
           },
           "response": [
             {
@@ -1157,7 +1109,7 @@
                 { "key": "Content-Type", "value": "application/json" }
               ],
               "cookie": [],
-              "body": "{\n  \"data\": {\n    \"userId\": \"9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002\",\n    \"displayName\": \"Samuel Ruiz\",\n    \"username\": \"SamuelR\",\n    \"avatarUrl\": null,\n    \"title\": null,\n    \"gender\": \"male\",\n    \"saintAvatarId\": null,\n    \"preferredLanguage\": \"en\",\n    \"timezone\": \"America/Chicago\",\n    \"cityId\": null,\n    \"cityName\": null,\n    \"state\": null,\n    \"countryCode\": \"US\",\n    \"countryName\": \"United States\",\n    \"leaderboardVisibility\": \"public\",\n    \"prayerMapVisibility\": \"aggregated\",\n    \"profileSetup\": {\n      \"complete\": false,\n      \"missingFields\": [\"city\"],\n      \"nextStep\": \"city\",\n      \"completedAt\": null\n    },\n    \"createdAt\": \"2026-08-28T18:40:00.000Z\",\n    \"updatedAt\": \"2026-08-28T18:48:00.000Z\"\n  }\n}"
+              "body": "{\n  \"data\": {\n    \"userId\": \"9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002\",\n    \"displayName\": \"Samuel Ruiz\",\n    \"username\": \"SamuelR\",\n    \"avatarUrl\": null,\n    \"title\": null,\n    \"gender\": \"male\",\n    \"saintAvatarId\": null,\n    \"preferredLanguage\": \"en\",\n    \"timezone\": \"America/Chicago\",\n    \"countryCode\": \"US\",\n    \"countryName\": \"United States\",\n    \"leaderboardVisibility\": \"public\",\n    \"prayerMapVisibility\": \"aggregated\",\n    \"profileSetup\": {\n      \"complete\": true,\n      \"missingFields\": [],\n      \"nextStep\": null,\n      \"completedAt\": null\n    },\n    \"createdAt\": \"2026-08-28T18:40:00.000Z\",\n    \"updatedAt\": \"2026-08-28T18:48:00.000Z\"\n  }\n}"
             }
           ]
         },
@@ -1168,7 +1120,7 @@
             "header": [{ "key": "Content-Type", "value": "application/json" }],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"displayName\": \"Samuel Ruiz\",\n  \"username\": \"samsoftwaredev\",\n  \"avatarUrl\": \"https://example.com/avatar.png\",\n  \"title\": \"Prayer Warrior\",\n  \"gender\": \"male\",\n  \"saintAvatarId\": null,\n  \"preferredLanguage\": \"en\",\n  \"timezone\": \"America/Los_Angeles\",\n  \"cityId\": null,\n  \"countryCode\": \"US\",\n  \"leaderboardVisibility\": \"public\",\n  \"prayerMapVisibility\": \"aggregated\"\n}",
+              "raw": "{\n  \"displayName\": \"Samuel Ruiz\",\n  \"username\": \"samsoftwaredev\",\n  \"avatarUrl\": \"https://example.com/avatar.png\",\n  \"title\": \"Prayer Warrior\",\n  \"gender\": \"male\",\n  \"saintAvatarId\": null,\n  \"preferredLanguage\": \"en\",\n  \"timezone\": \"America/Los_Angeles\",\n  \"countryCode\": \"US\",\n  \"leaderboardVisibility\": \"public\",\n  \"prayerMapVisibility\": \"aggregated\"\n}",
               "options": { "raw": { "language": "json" } }
             },
             "url": {
@@ -1176,7 +1128,7 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "me"]
             },
-            "description": "Partially updates the user's profile. Send only the fields you want to change — at least one field is required.\n\n**Fields**\n- `displayName` (canonical name string, 1–80 chars; surrounding whitespace is trimmed and repeated whitespace is collapsed)\n- `username` (string, 3–30 chars, letters/numbers/underscores, nullable; screened against English and Spanish prohibited-term data)\n- `avatarUrl` (URL string, nullable)\n- `title` (string, max 100 chars, nullable)\n- `gender` (`\"male\"` | `\"female\"`)\n- `saintAvatarId` (saint UUID, nullable)\n- `preferredLanguage` (string, 2–10 chars, e.g. `\"en\"`)\n- `timezone` (IANA timezone string, e.g. `\"America/Los_Angeles\"`)\n- `cityId` (UUID, nullable; the response resolves it to `cityName` and `state`)\n- `countryCode` (2-letter ISO code, e.g. `\"US\"`, nullable)\n- `leaderboardVisibility` (`\"public\"` | `\"friends\"` | `\"private\"`)\n- `prayerMapVisibility` (`\"aggregated\"` | `\"hidden\"`)\n\nReturns the derived `profileSetup` status. Returns **409** if the username is already taken and **422** when it fails moderation."
+            "description": "Partially updates the user's profile. Send only the fields you want to change — at least one field is required. Returns the derived `profileSetup` status. Returns **409** if the username is already taken and **422** when it fails moderation."
           },
           "response": [
             {
@@ -1188,7 +1140,7 @@
                 { "key": "Content-Type", "value": "application/json" }
               ],
               "cookie": [],
-              "body": "{\n  \"data\": {\n    \"userId\": \"9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002\",\n    \"displayName\": \"Samuel Ruiz\",\n    \"username\": \"samsoftwaredev\",\n    \"avatarUrl\": \"https://example.com/avatar.png\",\n    \"title\": \"Prayer Warrior\",\n    \"gender\": \"male\",\n    \"saintAvatarId\": null,\n    \"preferredLanguage\": \"en\",\n    \"timezone\": \"America/Los_Angeles\",\n    \"cityId\": null,\n    \"cityName\": null,\n    \"state\": null,\n    \"countryCode\": \"US\",\n    \"countryName\": \"United States\",\n    \"leaderboardVisibility\": \"public\",\n    \"prayerMapVisibility\": \"aggregated\",\n    \"profileSetup\": {\n      \"complete\": false,\n      \"missingFields\": [\"city\"],\n      \"nextStep\": \"city\",\n      \"completedAt\": null\n    },\n    \"createdAt\": \"2026-08-28T18:40:00.000Z\",\n    \"updatedAt\": \"2026-08-28T18:50:00.000Z\"\n  }\n}"
+              "body": "{\n  \"data\": {\n    \"userId\": \"9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002\",\n    \"displayName\": \"Samuel Ruiz\",\n    \"username\": \"samsoftwaredev\",\n    \"gender\": \"male\",\n    \"countryCode\": \"US\",\n    \"countryName\": \"United States\",\n    \"profileSetup\": {\n      \"complete\": true,\n      \"missingFields\": [],\n      \"nextStep\": null,\n      \"completedAt\": \"2026-08-28T18:50:00.000Z\"\n    }\n  }\n}"
             }
           ]
         },
@@ -1256,7 +1208,7 @@
             "header": [{ "key": "Content-Type", "value": "application/json" }],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"displayName\": \"Samuel Ruiz\",\n  \"username\": \"SamuelR\",\n  \"gender\": \"male\",\n  \"countryCode\": \"US\",\n  \"cityId\": \"e0000000-0000-4000-8000-000000000001\",\n  \"notificationPreferences\": {\n    \"dailyRosaryReminder\": true,\n    \"confessionReminder\": true,\n    \"eucharisticAdoration\": false\n  }\n}",
+              "raw": "{\n  \"displayName\": \"Samuel Ruiz\",\n  \"username\": \"SamuelR\",\n  \"gender\": \"male\",\n  \"countryCode\": \"US\",\n  \"notificationPreferences\": {\n    \"dailyRosaryReminder\": true,\n    \"confessionReminder\": true,\n    \"eucharisticAdoration\": false\n  }\n}",
               "options": { "raw": { "language": "json" } }
             },
             "url": {
@@ -1264,7 +1216,7 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "me", "onboarding", "complete"]
             },
-            "description": "Use for Enter the Mission. Atomically validates and persists the required profile plus reminder preferences. The city must belong to the selected country. Navigate with replacement only after this succeeds."
+            "description": "Use for Enter the Mission. Atomically validates and persists the profile plus reminder preferences. Navigate with replacement only after this succeeds and profileSetup.complete is true."
           },
           "response": [
             {
@@ -1276,7 +1228,7 @@
                 { "key": "Content-Type", "value": "application/json" }
               ],
               "cookie": [],
-              "body": "{\n  \"data\": {\n    \"profile\": {\n      \"userId\": \"9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002\",\n      \"displayName\": \"Samuel Ruiz\",\n      \"username\": \"SamuelR\",\n      \"avatarUrl\": null,\n      \"title\": null,\n      \"gender\": \"male\",\n      \"saintAvatarId\": null,\n      \"preferredLanguage\": \"en\",\n      \"timezone\": \"America/Chicago\",\n      \"cityId\": \"e0000000-0000-4000-8000-000000000001\",\n      \"cityName\": \"Austin\",\n      \"state\": \"Texas\",\n      \"countryCode\": \"US\",\n      \"countryName\": \"United States\",\n      \"leaderboardVisibility\": \"public\",\n      \"prayerMapVisibility\": \"aggregated\",\n      \"profileSetup\": {\n        \"complete\": true,\n        \"missingFields\": [],\n        \"nextStep\": null,\n        \"completedAt\": \"2026-08-28T18:52:34.591Z\"\n      },\n      \"createdAt\": \"2026-08-28T18:40:00.000Z\",\n      \"updatedAt\": \"2026-08-28T18:52:34.591Z\"\n    },\n    \"notificationPreferences\": {\n      \"dailyRosaryReminder\": true,\n      \"confessionReminder\": true,\n      \"eucharisticAdoration\": false\n    }\n  }\n}"
+              "body": "{\n  \"data\": {\n    \"profile\": {\n      \"userId\": \"9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002\",\n      \"displayName\": \"Samuel Ruiz\",\n      \"username\": \"SamuelR\",\n      \"gender\": \"male\",\n      \"countryCode\": \"US\",\n      \"countryName\": \"United States\",\n      \"profileSetup\": {\n        \"complete\": true,\n        \"missingFields\": [],\n        \"nextStep\": null,\n        \"completedAt\": \"2026-08-28T18:52:34.591Z\"\n      }\n    },\n    \"notificationPreferences\": {\n      \"dailyRosaryReminder\": true,\n      \"confessionReminder\": true,\n      \"eucharisticAdoration\": false\n    }\n  }\n}"
             }
           ]
         }
@@ -1600,7 +1552,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"activityCode\": \"PRAYER\",\n  \"occurredAt\": \"2026-07-18T08:00:00-07:00\",\n  \"completedAt\": \"2026-07-18T08:30:00-07:00\",\n  \"durationSeconds\": 1800,\n  \"quantity\": 1,\n  \"cityId\": null,\n  \"countryCode\": \"US\",\n  \"metadata\": {}\n}",
+              "raw": "{\n  \"activityCode\": \"PRAYER\",\n  \"occurredAt\": \"2026-07-18T08:00:00-07:00\",\n  \"completedAt\": \"2026-07-18T08:30:00-07:00\",\n  \"durationSeconds\": 1800,\n  \"quantity\": 1,\n  \"countryCode\": \"US\",\n  \"metadata\": {}\n}",
               "options": { "raw": { "language": "json" } }
             },
             "url": {
@@ -1608,7 +1560,7 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "activities"]
             },
-            "description": "Records a spiritual activity through a transactional RPC. The server, not the client, calculates XP, challenge updates, equipment-requirement progress, and any mapped defense completion.\n\n**Required fields**\n- `activityCode` (string, 1–50 chars) — e.g. `PRAYER`, `SCRIPTURE`, `SERVICE`, `TRUST_ACT`\n- `occurredAt` (ISO 8601 with offset) — when the activity happened\n- `quantity` (integer, 1–100) — default `1`\n\n**Optional fields**\n- `completedAt` (ISO 8601 with offset, nullable)\n- `durationSeconds` (integer, 0–86400, nullable)\n- `cityId` (UUID, nullable)\n- `countryCode` (2-letter ISO, nullable)\n- `metadata` (object) — factual context used by server-defined rules; for example `{\"planCompleted\": true}` for a completed Scripture plan or `{\"duringDifficulty\": true}` for an act of trust\n\nDo not send `virtueIncrease`, `demonDamage`, `xpAward`, `badgeEarned`, or `defenseCompleted`; those values are rejected by the request schema and calculated server-side.\n\nThe response contains `progressUpdates`, `battleUpdates`, `newBadges`, and `xp` in addition to the activity.\n\n**Idempotency-Key header** (required) — generate a UUID per submission. If you retry with the same key, the server returns `200` with the original result instead of repeating rewards."
+            "description": "Records a spiritual activity through a transactional RPC. The server calculates XP, challenge updates, equipment-requirement progress, and mapped defense completion. Supply activityCode, occurredAt, quantity, and optional completedAt, durationSeconds, countryCode, or metadata. Include a UUID Idempotency-Key header for each submission."
           }
         }
       ]
@@ -1705,12 +1657,12 @@
                 {
                   "key": "scopeType",
                   "value": "global",
-                  "description": "Geographic scope: global | country | city. Default: global."
+                  "description": "Geographic scope: global | country. Default: global."
                 },
                 {
                   "key": "scopeReference",
                   "value": "global",
-                  "description": "Scope identifier. Use \"global\" for global scope, a 2-letter ISO code for country (e.g. \"US\"), or a city UUID."
+                  "description": "Scope identifier. Use \"global\" for global scope or a 2-letter ISO code for country (e.g. \"US\")."
                 },
                 {
                   "key": "limit",
@@ -1739,15 +1691,10 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/prayer-map?level=country&from=2026-07-01T00:00:00Z&to=2026-07-31T23:59:59Z",
+              "raw": "{{baseUrl}}/api/v1/prayer-map?from=2026-07-01T00:00:00Z&to=2026-07-31T23:59:59Z",
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "prayer-map"],
               "query": [
-                {
-                  "key": "level",
-                  "value": "country",
-                  "description": "Aggregation level: country | city. Required."
-                },
                 {
                   "key": "from",
                   "value": "2026-07-01T00:00:00Z",
@@ -1766,7 +1713,7 @@
                 }
               ]
             },
-            "description": "Returns aggregated prayer map markers. Markers with fewer than **5 unique users** are suppressed to protect privacy.\n\nEach marker contains coordinates (country or city level), a `prayer_count`, and `unique_users`.\n\nResponse metadata includes the `level`, `from`, `to`, and the `privacyThreshold` (always 5)."
+            "description": "Returns country-level aggregated prayer map markers. Markers with fewer than **5 unique users** are suppressed to protect privacy.\n\nEach marker contains country coordinates, a `prayer_count`, and `unique_users`.\n\nResponse metadata includes the `level`, `from`, `to`, and the `privacyThreshold` (always 5)."
           }
         }
       ]

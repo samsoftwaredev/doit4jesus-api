@@ -5,59 +5,38 @@ import type { Database } from '@/lib/supabase/types';
 
 type Supabase = AuthenticatedContext['supabase'];
 type UserProfile = Database['app']['Tables']['user_profiles']['Row'];
-type ProfileCity = Pick<
-  Database['app']['Tables']['cities']['Row'],
-  'country_code' | 'name' | 'region_name'
->;
 type ProfileCountry = Pick<
   Database['app']['Tables']['countries']['Row'],
   'name'
 >;
 
 export type ProfileLocation = {
-  city: ProfileCity | null;
   country: ProfileCountry | null;
 };
 
 export async function loadProfileLocation(
   supabase: Supabase,
-  cityId: string | null,
   countryCode: string | null,
 ): Promise<ProfileLocation> {
-  const [cityResult, countryResult] = await Promise.all([
-    cityId
-      ? supabase
-          .schema('app')
-          .from('cities')
-          .select('name, region_name, country_code')
-          .eq('id', cityId)
-          .maybeSingle()
-      : Promise.resolve({ data: null, error: null }),
-    countryCode
-      ? supabase
-          .schema('app')
-          .from('countries')
-          .select('name')
-          .eq('code', countryCode)
-          .maybeSingle()
-      : Promise.resolve({ data: null, error: null }),
-  ]);
-
-  throwDatabaseError(
-    cityResult.error,
-    'Unable to load the current profile city.',
-  );
+  const countryResult = countryCode
+    ? await supabase
+        .schema('app')
+        .from('countries')
+        .select('name')
+        .eq('code', countryCode)
+        .maybeSingle()
+    : { data: null, error: null };
   throwDatabaseError(
     countryResult.error,
     'Unable to load the current profile country.',
   );
 
-  return { city: cityResult.data, country: countryResult.data };
+  return { country: countryResult.data };
 }
 
 export function toCurrentProfile(
   row: UserProfile,
-  { city, country }: ProfileLocation,
+  { country }: ProfileLocation,
 ) {
   return {
     userId: row.user_id,
@@ -69,9 +48,6 @@ export function toCurrentProfile(
     saintAvatarId: row.saint_avatar_id,
     preferredLanguage: row.preferred_language,
     timezone: row.timezone,
-    cityId: row.city_id,
-    cityName: city?.name ?? null,
-    state: city?.region_name ?? null,
     countryCode: row.country_code,
     countryName: country?.name ?? null,
     leaderboardVisibility: row.leaderboard_visibility,
@@ -80,9 +56,7 @@ export function toCurrentProfile(
       displayName: row.display_name,
       gender: row.gender,
       countryCode: row.country_code,
-      cityId: row.city_id,
       countryExists: country !== null,
-      cityCountryCode: city?.country_code ?? null,
       completedAt: row.profile_setup_completed_at,
     }),
     createdAt: row.created_at,
@@ -101,7 +75,6 @@ export async function loadCurrentProfile(supabase: Supabase, userId: string) {
   throwDatabaseError(error, 'Unable to load the current profile.');
   const location = await loadProfileLocation(
     supabase,
-    data.city_id,
     data.country_code,
   );
   return toCurrentProfile(data, location);

@@ -1,4 +1,3 @@
-import { GET as getCities } from '../src/app/api/v1/locations/cities/route';
 import { GET as getCountries } from '../src/app/api/v1/locations/countries/route';
 import { requireUser } from '../src/lib/auth/require-user';
 
@@ -63,53 +62,4 @@ describe('location autocomplete routes', () => {
     });
   });
 
-  it('searches cities within one country and maps database fields', async () => {
-    const rpc = jest.fn().mockResolvedValue({
-      data: [
-        {
-          id: 'e0000000-0000-4000-8000-000000000001',
-          name: 'Austin',
-          region_name: 'Texas',
-          country_code: 'US',
-          timezone: 'America/Chicago',
-          latitude: 30.26715,
-          longitude: -97.74306,
-        },
-      ],
-      error: null,
-    });
-    mockedRequireUser.mockResolvedValue({
-      supabase: { schema: jest.fn(() => ({ rpc })) },
-    } as never);
-
-    const response = await getCities({
-      url: 'http://localhost/api/v1/locations/cities?countryCode=us&q=aus',
-    } as Request);
-
-    expect(rpc).toHaveBeenCalledWith('search_cities', {
-      p_country_code: 'US',
-      p_query: 'aus',
-      p_limit: 21,
-      p_offset: 0,
-    });
-    expect(await response.json()).toEqual({
-      data: [
-        {
-          id: 'e0000000-0000-4000-8000-000000000001',
-          name: 'Austin',
-          regionName: 'Texas',
-          countryCode: 'US',
-          timezone: 'America/Chicago',
-          latitude: 30.26715,
-          longitude: -97.74306,
-        },
-      ],
-      meta: {
-        limit: 20,
-        offset: 0,
-        hasMore: false,
-        nextOffset: null,
-      },
-    });
-  });
 });

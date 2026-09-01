@@ -43,7 +43,6 @@ export async function PATCH(request: Request) {
     if (input.preferredLanguage !== undefined)
       sanitized.preferred_language = input.preferredLanguage;
     if (input.timezone !== undefined) sanitized.timezone = input.timezone;
-    if (input.cityId !== undefined) sanitized.city_id = input.cityId;
     if (input.countryCode !== undefined)
       sanitized.country_code = input.countryCode;
     if (input.leaderboardVisibility !== undefined) {
@@ -64,7 +63,6 @@ export async function PATCH(request: Request) {
     throwDatabaseError(error, 'Unable to update the profile.');
     const location = await loadProfileLocation(
       supabase,
-      data.city_id,
       data.country_code,
     );
     return ok(toCurrentProfile(data, location));

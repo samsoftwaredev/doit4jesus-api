@@ -20,6 +20,15 @@ export const displayNameSchema = z
   .transform(normalizeDisplayName)
   .pipe(z.string().min(1).max(80));
 
+export const countryCodeSchema = z
+  .string()
+  .trim()
+  .regex(
+    /^[A-Za-z]{2}(?:-[A-Za-z]{3})?$/,
+    'Country code must be a two-letter code or a GB subdivision code.',
+  )
+  .toUpperCase();
+
 export const updateProfileSchema = z
   .object({
     displayName: displayNameSchema.optional(),
@@ -36,14 +45,7 @@ export const updateProfileSchema = z
       .max(100)
       .refine(isValidTimeZone, 'Invalid IANA timezone.')
       .optional(),
-    cityId: z.uuid().nullable().optional(),
-    countryCode: z
-      .string()
-      .trim()
-      .length(2)
-      .toUpperCase()
-      .nullable()
-      .optional(),
+    countryCode: countryCodeSchema.nullable().optional(),
     leaderboardVisibility: z.enum(['public', 'friends', 'private']).optional(),
     prayerMapVisibility: z.enum(['aggregated', 'hidden']).optional(),
   })

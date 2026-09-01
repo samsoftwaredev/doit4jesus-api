@@ -122,8 +122,6 @@ export function throwDatabaseError(
       case 'INVALID_USERNAME_CANDIDATES':
       case 'INVALID_PROFILE_SETUP':
       case 'PROFILE_COUNTRY_NOT_FOUND':
-      case 'PROFILE_CITY_NOT_FOUND':
-      case 'PROFILE_CITY_COUNTRY_MISMATCH':
         throw new ApiError(422, 'VALIDATION_ERROR', error.message);
       default:
         break;

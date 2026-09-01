@@ -24,8 +24,6 @@ const mockedLoadNotificationPreferences = jest.mocked(
   loadNotificationPreferences,
 );
 const userId = '9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002';
-const cityId = 'e0000000-0000-4000-8000-000000000001';
-
 function request(body: unknown) {
   return {
     url: 'http://localhost/api/v1/me/onboarding/complete',
@@ -65,7 +63,6 @@ describe('POST /api/v1/me/onboarding/complete', () => {
         username: 'SamuelR',
         gender: 'male',
         countryCode: 'us',
-        cityId,
         notificationPreferences,
       }),
     );
@@ -75,7 +72,6 @@ describe('POST /api/v1/me/onboarding/complete', () => {
       p_username: 'SamuelR',
       p_gender: 'male',
       p_country_code: 'US',
-      p_city_id: cityId,
       p_daily_rosary_reminder: true,
       p_confession_reminder: false,
       p_eucharistic_adoration: true,
@@ -99,7 +95,6 @@ describe('POST /api/v1/me/onboarding/complete', () => {
         username: 'faithful_fuck',
         gender: 'male',
         countryCode: 'US',
-        cityId,
         notificationPreferences: {
           dailyRosaryReminder: true,
           confessionReminder: true,
@@ -110,4 +105,39 @@ describe('POST /api/v1/me/onboarding/complete', () => {
 
     expect(rpc).not.toHaveBeenCalled();
   });
+
+  it('accepts and normalizes a supported GB subdivision code', async () => {
+    const rpc = jest.fn().mockResolvedValue({ data: {}, error: null });
+    mockedRequireUser.mockResolvedValue({
+      supabase: { schema: jest.fn(() => ({ rpc })) },
+      userId,
+    } as never);
+    mockedLoadCurrentProfile.mockResolvedValue({} as never);
+    mockedLoadNotificationPreferences.mockResolvedValue({} as never);
+
+    await POST(
+      request({
+        displayName: 'Samuel Ruiz',
+        username: 'SamuelR',
+        gender: 'male',
+        countryCode: 'gb-eng',
+        notificationPreferences: {
+          dailyRosaryReminder: true,
+          confessionReminder: true,
+          eucharisticAdoration: true,
+        },
+      }),
+    );
+
+    expect(rpc).toHaveBeenCalledWith('complete_current_user_profile_setup', {
+      p_display_name: 'Samuel Ruiz',
+      p_username: 'SamuelR',
+      p_gender: 'male',
+      p_country_code: 'GB-ENG',
+      p_daily_rosary_reminder: true,
+      p_confession_reminder: true,
+      p_eucharistic_adoration: true,
+    });
+  });
+
 });

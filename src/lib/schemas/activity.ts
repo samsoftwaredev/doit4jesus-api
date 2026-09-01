@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import { countryCodeSchema } from '@/lib/schemas/profile';
+
 export const recordActivitySchema = z
   .object({
     activityCode: z
@@ -12,14 +14,7 @@ export const recordActivitySchema = z
     completedAt: z.iso.datetime({ offset: true }).nullable().optional(),
     durationSeconds: z.number().int().min(0).max(86_400).nullable().optional(),
     quantity: z.number().int().min(1).max(100).default(1),
-    cityId: z.uuid().nullable().optional(),
-    countryCode: z
-      .string()
-      .trim()
-      .length(2)
-      .toUpperCase()
-      .nullable()
-      .optional(),
+    countryCode: countryCodeSchema.nullable().optional(),
     metadata: z.record(z.string(), z.unknown()).default({}),
   })
   .strict();

@@ -8,7 +8,6 @@ describe('required profile setup', () => {
         displayName: 'Samuel Ruiz',
         gender: 'male',
         countryCode: 'US',
-        cityId: 'e0000000-0000-4000-8000-000000000001',
         completedAt: null,
       }),
     ).toEqual({
@@ -25,33 +24,14 @@ describe('required profile setup', () => {
         displayName: '   ',
         gender: null,
         countryCode: null,
-        cityId: null,
         completedAt: '2026-08-28T12:00:00.000Z',
       }),
     ).toEqual({
       complete: false,
-      missingFields: ['displayName', 'gender', 'country', 'city'],
+      missingFields: ['displayName', 'gender', 'country'],
       nextStep: 'name',
       completedAt: '2026-08-28T12:00:00.000Z',
     });
-  });
-
-  it('resumes at city when it is the first missing required value', () => {
-    expect(
-      getProfileSetup({
-        displayName: 'Samuel Ruiz',
-        gender: 'male',
-        countryCode: 'US',
-        cityId: null,
-        completedAt: null,
-      }),
-    ).toEqual(
-      expect.objectContaining({
-        complete: false,
-        missingFields: ['city'],
-        nextStep: 'city',
-      }),
-    );
   });
 
   it('trims and collapses display-name whitespace without splitting the name', () => {
@@ -59,5 +39,11 @@ describe('required profile setup', () => {
       updateProfileSchema.parse({ displayName: '  Juan   Carlos Ruiz  ' }),
     ).toEqual({ displayName: 'Juan Carlos Ruiz' });
     expect(() => updateProfileSchema.parse({ displayName: '   ' })).toThrow();
+  });
+
+  it('accepts the supported GB subdivision country codes', () => {
+    expect(updateProfileSchema.parse({ countryCode: 'gb-sct' })).toEqual({
+      countryCode: 'GB-SCT',
+    });
   });
 });

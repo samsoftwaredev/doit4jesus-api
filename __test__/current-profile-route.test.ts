@@ -14,7 +14,6 @@ jest.mock('../src/lib/api/response', () => ({
 const mockedRequireUser = jest.mocked(requireUser);
 const mockedErrorResponse = jest.mocked(errorResponse);
 const userId = '9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002';
-const cityId = 'e0000000-0000-4000-8000-000000000001';
 const saintAvatarId = 'a1000000-0000-4000-8000-000000000002';
 
 const profile = {
@@ -27,7 +26,6 @@ const profile = {
   saint_avatar_id: saintAvatarId,
   preferred_language: 'en',
   timezone: 'America/Chicago',
-  city_id: cityId,
   country_code: 'US',
   leaderboard_visibility: 'public' as const,
   prayer_map_visibility: 'aggregated' as const,
@@ -35,16 +33,6 @@ const profile = {
   created_at: '2026-06-01T00:00:00.000Z',
   updated_at: '2026-08-22T00:00:00.000Z',
 };
-
-function cityQuery(
-  city = { name: 'Chicago', region_name: 'Illinois', country_code: 'US' },
-) {
-  const query: Record<string, jest.Mock> = {};
-  query.select = jest.fn().mockReturnValue(query);
-  query.eq = jest.fn().mockReturnValue(query);
-  query.maybeSingle = jest.fn().mockResolvedValue({ data: city, error: null });
-  return query;
-}
 
 function countryQuery(country = { name: 'United States' }) {
   const query: Record<string, jest.Mock> = {};
@@ -57,19 +45,17 @@ function countryQuery(country = { name: 'United States' }) {
 }
 
 describe('/api/v1/me', () => {
-  it('returns persisted identity fields and the resolved city name and state', async () => {
+  it('returns persisted identity fields and the resolved country name', async () => {
     const profileQuery: Record<string, jest.Mock> = {};
     profileQuery.select = jest.fn().mockReturnValue(profileQuery);
     profileQuery.eq = jest.fn().mockReturnValue(profileQuery);
     profileQuery.single = jest
       .fn()
       .mockResolvedValue({ data: profile, error: null });
-    const resolvedCityQuery = cityQuery();
     const resolvedCountryQuery = countryQuery();
     const from = jest
       .fn()
       .mockReturnValueOnce(profileQuery)
-      .mockReturnValueOnce(resolvedCityQuery)
       .mockReturnValueOnce(resolvedCountryQuery);
     const supabase = { schema: jest.fn(() => ({ from })) };
     mockedRequireUser.mockResolvedValue({ supabase, userId } as never);
@@ -82,8 +68,6 @@ describe('/api/v1/me', () => {
       data: expect.objectContaining({
         gender: 'male',
         saintAvatarId,
-        cityName: 'Chicago',
-        state: 'Illinois',
         countryName: 'United States',
         profileSetup: {
           complete: true,
@@ -94,43 +78,6 @@ describe('/api/v1/me', () => {
       }),
     });
     expect(from).toHaveBeenNthCalledWith(1, 'user_profiles');
-    expect(from).toHaveBeenNthCalledWith(2, 'cities');
-    expect(from).toHaveBeenNthCalledWith(3, 'countries');
-  });
-
-  it('returns null cityName and state when no city is stored', async () => {
-    const profileQuery: Record<string, jest.Mock> = {};
-    profileQuery.select = jest.fn().mockReturnValue(profileQuery);
-    profileQuery.eq = jest.fn().mockReturnValue(profileQuery);
-    profileQuery.single = jest.fn().mockResolvedValue({
-      data: { ...profile, city_id: null },
-      error: null,
-    });
-    const resolvedCountryQuery = countryQuery();
-    const from = jest
-      .fn()
-      .mockReturnValueOnce(profileQuery)
-      .mockReturnValueOnce(resolvedCountryQuery);
-    const supabase = { schema: jest.fn(() => ({ from })) };
-    mockedRequireUser.mockResolvedValue({ supabase, userId } as never);
-
-    const response = await GET({
-      url: 'http://localhost/api/v1/me',
-    } as Request);
-
-    expect(await response.json()).toEqual({
-      data: expect.objectContaining({
-        cityId: null,
-        cityName: null,
-        state: null,
-        profileSetup: expect.objectContaining({
-          complete: false,
-          missingFields: ['city'],
-          nextStep: 'city',
-        }),
-      }),
-    });
-    expect(from).toHaveBeenCalledTimes(2);
     expect(from).toHaveBeenNthCalledWith(2, 'countries');
   });
 
@@ -147,13 +94,10 @@ describe('/api/v1/me', () => {
     profileQuery.single = jest
       .fn()
       .mockResolvedValue({ data: updatedProfile, error: null });
-    const resolvedCityQuery = cityQuery();
-    const resolvedCountryQuery = countryQuery();
     const from = jest
       .fn()
       .mockReturnValueOnce(profileQuery)
-      .mockReturnValueOnce(resolvedCityQuery)
-      .mockReturnValueOnce(resolvedCountryQuery);
+      .mockReturnValueOnce(countryQuery());
     const supabase = { schema: jest.fn(() => ({ from })) };
     mockedRequireUser.mockResolvedValue({ supabase, userId } as never);
 
@@ -174,8 +118,6 @@ describe('/api/v1/me', () => {
       data: expect.objectContaining({
         gender: 'female',
         saintAvatarId: null,
-        cityName: 'Chicago',
-        state: 'Illinois',
       }),
     });
   });

@@ -2,19 +2,16 @@ export const REQUIRED_PROFILE_FIELDS = [
   'displayName',
   'gender',
   'country',
-  'city',
 ] as const;
 
 export type RequiredProfileField = (typeof REQUIRED_PROFILE_FIELDS)[number];
-export type ProfileSetupStep = 'name' | 'gender' | 'country' | 'city';
+export type ProfileSetupStep = 'name' | 'gender' | 'country';
 
 type ProfileSetupValues = {
   displayName: string | null;
   gender: 'male' | 'female' | null;
   countryCode: string | null;
-  cityId: string | null;
   countryExists?: boolean;
-  cityCountryCode?: string | null;
   completedAt: string | null;
 };
 
@@ -22,7 +19,6 @@ const stepByField: Record<RequiredProfileField, ProfileSetupStep> = {
   displayName: 'name',
   gender: 'gender',
   country: 'country',
-  city: 'city',
 };
 
 export function getProfileSetup(values: ProfileSetupValues) {
@@ -34,14 +30,6 @@ export function getProfileSetup(values: ProfileSetupValues) {
   }
   if (!values.countryCode?.trim() || values.countryExists === false) {
     missingFields.push('country');
-  }
-  if (
-    !values.cityId ||
-    values.cityCountryCode === null ||
-    (values.cityCountryCode !== undefined &&
-      values.cityCountryCode !== values.countryCode)
-  ) {
-    missingFields.push('city');
   }
 
   return {

@@ -17,7 +17,7 @@ export async function GET(request: Request) {
       .schema('prayer')
       .from('map_markers')
       .select('*')
-      .eq('aggregation_level', query.level)
+      .eq('aggregation_level', 'country')
       .lte('period_start', query.from)
       .gte('period_end', query.to)
       .gte('unique_users', 5)
@@ -33,7 +33,7 @@ export async function GET(request: Request) {
       data ?? [],
       {},
       {
-        level: query.level,
+        level: 'country',
         from: query.from,
         to: query.to,
         privacyThreshold: 5,

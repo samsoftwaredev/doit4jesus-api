@@ -137,24 +137,6 @@ export type Database = {
         Update: never;
         Relationships: [];
       };
-      cities: {
-        Row: {
-          id: string;
-          source_id: number | null;
-          country_code: string;
-          name: string;
-          region_name: string | null;
-          latitude: number;
-          longitude: number;
-          timezone: string | null;
-          is_active: boolean;
-          created_at: string;
-          updated_at: string;
-        };
-        Insert: never;
-        Update: never;
-        Relationships: [];
-      };
       user_profiles: {
         Row: {
           user_id: string;
@@ -166,7 +148,6 @@ export type Database = {
           saint_avatar_id: string | null;
           preferred_language: string;
           timezone: string;
-          city_id: string | null;
           country_code: string | null;
           leaderboard_visibility: 'public' | 'friends' | 'private';
           prayer_map_visibility: 'aggregated' | 'hidden';
@@ -184,7 +165,6 @@ export type Database = {
           saint_avatar_id: string | null;
           preferred_language: string;
           timezone: string;
-          city_id: string | null;
           country_code: string | null;
           leaderboard_visibility: 'public' | 'friends' | 'private';
           prayer_map_visibility: 'aggregated' | 'hidden';
@@ -393,7 +373,6 @@ export type Database = {
             | 'import'
             | 'admin'
             | 'system';
-          city_id: string | null;
           country_code: string | null;
           idempotency_key: string | null;
           metadata: Json;
@@ -555,7 +534,7 @@ export type Database = {
         Row: {
           period_id: string;
           user_id: string;
-          scope_type: 'global' | 'country' | 'city';
+          scope_type: 'global' | 'country';
           scope_reference: string;
           points: number;
           rank: number | null;
@@ -802,7 +781,7 @@ export type Database = {
       map_markers: {
         Row: {
           id: string;
-          aggregation_level: 'country' | 'city';
+          aggregation_level: 'country';
           location_reference: string;
           name: string;
           country_code: string;
@@ -919,7 +898,6 @@ export type Database = {
           p_completed_at?: string | null;
           p_duration_seconds?: number | null;
           p_quantity?: number;
-          p_city_id?: string | null;
           p_country_code?: string | null;
           p_idempotency_key: string;
           p_metadata?: Json;
@@ -996,7 +974,6 @@ export type Database = {
           p_username: string | null;
           p_gender: 'male' | 'female';
           p_country_code: string;
-          p_city_id: string;
           p_daily_rosary_reminder: boolean;
           p_confession_reminder: boolean;
           p_eucharistic_adoration: boolean;
@@ -1014,23 +991,6 @@ export type Database = {
           name: string;
           latitude: number | null;
           longitude: number | null;
-        }>;
-      };
-      search_cities: {
-        Args: {
-          p_country_code: string;
-          p_query: string;
-          p_limit?: number | null;
-          p_offset?: number | null;
-        };
-        Returns: Array<{
-          id: string;
-          name: string;
-          region_name: string | null;
-          country_code: string;
-          timezone: string | null;
-          latitude: number;
-          longitude: number;
         }>;
       };
       search_churches: {
