@@ -1,7 +1,7 @@
 # Profile onboarding API
 
 Profile setup requires a display name, gender, country, and notification
-preferences. City selection is not part of a user profile.
+preferences.
 
 Use `GET /api/v1/locations/countries` to search active countries, then submit
 the completed setup to `POST /api/v1/me/onboarding/complete`.

@@ -46,12 +46,6 @@ CREATE TABLE competition.spiritual_activities (
 
   
 
-  city_id UUID
-
-    REFERENCES app.cities(id),
-
-  
-
   country_code CHAR(2)
 
     REFERENCES app.countries(code),

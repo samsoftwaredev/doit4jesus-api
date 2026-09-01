@@ -8,9 +8,7 @@ CREATE TABLE prayer.map_markers (
 
     CHECK (aggregation_level IN (
 
-      'country',
-
-      'city'
+      'country'
 
     )),
 

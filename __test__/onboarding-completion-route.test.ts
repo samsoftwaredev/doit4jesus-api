@@ -139,5 +139,4 @@ describe('POST /api/v1/me/onboarding/complete', () => {
       p_eucharistic_adoration: true,
     });
   });
-
 });

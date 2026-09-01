@@ -61,10 +61,7 @@ export async function PATCH(request: Request) {
       .single();
 
     throwDatabaseError(error, 'Unable to update the profile.');
-    const location = await loadProfileLocation(
-      supabase,
-      data.country_code,
-    );
+    const location = await loadProfileLocation(supabase, data.country_code);
     return ok(toCurrentProfile(data, location));
   } catch (error) {
     return errorResponse(error, request);

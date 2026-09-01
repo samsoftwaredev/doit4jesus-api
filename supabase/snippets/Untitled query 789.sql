@@ -50,12 +50,6 @@ CREATE TABLE prayer.prayer_events (
 
   
 
-  city_id UUID
-
-    REFERENCES app.cities(id),
-
-  
-
   country_code CHAR(2) NOT NULL
 
     REFERENCES app.countries(code),
@@ -93,20 +87,6 @@ CREATE INDEX idx_prayer_events_country_completed
     completed_at DESC
 
   );
-
-  
-
-CREATE INDEX idx_prayer_events_city_completed
-
-  ON prayer.prayer_events(
-
-    city_id,
-
-    completed_at DESC
-
-  )
-
-  WHERE city_id IS NOT NULL;
 
   
 

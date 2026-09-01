@@ -184,31 +184,6 @@ set
   longitude = excluded.longitude,
   is_active = excluded.is_active;
 
-insert into app.cities (
-  id,
-  country_code,
-  name,
-  region_name,
-  latitude,
-  longitude,
-  timezone,
-  is_active
-)
-values
-  ('e0000000-0000-4000-8000-000000000001', 'US', 'Austin', 'Texas', 30.267200, -97.743100, 'America/Chicago', true),
-  ('e0000000-0000-4000-8000-000000000002', 'US', 'Dallas', 'Texas', 32.776700, -96.797000, 'America/Chicago', true),
-  ('e0000000-0000-4000-8000-000000000003', 'MX', 'Mexico City', 'Mexico City', 19.432600, -99.133200, 'America/Mexico_City', true),
-  ('e0000000-0000-4000-8000-000000000004', 'VA', 'Vatican City', 'Vatican City', 41.902900, 12.453400, 'Europe/Rome', true)
-on conflict (id) do update
-set
-  country_code = excluded.country_code,
-  name = excluded.name,
-  region_name = excluded.region_name,
-  latitude = excluded.latitude,
-  longitude = excluded.longitude,
-  timezone = excluded.timezone,
-  is_active = excluded.is_active;
-
 insert into app.users (
   id,
   email,
@@ -238,16 +213,15 @@ insert into app.user_profiles (
   gender,
   preferred_language,
   timezone,
-  city_id,
   country_code,
   leaderboard_visibility,
   prayer_map_visibility
 )
 values
-  ('9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002', 'Test User', 'testuser', 'https://i.pravatar.cc/256?u=testuser', 'Faithful Beginner', 'male', 'en', 'America/Chicago', 'e0000000-0000-4000-8000-000000000001', 'US', 'public', 'aggregated'),
-  ('33333333-3333-4333-8333-333333333333', 'Test Administrator', 'testadmin', 'https://i.pravatar.cc/256?u=testadmin', 'Administrator', 'male', 'en', 'America/Chicago', 'e0000000-0000-4000-8000-000000000001', 'US', 'public', 'aggregated'),
-  ('11111111-1111-4111-8111-111111111111', 'Maria Santos', 'mariasantos', 'https://i.pravatar.cc/256?u=mariasantos', 'Prayer Champion', 'female', 'es', 'America/Mexico_City', 'e0000000-0000-4000-8000-000000000003', 'MX', 'public', 'aggregated'),
-  ('22222222-2222-4222-8222-222222222222', 'John Paul', 'johnpaul', 'https://i.pravatar.cc/256?u=johnpaul', 'Scripture Seeker', 'male', 'en', 'America/Chicago', 'e0000000-0000-4000-8000-000000000002', 'US', 'public', 'aggregated')
+  ('9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002', 'Test User', 'testuser', 'https://i.pravatar.cc/256?u=testuser', 'Faithful Beginner', 'male', 'en', 'America/Chicago', 'US', 'public', 'aggregated'),
+  ('33333333-3333-4333-8333-333333333333', 'Test Administrator', 'testadmin', 'https://i.pravatar.cc/256?u=testadmin', 'Administrator', 'male', 'en', 'America/Chicago', 'US', 'public', 'aggregated'),
+  ('11111111-1111-4111-8111-111111111111', 'Maria Santos', 'mariasantos', 'https://i.pravatar.cc/256?u=mariasantos', 'Prayer Champion', 'female', 'es', 'America/Mexico_City', 'MX', 'public', 'aggregated'),
+  ('22222222-2222-4222-8222-222222222222', 'John Paul', 'johnpaul', 'https://i.pravatar.cc/256?u=johnpaul', 'Scripture Seeker', 'male', 'en', 'America/Chicago', 'US', 'public', 'aggregated')
 on conflict (user_id) do update
 set
   display_name = excluded.display_name,
@@ -257,7 +231,6 @@ set
   gender = excluded.gender,
   preferred_language = excluded.preferred_language,
   timezone = excluded.timezone,
-  city_id = excluded.city_id,
   country_code = excluded.country_code,
   leaderboard_visibility = excluded.leaderboard_visibility,
   prayer_map_visibility = excluded.prayer_map_visibility;
@@ -1130,18 +1103,17 @@ insert into competition.spiritual_activities (
   quantity,
   verification_status,
   source,
-  city_id,
   country_code,
   idempotency_key,
   metadata
 )
 values
-  ('40000000-0000-4000-8000-000000000001', '9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002', 'ROSARY', ((date '2026-07-01' + time '11:30') at time zone 'America/Chicago'), ((date '2026-07-01' + time '12:00') at time zone 'America/Chicago'), 1800, 1, 'verified', 'manual', 'e0000000-0000-4000-8000-000000000001', 'US', 'seed-test-rosary-july-1', '{"mysteries":"joyful","note":"July rosary day 1"}'::jsonb),
-  ('40000000-0000-4000-8000-000000000002', '9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002', 'SCRIPTURE', now() - interval '1 day 25 minutes', now() - interval '1 day', 1500, 2, 'verified', 'challenge', 'e0000000-0000-4000-8000-000000000001', 'US', 'seed-test-scripture-1', '{"passage":"Luke 10:25-37","translation":"NRSVCE"}'::jsonb),
-  ('40000000-0000-4000-8000-000000000003', '9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002', 'PRAYER', now() - interval '2 days 10 minutes', now() - interval '2 days', 600, 1, 'self_reported', 'manual', 'e0000000-0000-4000-8000-000000000001', 'US', 'seed-test-prayer-1', '{"intention":"Peace in the community"}'::jsonb),
-  ('40000000-0000-4000-8000-000000000004', '11111111-1111-4111-8111-111111111111', 'ROSARY', ((date '2026-07-15' + time '11:30') at time zone 'America/Mexico_City'), ((date '2026-07-15' + time '12:00') at time zone 'America/Mexico_City'), 1500, 1, 'verified', 'live_prayer', 'e0000000-0000-4000-8000-000000000003', 'MX', 'seed-maria-rosary-1', '{"mysteries":"sorrowful","groupPrayer":true}'::jsonb),
-  ('40000000-0000-4000-8000-000000000005', '11111111-1111-4111-8111-111111111111', 'SERVICE', now() - interval '2 days', now() - interval '2 days', null, 1, 'verified', 'challenge', 'e0000000-0000-4000-8000-000000000003', 'MX', 'seed-maria-service-1', '{"description":"Prepared meals for a parish outreach"}'::jsonb),
-  ('40000000-0000-4000-8000-000000000006', '22222222-2222-4222-8222-222222222222', 'ADORATION', now() - interval '3 hours 45 minutes', now() - interval '3 hours', 2700, 1, 'verified', 'manual', 'e0000000-0000-4000-8000-000000000002', 'US', 'seed-john-adoration-1', '{"parish":"St. Joseph"}'::jsonb)
+  ('40000000-0000-4000-8000-000000000001', '9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002', 'ROSARY', ((date '2026-07-01' + time '11:30') at time zone 'America/Chicago'), ((date '2026-07-01' + time '12:00') at time zone 'America/Chicago'), 1800, 1, 'verified', 'manual', 'US', 'seed-test-rosary-july-1', '{"mysteries":"joyful","note":"July rosary day 1"}'::jsonb),
+  ('40000000-0000-4000-8000-000000000002', '9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002', 'SCRIPTURE', now() - interval '1 day 25 minutes', now() - interval '1 day', 1500, 2, 'verified', 'challenge', 'US', 'seed-test-scripture-1', '{"passage":"Luke 10:25-37","translation":"NRSVCE"}'::jsonb),
+  ('40000000-0000-4000-8000-000000000003', '9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002', 'PRAYER', now() - interval '2 days 10 minutes', now() - interval '2 days', 600, 1, 'self_reported', 'manual', 'US', 'seed-test-prayer-1', '{"intention":"Peace in the community"}'::jsonb),
+  ('40000000-0000-4000-8000-000000000004', '11111111-1111-4111-8111-111111111111', 'ROSARY', ((date '2026-07-15' + time '11:30') at time zone 'America/Mexico_City'), ((date '2026-07-15' + time '12:00') at time zone 'America/Mexico_City'), 1500, 1, 'verified', 'live_prayer', 'MX', 'seed-maria-rosary-1', '{"mysteries":"sorrowful","groupPrayer":true}'::jsonb),
+  ('40000000-0000-4000-8000-000000000005', '11111111-1111-4111-8111-111111111111', 'SERVICE', now() - interval '2 days', now() - interval '2 days', null, 1, 'verified', 'challenge', 'MX', 'seed-maria-service-1', '{"description":"Prepared meals for a parish outreach"}'::jsonb),
+  ('40000000-0000-4000-8000-000000000006', '22222222-2222-4222-8222-222222222222', 'ADORATION', now() - interval '3 hours 45 minutes', now() - interval '3 hours', 2700, 1, 'verified', 'manual', 'US', 'seed-john-adoration-1', '{"parish":"St. Joseph"}'::jsonb)
 on conflict (id) do update
 set
   user_id = excluded.user_id,
@@ -1152,7 +1124,6 @@ set
   quantity = excluded.quantity,
   verification_status = excluded.verification_status,
   source = excluded.source,
-  city_id = excluded.city_id,
   country_code = excluded.country_code,
   idempotency_key = excluded.idempotency_key,
   metadata = excluded.metadata;
@@ -1170,7 +1141,6 @@ insert into competition.spiritual_activities (
   quantity,
   verification_status,
   source,
-  city_id,
   country_code,
   idempotency_key,
   metadata
@@ -1185,7 +1155,6 @@ select
   1,
   'verified',
   'manual',
-  'e0000000-0000-4000-8000-000000000001'::uuid,
   'US',
   'seed-test-rosary-july-' || day_number,
   jsonb_build_object('mysteries', 'joyful', 'note', 'July rosary day ' || day_number)
@@ -1200,7 +1169,6 @@ set
   quantity = excluded.quantity,
   verification_status = excluded.verification_status,
   source = excluded.source,
-  city_id = excluded.city_id,
   country_code = excluded.country_code,
   idempotency_key = excluded.idempotency_key,
   metadata = excluded.metadata;
@@ -1671,16 +1639,15 @@ insert into prayer.prayer_events (
   quantity,
   started_at,
   completed_at,
-  city_id,
   country_code,
   visibility,
   metadata
 )
 values
-  ('f0000000-0000-4000-8000-000000000001', '9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002', '40000000-0000-4000-8000-000000000001', 'rosary', 1, now() - interval '2 hours 30 minutes', now() - interval '2 hours', 'e0000000-0000-4000-8000-000000000001', 'US', 'aggregated', '{"mysteries":"joyful"}'::jsonb),
-  ('f0000000-0000-4000-8000-000000000002', '9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002', '40000000-0000-4000-8000-000000000003', 'intercession', 1, now() - interval '2 days 10 minutes', now() - interval '2 days', 'e0000000-0000-4000-8000-000000000001', 'US', 'aggregated', '{"intentionCategory":"community"}'::jsonb),
-  ('f0000000-0000-4000-8000-000000000003', '11111111-1111-4111-8111-111111111111', '40000000-0000-4000-8000-000000000004', 'rosary', 1, now() - interval '1 hour 25 minutes', now() - interval '1 hour', 'e0000000-0000-4000-8000-000000000003', 'MX', 'aggregated', '{"groupPrayer":true}'::jsonb),
-  ('f0000000-0000-4000-8000-000000000004', '22222222-2222-4222-8222-222222222222', '40000000-0000-4000-8000-000000000006', 'adoration', 1, now() - interval '3 hours 45 minutes', now() - interval '3 hours', 'e0000000-0000-4000-8000-000000000002', 'US', 'private', '{}')
+  ('f0000000-0000-4000-8000-000000000001', '9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002', '40000000-0000-4000-8000-000000000001', 'rosary', 1, now() - interval '2 hours 30 minutes', now() - interval '2 hours', 'US', 'aggregated', '{"mysteries":"joyful"}'::jsonb),
+  ('f0000000-0000-4000-8000-000000000002', '9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002', '40000000-0000-4000-8000-000000000003', 'intercession', 1, now() - interval '2 days 10 minutes', now() - interval '2 days', 'US', 'aggregated', '{"intentionCategory":"community"}'::jsonb),
+  ('f0000000-0000-4000-8000-000000000003', '11111111-1111-4111-8111-111111111111', '40000000-0000-4000-8000-000000000004', 'rosary', 1, now() - interval '1 hour 25 minutes', now() - interval '1 hour', 'MX', 'aggregated', '{"groupPrayer":true}'::jsonb),
+  ('f0000000-0000-4000-8000-000000000004', '22222222-2222-4222-8222-222222222222', '40000000-0000-4000-8000-000000000006', 'adoration', 1, now() - interval '3 hours 45 minutes', now() - interval '3 hours', 'US', 'private', '{}')
 on conflict (id) do update
 set
   user_id = excluded.user_id,
@@ -1689,30 +1656,9 @@ set
   quantity = excluded.quantity,
   started_at = excluded.started_at,
   completed_at = excluded.completed_at,
-  city_id = excluded.city_id,
   country_code = excluded.country_code,
   visibility = excluded.visibility,
   metadata = excluded.metadata;
-
-insert into prayer.city_daily_aggregates (
-  city_id,
-  aggregate_date,
-  total_prayers,
-  unique_users,
-  rosaries,
-  prayer_duration_seconds
-)
-values
-  ('e0000000-0000-4000-8000-000000000001', current_date, 38, 12, 9, 32400),
-  ('e0000000-0000-4000-8000-000000000002', current_date, 24, 8, 5, 21600),
-  ('e0000000-0000-4000-8000-000000000003', current_date, 47, 16, 12, 43800),
-  ('e0000000-0000-4000-8000-000000000004', current_date, 19, 7, 4, 17100)
-on conflict (city_id, aggregate_date) do update
-set
-  total_prayers = excluded.total_prayers,
-  unique_users = excluded.unique_users,
-  rosaries = excluded.rosaries,
-  prayer_duration_seconds = excluded.prayer_duration_seconds;
 
 insert into prayer.country_daily_aggregates (
   country_code,
@@ -1750,11 +1696,7 @@ insert into prayer.map_markers (
 values
   ('51000000-0000-4000-8000-000000000001', 'country', 'US', 'United States', 'US', 39.828300, -98.579500, 8750, 1820, 0.9200, date_trunc('week', now()), date_trunc('week', now()) + interval '1 week'),
   ('51000000-0000-4000-8000-000000000002', 'country', 'MX', 'Mexico', 'MX', 23.634500, -102.552800, 6860, 1430, 0.7800, date_trunc('week', now()), date_trunc('week', now()) + interval '1 week'),
-  ('51000000-0000-4000-8000-000000000003', 'country', 'VA', 'Vatican City', 'VA', 41.902900, 12.453400, 590, 112, 0.4100, date_trunc('week', now()), date_trunc('week', now()) + interval '1 week'),
-  ('51000000-0000-4000-8000-000000000004', 'city', 'e0000000-0000-4000-8000-000000000001', 'Austin', 'US', 30.267200, -97.743100, 266, 74, 0.7100, date_trunc('week', now()), date_trunc('week', now()) + interval '1 week'),
-  ('51000000-0000-4000-8000-000000000005', 'city', 'e0000000-0000-4000-8000-000000000002', 'Dallas', 'US', 32.776700, -96.797000, 184, 53, 0.5900, date_trunc('week', now()), date_trunc('week', now()) + interval '1 week'),
-  ('51000000-0000-4000-8000-000000000006', 'city', 'e0000000-0000-4000-8000-000000000003', 'Mexico City', 'MX', 19.432600, -99.133200, 329, 91, 0.8400, date_trunc('week', now()), date_trunc('week', now()) + interval '1 week'),
-  ('51000000-0000-4000-8000-000000000007', 'city', 'e0000000-0000-4000-8000-000000000004', 'Vatican City', 'VA', 41.902900, 12.453400, 132, 34, 0.4800, date_trunc('week', now()), date_trunc('week', now()) + interval '1 week')
+  ('51000000-0000-4000-8000-000000000003', 'country', 'VA', 'Vatican City', 'VA', 41.902900, 12.453400, 590, 112, 0.4100, date_trunc('week', now()), date_trunc('week', now()) + interval '1 week')
 on conflict (id) do update
 set
   aggregation_level = excluded.aggregation_level,

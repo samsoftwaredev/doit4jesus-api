@@ -73,9 +73,6 @@ export async function loadCurrentProfile(supabase: Supabase, userId: string) {
     .single();
 
   throwDatabaseError(error, 'Unable to load the current profile.');
-  const location = await loadProfileLocation(
-    supabase,
-    data.country_code,
-  );
+  const location = await loadProfileLocation(supabase, data.country_code);
   return toCurrentProfile(data, location);
 }

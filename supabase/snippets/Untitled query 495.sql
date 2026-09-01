@@ -22,9 +22,7 @@ CREATE TABLE competition.leaderboard_entries (
 
       'global',
 
-      'country',
-
-      'city'
+      'country'
 
     )),
 
