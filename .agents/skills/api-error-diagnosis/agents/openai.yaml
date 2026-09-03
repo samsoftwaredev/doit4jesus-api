@@ -1,0 +1,4 @@
+interface:
+  display_name: "API Error Diagnosis"
+  short_description: "Trace and explain API 4xx and 5xx failures"
+  default_prompt: "Use $api-error-diagnosis to trace this API failure, explain its cause, and propose regression coverage."

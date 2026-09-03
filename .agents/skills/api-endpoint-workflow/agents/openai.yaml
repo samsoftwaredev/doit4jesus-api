@@ -1,0 +1,4 @@
+interface:
+  display_name: "API Endpoint Workflow"
+  short_description: "Build and update API endpoints consistently"
+  default_prompt: "Use $api-endpoint-workflow to add or update this API endpoint and keep its contract synchronized."

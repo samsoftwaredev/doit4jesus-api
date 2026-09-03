@@ -1,0 +1,4 @@
+interface:
+  display_name: "Supabase Migration Workflow"
+  short_description: "Safely evolve the Supabase database schema"
+  default_prompt: "Use $supabase-migration-workflow to implement this database change safely and verify the resulting schema."
