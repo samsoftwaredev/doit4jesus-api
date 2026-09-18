@@ -1,6 +1,7 @@
 import { throwDatabaseError } from '@/lib/api/database';
 import { errorResponse, ok } from '@/lib/api/response';
 import { requireUser } from '@/lib/auth/require-user';
+import { getPublicImageUrl } from '@/lib/supabase/storage';
 
 export const dynamic = 'force-dynamic';
 
@@ -91,7 +92,14 @@ export async function GET(request: Request) {
 
     return ok(
       (definitionsResult.data ?? []).map((definition) => ({
-        definition,
+        definition: {
+          ...definition,
+          icon_url: getPublicImageUrl(supabase, definition.icon_url),
+          locked_icon_url: getPublicImageUrl(
+            supabase,
+            definition.locked_icon_url,
+          ),
+        },
         earned: earnedByBadge.get(definition.id) ?? [],
         progress: progressByBadge.get(definition.id) ?? null,
         requirements: (requirementsByBadge.get(definition.id) ?? []).map(

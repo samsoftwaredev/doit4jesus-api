@@ -1261,7 +1261,7 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "levels"]
             },
-            "description": "Returns all active level definitions ordered by `level_number` ascending. Each entry contains the level name, minimum XP required, and any associated perks."
+            "description": "Returns all active level definitions ordered by `level_number` ascending. Each entry contains the level name, minimum XP required, any associated perks, and public Supabase Storage URLs in `icon_url` and `image_url` when configured."
           }
         },
         {
@@ -1624,7 +1624,7 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "badges"]
             },
-            "description": "Returns all active badge definitions enriched with:\n- `earned` — array of times the user has earned this badge (may be empty)\n- `progress` — aggregate badge progress, or `null` if not started\n- `requirements` — individual unlock requirements with current/required values, completion state, and completion timestamp\n\nEquipment badges use `requirements` to show each part of an unlock. For example, Shield of Faith separately shows prayer days, completed Scripture plans, and acts of trust during difficulty."
+            "description": "Returns all active badge definitions enriched with:\n- `icon_url` and `locked_icon_url` — public Supabase Storage URLs\n- `earned` — array of times the user has earned this badge (may be empty)\n- `progress` — aggregate badge progress, or `null` if not started\n- `requirements` — individual unlock requirements with current/required values, completion state, and completion timestamp\n\nEquipment badges use `requirements` to show each part of an unlock. For example, Shield of Faith separately shows prayer days, completed Scripture plans, and acts of trust during difficulty."
           }
         }
       ]

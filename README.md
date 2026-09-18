@@ -57,6 +57,10 @@ NEXT_PUBLIC_SUPABASE_URL
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
 ```
 
+Level and badge images are read from the public Supabase Storage bucket named
+`images` by default. Set `SUPABASE_PUBLIC_IMAGE_BUCKET` if the bucket uses a
+different name.
+
 `SUPABASE_SERVICE_ROLE_KEY` is server-only and is not used by the public API routes. Keep it only for trusted workers or administrative jobs.
 
 ### 4. Install and run

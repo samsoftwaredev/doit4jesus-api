@@ -1326,6 +1326,9 @@ paths:
   /api/v1/levels:
     get:
       summary: List active level definitions
+      description: >-
+        Returns active levels with `icon_url` and `image_url` resolved to
+        public Supabase Storage URLs when an image path is configured.
       responses:
         '200':
           description: Active levels
@@ -1333,8 +1336,8 @@ paths:
             application/json:
               example:
                 data:
-                  - { level_number: 1, code: seeker, name: Seeker, description: Begin your walk with Christ., minimum_total_xp: 0, is_active: true }
-                  - { level_number: 2, code: follower, name: Follower, description: Grow through daily faithfulness., minimum_total_xp: 250, is_active: true }
+                  - { level_number: 1, code: awakened, name: Awakened, description: Begins recognizing the battle., minimum_total_xp: 0, icon_url: 'https://example.supabase.co/storage/v1/object/public/images/levels/awakened-icon.png', image_url: 'https://example.supabase.co/storage/v1/object/public/images/levels/awakened.png', is_active: true }
+                  - { level_number: 2, code: seeker, name: Seeker, description: Starts building daily habits., minimum_total_xp: 250, icon_url: 'https://example.supabase.co/storage/v1/object/public/images/levels/seeker-icon.png', image_url: 'https://example.supabase.co/storage/v1/object/public/images/levels/seeker.png', is_active: true }
   /api/v1/virtues:
     get:
       summary: Get active virtue definitions and the current user's values
@@ -1629,6 +1632,9 @@ paths:
   /api/v1/badges:
     get:
       summary: List badge definitions, earned badges, aggregate progress, and individual unlock requirements
+      description: >-
+        Badge definition `icon_url` and `locked_icon_url` values are resolved
+        to public Supabase Storage URLs.
       responses:
         '200':
           description: Badge catalog for the current user
@@ -1636,7 +1642,7 @@ paths:
             application/json:
               example:
                 data:
-                  - definition: { id: b3000000-0000-4000-8000-000000000001, code: ROSARY_BEGINNER, name: Rosary Beginner, category: prayer, rarity: common, is_active: true }
+                  - definition: { id: b3000000-0000-4000-8000-000000000001, code: ROSARY_BEGINNER, name: Rosary Beginner, category: prayer, rarity: common, icon_url: 'https://example.supabase.co/storage/v1/object/public/images/badges/rosary-beginner.png', locked_icon_url: 'https://example.supabase.co/storage/v1/object/public/images/badges/locked.png', is_active: true }
                     earned:
                       - { id: b4000000-0000-4000-8000-000000000001, earned_at: '2026-08-01T12:00:00Z', sequence_number: 1 }
                     progress: { current_value: 14, required_value: 30, updated_at: '2026-08-17T10:00:00Z' }

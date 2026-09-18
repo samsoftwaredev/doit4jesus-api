@@ -116,15 +116,23 @@ function createSupabase(fixture: RouteFixture = {}) {
   const from = jest.fn((table: string) =>
     createQuery(fixture.tableResults?.[table] ?? result()),
   );
+  const storageFrom = jest.fn((bucket: string) => ({
+    getPublicUrl: jest.fn((path: string) => ({
+      data: {
+        publicUrl: `https://storage.example.test/${bucket}/${path}`,
+      },
+    })),
+  }));
   const rpc = jest.fn((name: string) =>
     Promise.resolve(fixture.rpcResults?.[name] ?? result()),
   );
   const supabase = {
     schema: jest.fn(() => ({ from, rpc })),
+    storage: { from: storageFrom },
   };
 
   mockedRequireUser.mockResolvedValue({ supabase, userId: USER_ID } as never);
-  return { from, rpc, supabase };
+  return { from, rpc, storageFrom, supabase };
 }
 
 function request(
@@ -234,8 +242,33 @@ describe('previously uncovered API route handlers', () => {
   });
 
   it('returns badge definitions with user progress', async () => {
-    createSupabase();
-    expectOk(await getBadges(request('http://localhost/api/v1/badges')));
+    const { storageFrom } = createSupabase({
+      tableResults: {
+        badge_definitions: result([
+          {
+            id: RESOURCE_ID,
+            icon_url: '/badges/first-rosary.png',
+            locked_icon_url: '/badges/locked.png',
+          },
+        ]),
+      },
+    });
+    const response = await getBadges(request('http://localhost/api/v1/badges'));
+
+    expectOk(response);
+    await expect(response.json()).resolves.toMatchObject({
+      data: [
+        {
+          definition: {
+            icon_url:
+              'https://storage.example.test/images/badges/first-rosary.png',
+            locked_icon_url:
+              'https://storage.example.test/images/badges/locked.png',
+          },
+        },
+      ],
+    });
+    expect(storageFrom).toHaveBeenCalledWith('images');
   });
 
   it('lists challenges and claims a challenge reward', async () => {
@@ -410,9 +443,31 @@ describe('previously uncovered API route handlers', () => {
   });
 
   it('returns health and level definitions', async () => {
-    createSupabase();
+    const { storageFrom } = createSupabase({
+      tableResults: {
+        level_definitions: result([
+          {
+            level_number: 1,
+            icon_url: '/levels/awakened-icon.png',
+            image_url: 'https://cdn.example.test/levels/awakened.png',
+          },
+        ]),
+      },
+    });
     expectOk(await healthCheck());
-    expectOk(await getLevels(request('http://localhost/api/v1/levels')));
+    const response = await getLevels(request('http://localhost/api/v1/levels'));
+
+    expectOk(response);
+    await expect(response.json()).resolves.toMatchObject({
+      data: [
+        {
+          icon_url:
+            'https://storage.example.test/images/levels/awakened-icon.png',
+          image_url: 'https://cdn.example.test/levels/awakened.png',
+        },
+      ],
+    });
+    expect(storageFrom).toHaveBeenCalledTimes(1);
   });
 
   it('lists, links, prioritizes, and unlinks the current user churches', async () => {
