@@ -52,6 +52,8 @@ describe('GET /api/v1/leaderboards', () => {
     periodQuery.select = jest.fn().mockReturnValue(periodQuery);
     periodQuery.eq = jest.fn().mockReturnValue(periodQuery);
     periodQuery.in = jest.fn().mockReturnValue(periodQuery);
+    periodQuery.lte = jest.fn().mockReturnValue(periodQuery);
+    periodQuery.gt = jest.fn().mockReturnValue(periodQuery);
     periodQuery.order = jest.fn().mockReturnValue(periodQuery);
     periodQuery.limit = jest
       .fn()
@@ -150,5 +152,11 @@ describe('GET /api/v1/leaderboards', () => {
       otherUserId,
       currentUserId,
     ]);
+    expect(periodQuery.eq).toHaveBeenCalledWith('status', 'active');
+    expect(periodQuery.lte).toHaveBeenCalledWith(
+      'starts_at',
+      expect.any(String),
+    );
+    expect(periodQuery.gt).toHaveBeenCalledWith('ends_at', expect.any(String));
   });
 });

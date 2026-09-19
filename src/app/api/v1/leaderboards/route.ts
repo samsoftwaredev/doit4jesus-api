@@ -14,6 +14,7 @@ export async function GET(request: Request) {
       Object.fromEntries(url.searchParams.entries()),
     );
 
+    const now = new Date().toISOString();
     let periodQuery = supabase
       .schema('competition')
       .from('leaderboard_periods')
@@ -23,7 +24,9 @@ export async function GET(request: Request) {
     periodQuery = query.periodCode
       ? periodQuery.eq('code', query.periodCode)
       : periodQuery
-          .in('status', ['active', 'finalized'])
+          .eq('status', 'active')
+          .lte('starts_at', now)
+          .gt('ends_at', now)
           .order('starts_at', { ascending: false });
 
     const { data: periods, error: periodError } = await periodQuery.limit(1);

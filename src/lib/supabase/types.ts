@@ -517,7 +517,7 @@ export type Database = {
       leaderboard_periods: {
         Row: {
           id: string;
-          period_type: 'daily' | 'weekly' | 'monthly' | 'yearly' | 'season';
+          period_type: 'weekly' | 'yearly';
           code: string;
           name: string;
           starts_at: string;
@@ -774,7 +774,19 @@ export type Database = {
         Relationships: [];
       };
     };
-    Functions: Record<string, never>;
+    Functions: {
+      refresh_leaderboard_period: {
+        Args: { p_period_id: string };
+        Returns: undefined;
+      };
+      refresh_leaderboards: {
+        Args: {
+          p_backfill?: boolean | null;
+          p_as_of?: string | null;
+        };
+        Returns: undefined;
+      };
+    };
   };
   prayer: Omit<EmptySchema, 'Views'> & {
     Tables: {

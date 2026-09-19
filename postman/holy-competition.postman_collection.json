@@ -993,7 +993,7 @@
                 {
                   "key": "periodType",
                   "value": "weekly",
-                  "description": "daily | weekly | monthly | yearly | season"
+                  "description": "weekly | yearly"
                 },
                 { "key": "limit", "value": "50" },
                 { "key": "offset", "value": "0" }
@@ -1015,7 +1015,7 @@
                 {
                   "key": "periodType",
                   "value": "weekly",
-                  "description": "daily | weekly | monthly | yearly | season"
+                  "description": "weekly | yearly"
                 },
                 { "key": "limit", "value": "50" },
                 { "key": "offset", "value": "0" }
@@ -1646,7 +1646,7 @@
                 {
                   "key": "periodType",
                   "value": "weekly",
-                  "description": "Time window: daily | weekly | monthly | yearly | season. Default: weekly."
+                  "description": "Time window: weekly | yearly. Default: weekly."
                 },
                 {
                   "key": "periodCode",
@@ -1676,7 +1676,7 @@
                 }
               ]
             },
-            "description": "Returns ranked leaderboard entries for the requested period and scope. Each entry is enriched with a `profile` (display name, username, avatar, title) and an `isCurrentUser` flag.\n\nThe response also includes `currentUserEntry`, which is the authenticated user's entry even when it falls outside the requested page (or `null` when no entry exists), plus the matched `period` object and pagination metadata (`total`, `limit`, `offset`).\n\n**Example — country leaderboard for the US**\n`?periodType=weekly&scopeType=country&scopeReference=US`"
+            "description": "Returns ranked weekly or yearly leaderboard entries for the requested scope. Current projections refresh every five minutes. Each entry is enriched with a `profile` (display name, username, avatar, title) and an `isCurrentUser` flag.\n\nThe response also includes `currentUserEntry`, which is the authenticated user's entry even when it falls outside the requested page (or `null` when no entry exists), plus the matched `period` object and pagination metadata (`total`, `limit`, `offset`).\n\n**Example — country leaderboard for the US**\n`?periodType=weekly&scopeType=country&scopeReference=US`"
           }
         }
       ]

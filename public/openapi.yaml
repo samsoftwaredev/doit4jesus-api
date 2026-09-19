@@ -943,7 +943,7 @@ paths:
       parameters:
         - in: query
           name: periodType
-          schema: { type: string, enum: [daily, weekly, monthly, yearly, season], default: weekly }
+          schema: { type: string, enum: [weekly, yearly], default: weekly }
         - in: query
           name: periodCode
           schema: { type: string }
@@ -961,7 +961,7 @@ paths:
               schema: { $ref: '#/components/schemas/FriendsLeaderboardResponse' }
               example:
                 data:
-                  period: { id: 50000000-0000-4000-8000-000000000001, periodType: weekly, code: seed-current-week, name: Current Week, startsAt: '2026-08-10T00:00:00Z', endsAt: '2026-08-17T00:00:00Z', status: active }
+                  period: { id: 50000000-0000-4000-8000-000000000001, periodType: weekly, code: week-2026-W33, name: Week of 2026-08-10, startsAt: '2026-08-10T00:00:00Z', endsAt: '2026-08-17T00:00:00Z', status: active }
                   entries:
                     - rank: 1
                       points: 240
@@ -990,7 +990,7 @@ paths:
       parameters:
         - in: query
           name: periodType
-          schema: { type: string, enum: [daily, weekly, monthly, yearly, season], default: weekly }
+          schema: { type: string, enum: [weekly, yearly], default: weekly }
         - in: query
           name: periodCode
           schema: { type: string }
@@ -1008,7 +1008,7 @@ paths:
               schema: { $ref: '#/components/schemas/FriendsComparisonResponse' }
               example:
                 data:
-                  period: { id: 50000000-0000-4000-8000-000000000001, periodType: weekly, code: seed-current-week, name: Current Week, startsAt: '2026-08-10T00:00:00Z', endsAt: '2026-08-17T00:00:00Z', status: active }
+                  period: { id: 50000000-0000-4000-8000-000000000001, periodType: weekly, code: week-2026-W33, name: Week of 2026-08-10, startsAt: '2026-08-10T00:00:00Z', endsAt: '2026-08-17T00:00:00Z', status: active }
                   entries:
                     - rank: 1
                       periodPoints: 240
@@ -1661,7 +1661,7 @@ paths:
           name: periodType
           schema:
             type: string
-            enum: [daily, weekly, monthly, yearly, season]
+            enum: [weekly, yearly]
             default: weekly
         - in: query
           name: periodCode
@@ -1689,7 +1689,7 @@ paths:
               schema: { $ref: '#/components/schemas/LeaderboardResponse' }
               example:
                 data:
-                  period: { id: 50000000-0000-4000-8000-000000000001, period_type: weekly, code: seed-current-week, name: Current Week, starts_at: '2026-08-10T00:00:00Z', ends_at: '2026-08-17T00:00:00Z', status: active, finalized_at: null, created_at: '2026-08-10T00:00:00Z' }
+                  period: { id: 50000000-0000-4000-8000-000000000001, period_type: weekly, code: week-2026-W33, name: Week of 2026-08-10, starts_at: '2026-08-10T00:00:00Z', ends_at: '2026-08-17T00:00:00Z', status: active, finalized_at: null, created_at: '2026-08-10T00:00:00Z' }
                   entries:
                     - period_id: 50000000-0000-4000-8000-000000000001
                       user_id: 11111111-1111-4111-8111-111111111111
@@ -2796,7 +2796,7 @@ components:
       required: [id, periodType, code, name, startsAt, endsAt, status]
       properties:
         id: { type: string, format: uuid }
-        periodType: { type: string, enum: [daily, weekly, monthly, yearly, season] }
+        periodType: { type: string, enum: [weekly, yearly] }
         code: { type: string }
         name: { type: string }
         startsAt: { type: string, format: date-time }
@@ -3024,7 +3024,7 @@ components:
       required: [id, period_type, code, name, starts_at, ends_at, status, finalized_at, created_at]
       properties:
         id: { type: string, format: uuid }
-        period_type: { type: string, enum: [daily, weekly, monthly, yearly, season] }
+        period_type: { type: string, enum: [weekly, yearly] }
         code: { type: string }
         name: { type: string }
         starts_at: { type: string, format: date-time }

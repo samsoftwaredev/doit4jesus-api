@@ -138,6 +138,11 @@ Never send the service-role key to a browser or native application.
 | GET       | `/api/v1/notifications`                      | Notification inbox                            |
 | PATCH     | `/api/v1/notifications/:notificationId/read` | Mark notification read                        |
 
+Leaderboard APIs support weekly and yearly periods. PostgreSQL refreshes the
+global and country projections every five minutes from the point ledger and
+qualifying activities; explicit `periodCode` values can retrieve finalized
+historical periods.
+
 ## Record an activity
 
 Every POST requires an idempotency key. Retrying the same request with the same key returns the original activity instead of awarding points twice.
@@ -183,8 +188,7 @@ This scaffold is the correct API foundation, not the entire game backend. Before
 - Automated tests against a local Supabase instance.
 - Challenge assignment and expiration jobs.
 - Outbox processing with retry/dead-letter behavior.
-- Leaderboard and prayer-map projection jobs.
-- Rebuild/reset logic for cached weekly and yearly counters.
+- Prayer-map projection jobs.
 - Abuse controls for self-reported activities and high-value rewards.
 - Moderation and privacy rules for usernames, avatars, and shared badges.
 

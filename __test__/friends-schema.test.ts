@@ -43,6 +43,24 @@ describe('friend API schemas', () => {
     });
   });
 
+  it('only accepts weekly and yearly friend leaderboard periods', () => {
+    expect(
+      friendsLeaderboardQuerySchema.parse({ periodType: 'yearly' }),
+    ).toMatchObject({ periodType: 'yearly' });
+    expect(
+      friendsComparisonQuerySchema.parse({ periodType: 'yearly' }),
+    ).toMatchObject({ periodType: 'yearly' });
+
+    for (const periodType of ['daily', 'monthly', 'season']) {
+      expect(() =>
+        friendsLeaderboardQuerySchema.parse({ periodType }),
+      ).toThrow();
+      expect(() =>
+        friendsComparisonQuerySchema.parse({ periodType }),
+      ).toThrow();
+    }
+  });
+
   it('allows requesting Rosary streaks on friend cards', () => {
     expect(friendsQuerySchema.parse({ include: 'rosaryStreak' })).toEqual({
       include: 'rosaryStreak',

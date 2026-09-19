@@ -1,9 +1,7 @@
 import { z } from 'zod';
 
 export const leaderboardQuerySchema = z.object({
-  periodType: z
-    .enum(['daily', 'weekly', 'monthly', 'yearly', 'season'])
-    .default('weekly'),
+  periodType: z.enum(['weekly', 'yearly']).default('weekly'),
   periodCode: z.string().trim().min(1).max(100).optional(),
   scopeType: z.enum(['global', 'country']).default('global'),
   scopeReference: z.string().trim().min(1).max(150).default('global'),

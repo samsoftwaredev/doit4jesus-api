@@ -24,3 +24,37 @@ begin
   end loop;
 end
 $$;
+
+do $$
+begin
+  if exists (
+    select 1
+    from competition.leaderboard_periods
+    where period_type not in ('weekly', 'yearly')
+  ) then
+    raise exception 'Unsupported leaderboard periods are present';
+  end if;
+
+  if not exists (
+    select 1
+    from competition.leaderboard_periods
+    where period_type = 'weekly'
+      and status = 'active'
+      and starts_at <= now()
+      and ends_at > now()
+  ) then
+    raise exception 'The current weekly leaderboard period is missing';
+  end if;
+
+  if not exists (
+    select 1
+    from competition.leaderboard_periods
+    where period_type = 'yearly'
+      and status = 'active'
+      and starts_at <= now()
+      and ends_at > now()
+  ) then
+    raise exception 'The current yearly leaderboard period is missing';
+  end if;
+end
+$$;
