@@ -563,22 +563,56 @@ describe('previously uncovered API route handlers', () => {
   });
 
   it('returns friends, comparison, and friends leaderboard data', async () => {
-    createSupabase();
+    const friendsLeaderboard = {
+      entries: [
+        {
+          friend: { id: RESOURCE_ID, countryCode: 'US' },
+          isCurrentUser: false,
+        },
+      ],
+      currentUserEntry: {
+        friend: { id: USER_ID, countryCode: null },
+        isCurrentUser: true,
+      },
+    };
+    const friendsComparison = {
+      entries: [
+        {
+          profile: { id: RESOURCE_ID, countryCode: 'US' },
+          isCurrentUser: false,
+        },
+        {
+          profile: { id: USER_ID, countryCode: null },
+          isCurrentUser: true,
+        },
+      ],
+    };
+    createSupabase({
+      rpcResults: {
+        get_current_user_friends_leaderboard: result(friendsLeaderboard),
+        get_current_user_friends_comparison: result(friendsComparison),
+      },
+    });
     expectOk(await getFriends(request('http://localhost/api/v1/me/friends')));
-    expectOk(
-      await getFriendsComparison(
-        request(
-          'http://localhost/api/v1/me/friends/comparison?periodType=weekly',
-        ),
+    const comparisonResponse = await getFriendsComparison(
+      request(
+        'http://localhost/api/v1/me/friends/comparison?periodType=weekly',
       ),
     );
-    expectOk(
-      await getFriendsLeaderboard(
-        request(
-          'http://localhost/api/v1/me/friends/leaderboard?periodType=weekly',
-        ),
+    expectOk(comparisonResponse);
+    expect(await comparisonResponse.json()).toEqual({
+      data: friendsComparison,
+    });
+
+    const leaderboardResponse = await getFriendsLeaderboard(
+      request(
+        'http://localhost/api/v1/me/friends/leaderboard?periodType=weekly',
       ),
     );
+    expectOk(leaderboardResponse);
+    expect(await leaderboardResponse.json()).toEqual({
+      data: friendsLeaderboard,
+    });
   });
 
   it('returns Rosary completion, reminder, lifetime total, and streak summaries', async () => {

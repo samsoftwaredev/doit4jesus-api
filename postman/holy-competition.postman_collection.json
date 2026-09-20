@@ -999,7 +999,7 @@
                 { "key": "offset", "value": "0" }
               ]
             },
-            "description": "Ranks the authenticated user and confirmed friends by the same period points as the existing leaderboard. The response also includes `currentUserEntry` even when the authenticated user is outside the requested page (or `null` when no entry is available)."
+            "description": "Ranks the authenticated user and confirmed friends by the same period points as the existing leaderboard. Each nested `friend` includes its nullable `countryCode`. The response also includes `currentUserEntry` even when the authenticated user is outside the requested page (or `null` when no entry is available)."
           }
         },
         {
@@ -1021,7 +1021,7 @@
                 { "key": "offset", "value": "0" }
               ]
             },
-            "description": "Returns the authenticated user and confirmed friends in one comparison view. Entries include period rank and activity counts, total XP, lifetime points, current level, Rosary total, badge count, and timezone-aware Rosary streaks."
+            "description": "Returns the authenticated user and confirmed friends in one comparison view. Each nested `profile` includes its nullable `countryCode`. Entries also include period rank and activity counts, total XP, lifetime points, current level, Rosary total, badge count, and timezone-aware Rosary streaks."
           }
         },
         {
