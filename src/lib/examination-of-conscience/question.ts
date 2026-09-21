@@ -1,3 +1,7 @@
+import {
+  type CatalogLanguage,
+  localizeCatalogRow,
+} from '@/lib/catalog/localization';
 import type { Database } from '@/lib/supabase/types';
 
 export type ExaminationQuestion =
@@ -7,7 +11,11 @@ export type ExaminationQuestion =
  * Keeps the public API terminology (`type`) independent from the persistence
  * column (`severity`), which avoids using the reserved-sounding SQL name type.
  */
-export function toExaminationQuestion(question: ExaminationQuestion) {
+export function toExaminationQuestion(
+  source: ExaminationQuestion,
+  language: CatalogLanguage = 'en',
+) {
+  const question = localizeCatalogRow(source, language);
   return {
     id: question.id,
     category: question.category,

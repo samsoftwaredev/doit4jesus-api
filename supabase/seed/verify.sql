@@ -26,6 +26,31 @@ end
 $$;
 
 do $$
+declare
+  missing_translations integer;
+begin
+  select sum(missing_count)::integer
+  into missing_translations
+  from (
+    select count(*) as missing_count from competition.level_definitions where is_active and not (translations ? 'es')
+    union all select count(*) from competition.badge_definitions where is_active and not (translations ? 'es')
+    union all select count(*) from competition.badge_requirement_definitions where not (translations ? 'es')
+    union all select count(*) from competition.virtue_definitions where is_active and not (translations ? 'es')
+    union all select count(*) from competition.saint_definitions where is_active and not (translations ? 'es')
+    union all select count(*) from competition.demon_definitions where is_active and not (translations ? 'es')
+    union all select count(*) from competition.demon_attacks where not (translations ? 'es')
+    union all select count(*) from competition.demon_defenses where not (translations ? 'es')
+    union all select count(*) from competition.challenge_definitions where is_active and not (translations ? 'es')
+    union all select count(*) from app.examination_of_conscience_questions where is_active and not (translations ? 'es')
+  ) as catalog_checks;
+
+  if missing_translations <> 0 then
+    raise exception 'Seed catalog is missing % Spanish translations', missing_translations;
+  end if;
+end
+$$;
+
+do $$
 begin
   if exists (
     select 1

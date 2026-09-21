@@ -1,12 +1,23 @@
 import { throwDatabaseError } from '@/lib/api/database';
 import { errorResponse, ok } from '@/lib/api/response';
 import { requireUser } from '@/lib/auth/require-user';
+import {
+  catalogResponseHeaders,
+  localizeCatalogRow,
+  readCatalogLanguage,
+  resolveCatalogLanguage,
+} from '@/lib/catalog/localization';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
   try {
-    const { supabase } = await requireUser(request);
+    const { supabase, userId } = await requireUser(request);
+    const language = await resolveCatalogLanguage(
+      supabase,
+      userId,
+      readCatalogLanguage(new URL(request.url)),
+    );
     const [demonsResult, saintsResult, affinitiesResult] = await Promise.all([
       supabase
         .schema('competition')
@@ -42,13 +53,26 @@ export async function GET(request: Request) {
     }
 
     return ok(
-      (demonsResult.data ?? []).map((demon) => ({
-        demon,
-        saintMentor: demon.saint_mentor_id
-          ? (saintsById.get(demon.saint_mentor_id) ?? null)
-          : null,
-        virtueAffinities: affinitiesByDemon.get(demon.id) ?? [],
-      })),
+      (demonsResult.data ?? [])
+        .map((source) => localizeCatalogRow(source, language))
+        .sort(
+          (left, right) =>
+            left.category.localeCompare(right.category) ||
+            left.name.localeCompare(right.name, language),
+        )
+        .map((demon) => ({
+          demon,
+          saintMentor: demon.saint_mentor_id
+            ? saintsById.has(demon.saint_mentor_id)
+              ? localizeCatalogRow(
+                  saintsById.get(demon.saint_mentor_id)!,
+                  language,
+                )
+              : null
+            : null,
+          virtueAffinities: affinitiesByDemon.get(demon.id) ?? [],
+        })),
+      { headers: catalogResponseHeaders(language) },
     );
   } catch (error) {
     return errorResponse(error, request);

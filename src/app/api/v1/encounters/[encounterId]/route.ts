@@ -3,6 +3,12 @@ import { ApiError } from '@/lib/api/errors';
 import { errorResponse, ok } from '@/lib/api/response';
 import { parsePositiveInt } from '@/lib/api/validation';
 import { requireUser } from '@/lib/auth/require-user';
+import {
+  catalogResponseHeaders,
+  localizeCatalogRow,
+  readCatalogLanguage,
+  resolveCatalogLanguage,
+} from '@/lib/catalog/localization';
 import { encounterIdSchema } from '@/lib/schemas/battle';
 
 export const dynamic = 'force-dynamic';
@@ -15,6 +21,11 @@ export async function GET(request: Request, context: Context) {
     const encounterId = encounterIdSchema.parse(rawEncounterId);
     const { supabase, userId } = await requireUser(request);
     const url = new URL(request.url);
+    const language = await resolveCatalogLanguage(
+      supabase,
+      userId,
+      readCatalogLanguage(url),
+    );
     const timelineLimit = parsePositiveInt(
       url.searchParams.get('timelineLimit'),
       20,
@@ -123,17 +134,24 @@ export async function GET(request: Request, context: Context) {
     return ok(
       {
         encounter,
-        demon: demonResult.data,
+        demon: demonResult.data
+          ? localizeCatalogRow(demonResult.data, language)
+          : null,
         assignments: assignments.map((assignment) => ({
           assignment,
-          defense: defensesById.get(assignment.defense_id) ?? null,
+          defense: defensesById.has(assignment.defense_id)
+            ? localizeCatalogRow(
+                defensesById.get(assignment.defense_id)!,
+                language,
+              )
+            : null,
         })),
         timeline: timelineItems.map((event) => ({
           event,
           virtueEvent: virtueEventsById.get(event.virtue_event_id) ?? null,
         })),
       },
-      {},
+      { headers: catalogResponseHeaders(language) },
       {
         timelineLimit,
         hasMore,

@@ -1,6 +1,13 @@
 import { throwDatabaseError } from '@/lib/api/database';
 import { ApiError } from '@/lib/api/errors';
 import { errorResponse, ok } from '@/lib/api/response';
+import { getOptionalUser } from '@/lib/auth/optional-user';
+import {
+  localizeCatalogRow,
+  normalizeCatalogLanguage,
+  publicCatalogResponseHeaders,
+  resolveCatalogLanguage,
+} from '@/lib/catalog/localization';
 import {
   matchesExaminationFilters,
   selectRandomExaminationQuestion,
@@ -16,7 +23,24 @@ export async function GET(request: Request) {
     const query = examinationQuestionQuerySchema.parse(
       Object.fromEntries(new URL(request.url).searchParams.entries()),
     );
-    const supabase = createPublicClient();
+    const hasCredentials =
+      request.headers.get('authorization') !== null ||
+      request.headers.get('cookie') !== null;
+    const auth = hasCredentials
+      ? await getOptionalUser(request)
+      : {
+          supabase: createPublicClient(),
+          userId: null,
+          claims: {},
+          authMode: 'anonymous' as const,
+        };
+    const language = query.language
+      ? query.language
+      : auth.userId
+        ? await resolveCatalogLanguage(auth.supabase, auth.userId)
+        : normalizeCatalogLanguage(null);
+    const personalized = query.language === undefined && auth.userId !== null;
+    const supabase = auth.supabase;
     let dbQuery = supabase
       .schema('app')
       .from('examination_of_conscience_questions')
@@ -31,9 +55,12 @@ export async function GET(request: Request) {
 
     const { data, error } = await dbQuery;
     throwDatabaseError(error, 'Unable to load examination questions.');
-    const questions = (data ?? []).filter((question) =>
-      matchesExaminationFilters(question, query),
-    );
+    const questions = (data ?? [])
+      .map((question) => ({
+        source: question,
+        localized: localizeCatalogRow(question, language),
+      }))
+      .filter(({ localized }) => matchesExaminationFilters(localized, query));
 
     if (query.randomQuestion && questions.length === 0) {
       throw ApiError.notFound(
@@ -43,16 +70,24 @@ export async function GET(request: Request) {
 
     if (query.randomQuestion) {
       return ok(
-        toExaminationQuestion(selectRandomExaminationQuestion(questions)),
+        toExaminationQuestion(
+          selectRandomExaminationQuestion(
+            questions.map(({ source }) => source),
+          ),
+          language,
+        ),
         {
-          headers: { 'Cache-Control': 'no-store' },
+          headers: publicCatalogResponseHeaders(language, true),
         },
       );
     }
 
-    return ok(questions.map(toExaminationQuestion), {
-      headers: { 'Cache-Control': 'public, max-age=3600, s-maxage=3600' },
-    });
+    return ok(
+      questions.map(({ source }) => toExaminationQuestion(source, language)),
+      {
+        headers: publicCatalogResponseHeaders(language, personalized),
+      },
+    );
   } catch (error) {
     return errorResponse(error, request);
   }

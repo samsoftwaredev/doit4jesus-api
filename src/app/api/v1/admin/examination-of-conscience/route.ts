@@ -50,7 +50,9 @@ export async function GET(request: Request) {
       : rows;
     const hasMore = pagedRows.length > query.limit;
     return ok(
-      pagedRows.slice(0, query.limit).map(toExaminationQuestion),
+      pagedRows
+        .slice(0, query.limit)
+        .map((question) => toExaminationQuestion(question)),
       {},
       {
         limit: query.limit,

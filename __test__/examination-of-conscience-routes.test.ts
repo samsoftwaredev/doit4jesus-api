@@ -46,6 +46,16 @@ const question = {
   is_active: true,
   created_at: '2026-08-22T00:00:00.000Z',
   updated_at: '2026-08-22T00:00:00.000Z',
+  translations: {
+    es: {
+      title: 'Fe',
+      question: '¿He negado la fe católica?',
+      description: 'Una materia grave.',
+      counsels: ['Vuelve mediante la Confesión.'],
+      prevention: ['Ora diariamente.'],
+      saints: ['San Agustín'],
+    },
+  },
 };
 
 type QueryResult = { data: unknown; error: null };
@@ -136,6 +146,32 @@ describe('examination-of-conscience routes', () => {
     expect((await response.json()).data).toEqual([]);
   });
 
+  it('returns Spanish fields without exposing stored translations', async () => {
+    mockedCreatePublicClient.mockReturnValue(supabase().client as never);
+
+    const response = await getQuestions(
+      request(
+        'http://localhost/api/v1/examination-of-conscience?language=es&saint=San%20Agust%C3%ADn',
+      ),
+    );
+    const body = await response.json();
+
+    expect(body.data[0]).toMatchObject({
+      title: 'Fe',
+      question: '¿He negado la fe católica?',
+      saints: ['San Agustín'],
+    });
+    expect(body.data[0]).not.toHaveProperty('translations');
+  });
+
+  it('rejects unsupported explicit languages', async () => {
+    const response = await getQuestions(
+      request('http://localhost/api/v1/examination-of-conscience?language=fr'),
+    );
+
+    expect(response.status).toBe(422);
+  });
+
   it('returns one random matching question when randomQuestion is true', async () => {
     const fixture = supabase({
       data: [
@@ -188,6 +224,29 @@ describe('examination-of-conscience routes', () => {
     });
     expect(fixture.builder.eq).toHaveBeenCalledWith('is_active', true);
     expect(fixture.builder.eq).toHaveBeenCalledWith('category', 'single');
+  });
+
+  it('keeps daily selection stable across languages', async () => {
+    mockedCreatePublicClient.mockReturnValue(
+      supabase({
+        data: [
+          question,
+          {
+            ...question,
+            id: 'e1000000-0000-4000-8000-000000000002',
+            question: 'Have I neglected daily prayer?',
+          },
+        ],
+        error: null,
+      }).client as never,
+    );
+    const baseUrl =
+      'http://localhost/api/v1/examination-of-conscience/daily?date=2026-08-29&category=single';
+
+    const english = await getDailyQuestion(request(`${baseUrl}&language=en`));
+    const spanish = await getDailyQuestion(request(`${baseUrl}&language=es`));
+
+    expect((await english.json()).data.id).toBe((await spanish.json()).data.id);
   });
 
   it('returns 404 when no daily question matches the filters', async () => {

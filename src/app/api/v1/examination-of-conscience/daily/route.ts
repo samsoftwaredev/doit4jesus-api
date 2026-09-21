@@ -1,6 +1,13 @@
 import { throwDatabaseError } from '@/lib/api/database';
 import { ApiError } from '@/lib/api/errors';
 import { errorResponse, ok } from '@/lib/api/response';
+import { getOptionalUser } from '@/lib/auth/optional-user';
+import {
+  localizeCatalogRow,
+  normalizeCatalogLanguage,
+  publicCatalogResponseHeaders,
+  resolveCatalogLanguage,
+} from '@/lib/catalog/localization';
 import {
   matchesExaminationFilters,
   resolveExaminationDate,
@@ -18,7 +25,24 @@ export async function GET(request: Request) {
       Object.fromEntries(new URL(request.url).searchParams.entries()),
     );
     const asOfDate = resolveExaminationDate(filters.date);
-    const supabase = createPublicClient();
+    const hasCredentials =
+      request.headers.get('authorization') !== null ||
+      request.headers.get('cookie') !== null;
+    const auth = hasCredentials
+      ? await getOptionalUser(request)
+      : {
+          supabase: createPublicClient(),
+          userId: null,
+          claims: {},
+          authMode: 'anonymous' as const,
+        };
+    const language = filters.language
+      ? filters.language
+      : auth.userId
+        ? await resolveCatalogLanguage(auth.supabase, auth.userId)
+        : normalizeCatalogLanguage(null);
+    const personalized = filters.language === undefined && auth.userId !== null;
+    const supabase = auth.supabase;
     let query = supabase
       .schema('app')
       .from('examination_of_conscience_questions')
@@ -34,9 +58,12 @@ export async function GET(request: Request) {
 
     const { data, error } = await query;
     throwDatabaseError(error, 'Unable to load examination questions.');
-    const questions = (data ?? []).filter((question) =>
-      matchesExaminationFilters(question, filters),
-    );
+    const questions = (data ?? [])
+      .map((question) => ({
+        source: question,
+        localized: localizeCatalogRow(question, language),
+      }))
+      .filter(({ localized }) => matchesExaminationFilters(localized, filters));
 
     if (questions.length === 0) {
       throw ApiError.notFound(
@@ -45,14 +72,14 @@ export async function GET(request: Request) {
     }
 
     const question = selectDailyExaminationQuestion(
-      questions,
+      questions.map(({ source }) => source),
       asOfDate,
       filters,
     );
 
     return ok(
-      toExaminationQuestion(question),
-      { headers: { 'Cache-Control': 'public, max-age=3600, s-maxage=3600' } },
+      toExaminationQuestion(question, language),
+      { headers: publicCatalogResponseHeaders(language, personalized) },
       { asOfDate, filters },
     );
   } catch (error) {

@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import { catalogLanguageSchema } from '@/lib/catalog/localization';
+
 export const examinationCategories = [
   'single',
   'married',
@@ -48,12 +50,17 @@ export const examinationQuestionUpdateSchema = z
     'At least one field is required.',
   );
 
-const publicFilters = {
+const examinationFilters = {
   category: z.enum(examinationCategories).optional(),
   saint: z.string().trim().min(1).max(120).optional(),
   commandment: z.coerce.number().int().min(1).max(10).optional(),
   type: z.enum(examinationTypes).optional(),
   date: z.iso.date().optional(),
+};
+
+const publicFilters = {
+  language: catalogLanguageSchema.optional(),
+  ...examinationFilters,
 };
 
 const randomQuestionQuery = {
@@ -73,7 +80,7 @@ export const examinationDailyQuestionQuerySchema = z
 
 export const examinationAdminQuerySchema = z
   .object({
-    ...publicFilters,
+    ...examinationFilters,
     includeInactive: z
       .enum(['true', 'false'])
       .transform((value) => value === 'true')

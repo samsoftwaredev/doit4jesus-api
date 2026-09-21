@@ -348,7 +348,7 @@
     },
     {
       "name": "Examination of conscience",
-      "description": "Public daily examination question. No authentication is required; the same date and filters deterministically select the same curated question.",
+      "description": "Public, optionally authenticated examination questions. Use language=en|es, or inherit Bearer authentication and omit language to use the profile preference.",
       "item": [
         {
           "name": "Get daily question",
@@ -369,10 +369,16 @@
                 { "key": "category", "value": "single" },
                 { "key": "commandment", "value": "1", "disabled": true },
                 { "key": "type", "value": "grave", "disabled": true },
-                { "key": "saint", "value": "St. Augustine", "disabled": true }
+                { "key": "saint", "value": "St. Augustine", "disabled": true },
+                {
+                  "key": "language",
+                  "value": "es",
+                  "description": "Optional catalog language override: en | es.",
+                  "disabled": true
+                }
               ]
             },
-            "description": "Returns one active question. Omit date to select from today's questions using EXAMINATION_TIMEZONE (America/Chicago by default)."
+            "description": "Returns one active question. Omit date to select from today's questions using EXAMINATION_TIMEZONE. Enable language for an explicit English or Spanish response; otherwise authenticated requests use the profile preference and anonymous requests use English."
           },
           "response": [
             {
@@ -1246,7 +1252,15 @@
             "url": {
               "raw": "{{baseUrl}}/api/v1/progress",
               "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "progress"]
+              "path": ["api", "v1", "progress"],
+              "query": [
+                {
+                  "key": "language",
+                  "value": "es",
+                  "description": "Optional override: en | es. Omit to use the profile preference.",
+                  "disabled": true
+                }
+              ]
             },
             "description": "Returns the user's total XP, lifetime/weekly/yearly points, current and next level definitions, percentage progress through the current level, and XP thresholds."
           }
@@ -1259,7 +1273,15 @@
             "url": {
               "raw": "{{baseUrl}}/api/v1/levels",
               "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "levels"]
+              "path": ["api", "v1", "levels"],
+              "query": [
+                {
+                  "key": "language",
+                  "value": "es",
+                  "description": "Optional override: en | es. Omit to use the profile preference.",
+                  "disabled": true
+                }
+              ]
             },
             "description": "Returns all active level definitions ordered by `level_number` ascending. Each entry contains the level name, minimum XP required, any associated perks, and public Supabase Storage URLs in `icon_url` and `image_url` when configured."
           }
@@ -1343,7 +1365,15 @@
             "url": {
               "raw": "{{baseUrl}}/api/v1/virtues",
               "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "virtues"]
+              "path": ["api", "v1", "virtues"],
+              "query": [
+                {
+                  "key": "language",
+                  "value": "es",
+                  "description": "Optional override: en | es. Omit to use the profile preference.",
+                  "disabled": true
+                }
+              ]
             },
             "description": "Returns every active virtue definition together with the current user's value, initialization state, and last update time. Values are read-only through this endpoint."
           }
@@ -1362,7 +1392,15 @@
             "url": {
               "raw": "{{baseUrl}}/api/v1/demons",
               "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "demons"]
+              "path": ["api", "v1", "demons"],
+              "query": [
+                {
+                  "key": "language",
+                  "value": "es",
+                  "description": "Optional override: en | es. Omit to use the profile preference.",
+                  "disabled": true
+                }
+              ]
             },
             "description": "Returns active demons with their saint mentor and primary/secondary virtue affinities. This is catalog data; it does not reveal another user's battle state."
           }
@@ -1375,7 +1413,15 @@
             "url": {
               "raw": "{{baseUrl}}/api/v1/demons/{{demonCode}}",
               "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "demons", "{{demonCode}}"]
+              "path": ["api", "v1", "demons", "{{demonCode}}"],
+              "query": [
+                {
+                  "key": "language",
+                  "value": "es",
+                  "description": "Optional override: en | es. Omit to use the profile preference.",
+                  "disabled": true
+                }
+              ]
             },
             "description": "Returns one demon's attacks, defenses, virtue affinities, saint mentor, and defeat reward. Set `demonCode`, for example `SCROLLZILLA`."
           }
@@ -1410,6 +1456,12 @@
                   "key": "before",
                   "value": "",
                   "description": "Started-at cursor from `meta.nextCursor`.",
+                  "disabled": true
+                },
+                {
+                  "key": "language",
+                  "value": "es",
+                  "description": "Optional override: en | es. Omit to use the profile preference.",
                   "disabled": true
                 }
               ]
@@ -1461,6 +1513,12 @@
                   "key": "timelineBefore",
                   "value": "",
                   "description": "Occurred-at cursor from `meta.nextTimelineCursor`.",
+                  "disabled": true
+                },
+                {
+                  "key": "language",
+                  "value": "es",
+                  "description": "Optional override: en | es. Omit to use the profile preference.",
                   "disabled": true
                 }
               ]
@@ -1597,6 +1655,12 @@
                   "key": "status",
                   "value": "active",
                   "description": "Filter by assignment status. One of: active | completed | expired | cancelled | all. Default: active."
+                },
+                {
+                  "key": "language",
+                  "value": "es",
+                  "description": "Optional override: en | es. Omit to use the profile preference.",
+                  "disabled": true
                 }
               ]
             },
@@ -1636,7 +1700,15 @@
             "url": {
               "raw": "{{baseUrl}}/api/v1/badges",
               "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "badges"]
+              "path": ["api", "v1", "badges"],
+              "query": [
+                {
+                  "key": "language",
+                  "value": "es",
+                  "description": "Optional override: en | es. Omit to use the profile preference.",
+                  "disabled": true
+                }
+              ]
             },
             "description": "Returns all active badge definitions enriched with:\n- `icon_url` and `locked_icon_url` — public Supabase Storage URLs\n- `earned` — array of times the user has earned this badge (may be empty)\n- `progress` — aggregate badge progress, or `null` if not started\n- `requirements` — individual unlock requirements with current/required values, completion state, and completion timestamp\n\nEquipment badges use `requirements` to show each part of an unlock. For example, Shield of Faith separately shows prayer days, completed Scripture plans, and acts of trust during difficulty."
           }

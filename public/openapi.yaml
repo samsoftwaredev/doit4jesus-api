@@ -252,14 +252,17 @@ paths:
         '422': { $ref: '#/components/responses/ValidationError' }
   /api/v1/examination-of-conscience:
     get:
-      security: []
+      security:
+        - supabaseBearer: []
+        - {}
       summary: List active examination-of-conscience questions or select one at random
       description: >-
         Returns every active, curated question matching the supplied filters.
         Set randomQuestion=true to return one randomly selected matching
-        question instead. This endpoint is public and does not require a
-        Supabase session.
+        question instead. Authentication is optional; when language is omitted,
+        an authenticated user's preferred language is used.
       parameters:
+        - { $ref: '#/components/parameters/CatalogLanguage' }
         - { $ref: '#/components/parameters/ExaminationCategory' }
         - { $ref: '#/components/parameters/ExaminationSaint' }
         - { $ref: '#/components/parameters/ExaminationCommandment' }
@@ -275,18 +278,23 @@ paths:
                 - { $ref: '#/components/schemas/ExaminationQuestionResponse' }
                 - { $ref: '#/components/schemas/PublicExaminationQuestionListResponse' }
         '404': { description: No active question matches the supplied filters when randomQuestion=true }
+        '401': { $ref: '#/components/responses/Unauthorized' }
         '422': { $ref: '#/components/responses/ValidationError' }
   /api/v1/examination-of-conscience/daily:
     get:
-      security: []
+      security:
+        - supabaseBearer: []
+        - {}
       summary: Get the deterministic daily examination-of-conscience question
       description: >-
         Returns one active, curated question for the resolved calendar date and
         supplied filters. The same date and filters always select the same
         question. When date is omitted, the endpoint resolves today using
         EXAMINATION_TIMEZONE (America/Chicago by default). This endpoint is
-        public and does not require a Supabase session.
+        optionally authenticated; when language is omitted, an authenticated
+        user's preferred language is used.
       parameters:
+        - { $ref: '#/components/parameters/CatalogLanguage' }
         - { $ref: '#/components/parameters/ExaminationCategory' }
         - { $ref: '#/components/parameters/ExaminationSaint' }
         - { $ref: '#/components/parameters/ExaminationCommandment' }
@@ -319,6 +327,7 @@ paths:
                 meta:
                   asOfDate: '2026-08-29'
                   filters: { category: single, date: '2026-08-29' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
         '404': { description: No active question matches the supplied filters }
         '422': { $ref: '#/components/responses/ValidationError' }
   /api/v1/admin/examination-of-conscience:
@@ -1341,6 +1350,8 @@ paths:
   /api/v1/progress:
     get:
       summary: Get XP and level progress
+      parameters:
+        - { $ref: '#/components/parameters/CatalogLanguage' }
       responses:
         '200':
           description: Progress summary
@@ -1360,12 +1371,15 @@ paths:
                   xpIntoCurrentLevel: 170
                   xpRequiredForNextLevel: 750
                   updatedAt: '2026-08-17T10:30:00Z'
+        '422': { $ref: '#/components/responses/ValidationError' }
   /api/v1/levels:
     get:
       summary: List active level definitions
       description: >-
         Returns active levels with `icon_url` and `image_url` resolved to
         public Supabase Storage URLs when an image path is configured.
+      parameters:
+        - { $ref: '#/components/parameters/CatalogLanguage' }
       responses:
         '200':
           description: Active levels
@@ -1375,9 +1389,12 @@ paths:
                 data:
                   - { level_number: 1, code: awakened, name: Awakened, description: Begins recognizing the battle., minimum_total_xp: 0, icon_url: 'https://example.supabase.co/storage/v1/object/public/images/levels/awakened-icon.png', image_url: 'https://example.supabase.co/storage/v1/object/public/images/levels/awakened.png', is_active: true }
                   - { level_number: 2, code: seeker, name: Seeker, description: Starts building daily habits., minimum_total_xp: 250, icon_url: 'https://example.supabase.co/storage/v1/object/public/images/levels/seeker-icon.png', image_url: 'https://example.supabase.co/storage/v1/object/public/images/levels/seeker.png', is_active: true }
+        '422': { $ref: '#/components/responses/ValidationError' }
   /api/v1/virtues:
     get:
       summary: Get active virtue definitions and the current user's values
+      parameters:
+        - { $ref: '#/components/parameters/CatalogLanguage' }
       responses:
         '200':
           description: Virtue dashboard data
@@ -1390,10 +1407,13 @@ paths:
                     initialized: true
                     updatedAt: '2026-08-17T10:30:00Z'
         '401': { $ref: '#/components/responses/Unauthorized' }
+        '422': { $ref: '#/components/responses/ValidationError' }
   /api/v1/demons:
     get:
       summary: List active demon catalog entries
       description: Includes each demon's saint mentor and virtue affinities.
+      parameters:
+        - { $ref: '#/components/parameters/CatalogLanguage' }
       responses:
         '200':
           description: Demon catalog
@@ -1405,10 +1425,12 @@ paths:
                     saintMentor: { id: d2000000-0000-4000-8000-000000000001, name: St. Michael the Archangel, is_active: true }
                     virtueAffinities:
                       - { demon_id: d1000000-0000-4000-8000-000000000001, virtue_code: COURAGE, multiplier: 1.2 }
+        '422': { $ref: '#/components/responses/ValidationError' }
   /api/v1/demons/{demonCode}:
     get:
       summary: Get one demon's battle definition
       parameters:
+        - { $ref: '#/components/parameters/CatalogLanguage' }
         - in: path
           name: demonCode
           required: true
@@ -1430,10 +1452,12 @@ paths:
                     - { demon_id: d1000000-0000-4000-8000-000000000001, virtue_code: COURAGE, multiplier: 1.2 }
                   defeatReward: { xp_reward: 100, virtue_bonus: 5 }
         '404': { description: Demon not found }
+        '422': { $ref: '#/components/responses/ValidationError' }
   /api/v1/encounters:
     get:
       summary: List current-user demon encounters
       parameters:
+        - { $ref: '#/components/parameters/CatalogLanguage' }
         - in: query
           name: status
           schema:
@@ -1457,6 +1481,7 @@ paths:
                   - encounter: { id: e1000000-0000-4000-8000-000000000001, user_id: 9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002, demon_id: d1000000-0000-4000-8000-000000000001, status: active, current_hp: 70, started_at: '2026-08-17T09:00:00Z' }
                     demon: { id: d1000000-0000-4000-8000-000000000001, code: DISCOURAGEMENT, name: Demon of Discouragement }
                 meta: { limit: 20, hasMore: false, nextCursor: null }
+        '422': { $ref: '#/components/responses/ValidationError' }
     post:
       summary: Start a demon encounter
       parameters:
@@ -1491,6 +1516,7 @@ paths:
       summary: Get one current-user encounter and battle timeline
       parameters:
         - $ref: '#/components/parameters/EncounterId'
+        - { $ref: '#/components/parameters/CatalogLanguage' }
         - in: query
           name: timelineLimit
           schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
@@ -1515,6 +1541,7 @@ paths:
                       virtueEvent: { id: e4000000-0000-4000-8000-000000000001, virtue_code: COURAGE, change_amount: 2 }
                 meta: { timelineLimit: 20, hasMore: false, nextTimelineCursor: null }
         '404': { description: Encounter not found or not owned by the current user }
+        '422': { $ref: '#/components/responses/ValidationError' }
   /api/v1/encounters/{encounterId}/defenses/{assignmentId}/complete:
     post:
       summary: Complete an assigned demon defense
@@ -1622,6 +1649,7 @@ paths:
     get:
       summary: List challenge assignments
       parameters:
+        - { $ref: '#/components/parameters/CatalogLanguage' }
         - in: query
           name: status
           schema:
@@ -1644,6 +1672,7 @@ paths:
                     target_quantity: 3
                     definition: { id: b2000000-0000-4000-8000-000000000001, code: DAILY_ROSARY, name: Pray the Rosary, reward_xp: 50 }
                     progressPercentage: 66.67
+        '422': { $ref: '#/components/responses/ValidationError' }
   /api/v1/challenges/{assignmentId}/claim:
     post:
       summary: Claim a completed challenge reward
@@ -1669,6 +1698,8 @@ paths:
   /api/v1/badges:
     get:
       summary: List badge definitions, earned badges, aggregate progress, and individual unlock requirements
+      parameters:
+        - { $ref: '#/components/parameters/CatalogLanguage' }
       description: >-
         Badge definition `icon_url` and `locked_icon_url` values are resolved
         to public Supabase Storage URLs.
@@ -1690,6 +1721,7 @@ paths:
                         complete: false
                         completedAt: null
                         updatedAt: '2026-08-17T10:00:00Z'
+        '422': { $ref: '#/components/responses/ValidationError' }
   /api/v1/leaderboards:
     get:
       summary: Get leaderboard entries
@@ -1826,6 +1858,14 @@ components:
       scheme: bearer
       bearerFormat: JWT
   parameters:
+    CatalogLanguage:
+      in: query
+      name: language
+      description: >-
+        Optional catalog language override. When omitted on authenticated
+        endpoints, the user's preferred language is used; otherwise English is
+        returned. Localized text replaces the existing text fields.
+      schema: { type: string, enum: [en, es] }
     IdempotencyKey:
       in: header
       name: Idempotency-Key
@@ -1864,7 +1904,7 @@ components:
     ExaminationSaint:
       in: query
       name: saint
-      description: Exact saint-name match, case-insensitive.
+      description: Exact saint-name match in the selected language, case-insensitive.
       schema: { type: string, minLength: 1, maxLength: 120 }
     ExaminationCommandment:
       in: query

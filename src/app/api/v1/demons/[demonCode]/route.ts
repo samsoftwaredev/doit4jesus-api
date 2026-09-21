@@ -2,6 +2,12 @@ import { throwDatabaseError } from '@/lib/api/database';
 import { ApiError } from '@/lib/api/errors';
 import { errorResponse, ok } from '@/lib/api/response';
 import { requireUser } from '@/lib/auth/require-user';
+import {
+  catalogResponseHeaders,
+  localizeCatalogRow,
+  readCatalogLanguage,
+  resolveCatalogLanguage,
+} from '@/lib/catalog/localization';
 
 export const dynamic = 'force-dynamic';
 
@@ -10,7 +16,12 @@ type Context = { params: Promise<{ demonCode: string }> };
 export async function GET(request: Request, context: Context) {
   try {
     const { demonCode } = await context.params;
-    const { supabase } = await requireUser(request);
+    const { supabase, userId } = await requireUser(request);
+    const language = await resolveCatalogLanguage(
+      supabase,
+      userId,
+      readCatalogLanguage(new URL(request.url)),
+    );
     const normalizedCode = demonCode.trim().toUpperCase();
     const { data: demon, error: demonError } = await supabase
       .schema('competition')
@@ -69,14 +80,23 @@ export async function GET(request: Request, context: Context) {
     throwDatabaseError(affinitiesResult.error, 'Unable to load demon virtues.');
     throwDatabaseError(rewardResult.error, 'Unable to load the defeat reward.');
 
-    return ok({
-      demon,
-      saintMentor: saintResult.data,
-      attacks: attacksResult.data ?? [],
-      defenses: defensesResult.data ?? [],
-      virtueAffinities: affinitiesResult.data ?? [],
-      defeatReward: rewardResult.data,
-    });
+    return ok(
+      {
+        demon: localizeCatalogRow(demon, language),
+        saintMentor: saintResult.data
+          ? localizeCatalogRow(saintResult.data, language)
+          : null,
+        attacks: (attacksResult.data ?? []).map((attack) =>
+          localizeCatalogRow(attack, language),
+        ),
+        defenses: (defensesResult.data ?? []).map((defense) =>
+          localizeCatalogRow(defense, language),
+        ),
+        virtueAffinities: affinitiesResult.data ?? [],
+        defeatReward: rewardResult.data,
+      },
+      { headers: catalogResponseHeaders(language) },
+    );
   } catch (error) {
     return errorResponse(error, request);
   }

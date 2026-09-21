@@ -4,6 +4,12 @@ import { requireIdempotencyKey } from '@/lib/api/idempotency';
 import { created, errorResponse, ok } from '@/lib/api/response';
 import { parsePositiveInt, readJson } from '@/lib/api/validation';
 import { requireUser } from '@/lib/auth/require-user';
+import {
+  catalogResponseHeaders,
+  localizeCatalogRow,
+  readCatalogLanguage,
+  resolveCatalogLanguage,
+} from '@/lib/catalog/localization';
 import { startEncounterSchema } from '@/lib/schemas/battle';
 
 export const dynamic = 'force-dynamic';
@@ -20,6 +26,11 @@ export async function GET(request: Request) {
   try {
     const { supabase, userId } = await requireUser(request);
     const url = new URL(request.url);
+    const language = await resolveCatalogLanguage(
+      supabase,
+      userId,
+      readCatalogLanguage(url),
+    );
     const limit = parsePositiveInt(url.searchParams.get('limit'), 20, 100);
     const before = url.searchParams.get('before');
     const status = url.searchParams.get('status');
@@ -66,9 +77,11 @@ export async function GET(request: Request) {
     return ok(
       items.map((encounter) => ({
         encounter,
-        demon: demonsById.get(encounter.demon_id) ?? null,
+        demon: demonsById.has(encounter.demon_id)
+          ? localizeCatalogRow(demonsById.get(encounter.demon_id)!, language)
+          : null,
       })),
-      {},
+      { headers: catalogResponseHeaders(language) },
       {
         limit,
         hasMore,

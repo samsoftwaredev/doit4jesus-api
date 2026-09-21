@@ -28,7 +28,10 @@ export function resolveExaminationDate(date?: string) {
 }
 
 export function matchesExaminationFilters(
-  question: ExaminationQuestion,
+  question: Pick<
+    ExaminationQuestion,
+    'category' | 'commandment' | 'severity' | 'saints'
+  >,
   filters: ExaminationQuestionFilters,
 ) {
   if (filters.category && question.category !== filters.category) return false;
@@ -63,7 +66,6 @@ export function selectDailyExaminationQuestion(
   const key = [
     asOfDate,
     filters.category ?? '',
-    filters.saint?.toLocaleLowerCase() ?? '',
     filters.commandment ?? '',
     filters.type ?? '',
   ].join('|');

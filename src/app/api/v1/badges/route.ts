@@ -1,6 +1,12 @@
 import { throwDatabaseError } from '@/lib/api/database';
 import { errorResponse, ok } from '@/lib/api/response';
 import { requireUser } from '@/lib/auth/require-user';
+import {
+  catalogResponseHeaders,
+  localizeCatalogRow,
+  readCatalogLanguage,
+  resolveCatalogLanguage,
+} from '@/lib/catalog/localization';
 import { getPublicImageUrl } from '@/lib/supabase/storage';
 
 export const dynamic = 'force-dynamic';
@@ -8,6 +14,11 @@ export const dynamic = 'force-dynamic';
 export async function GET(request: Request) {
   try {
     const { supabase, userId } = await requireUser(request);
+    const language = await resolveCatalogLanguage(
+      supabase,
+      userId,
+      readCatalogLanguage(new URL(request.url)),
+    );
 
     const [
       definitionsResult,
@@ -91,35 +102,43 @@ export async function GET(request: Request) {
     }
 
     return ok(
-      (definitionsResult.data ?? []).map((definition) => ({
-        definition: {
-          ...definition,
-          icon_url: getPublicImageUrl(supabase, definition.icon_url),
-          locked_icon_url: getPublicImageUrl(
-            supabase,
-            definition.locked_icon_url,
-          ),
-        },
-        earned: earnedByBadge.get(definition.id) ?? [],
-        progress: progressByBadge.get(definition.id) ?? null,
-        requirements: (requirementsByBadge.get(definition.id) ?? []).map(
-          (requirement) => {
-            const requirementProgress = requirementProgressByRequirement.get(
-              requirement.id,
-            );
-            const currentValue = requirementProgress?.current_value ?? 0;
-
-            return {
-              definition: requirement,
-              currentValue,
-              requiredValue: requirement.required_value,
-              complete: currentValue >= requirement.required_value,
-              completedAt: requirementProgress?.completed_at ?? null,
-              updatedAt: requirementProgress?.updated_at ?? null,
-            };
+      (definitionsResult.data ?? []).map((source) => {
+        const definition = localizeCatalogRow(source, language);
+        return {
+          definition: {
+            ...definition,
+            icon_url: getPublicImageUrl(supabase, definition.icon_url),
+            locked_icon_url: getPublicImageUrl(
+              supabase,
+              definition.locked_icon_url,
+            ),
           },
-        ),
-      })),
+          earned: earnedByBadge.get(definition.id) ?? [],
+          progress: progressByBadge.get(definition.id) ?? null,
+          requirements: (requirementsByBadge.get(definition.id) ?? []).map(
+            (sourceRequirement) => {
+              const requirement = localizeCatalogRow(
+                sourceRequirement,
+                language,
+              );
+              const requirementProgress = requirementProgressByRequirement.get(
+                requirement.id,
+              );
+              const currentValue = requirementProgress?.current_value ?? 0;
+
+              return {
+                definition: requirement,
+                currentValue,
+                requiredValue: requirement.required_value,
+                complete: currentValue >= requirement.required_value,
+                completedAt: requirementProgress?.completed_at ?? null,
+                updatedAt: requirementProgress?.updated_at ?? null,
+              };
+            },
+          ),
+        };
+      }),
+      { headers: catalogResponseHeaders(language) },
     );
   } catch (error) {
     return errorResponse(error, request);

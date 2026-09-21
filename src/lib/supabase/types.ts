@@ -30,6 +30,7 @@ export type Database = {
           is_active: boolean;
           created_at: string;
           updated_at: string;
+          translations: Json;
         };
         Insert: {
           category: 'single' | 'married' | 'religious';
@@ -396,6 +397,7 @@ export type Database = {
           reward_reference_id: string | null;
           is_active: boolean;
           created_at: string;
+          translations: Json;
         };
         Insert: never;
         Update: never;
@@ -457,6 +459,7 @@ export type Database = {
           is_active: boolean;
           created_at: string;
           updated_at: string;
+          translations: Json;
         };
         Insert: never;
         Update: never;
@@ -481,6 +484,7 @@ export type Database = {
           is_active: boolean;
           created_at: string;
           updated_at: string;
+          translations: Json;
         };
         Insert: never;
         Update: never;
@@ -558,6 +562,7 @@ export type Database = {
           is_active: boolean;
           created_at: string;
           updated_at: string;
+          translations: Json;
         };
         Insert: never;
         Update: never;
@@ -572,6 +577,7 @@ export type Database = {
           is_active: boolean;
           created_at: string;
           updated_at: string;
+          translations: Json;
         };
         Insert: never;
         Update: never;
@@ -593,6 +599,7 @@ export type Database = {
           is_active: boolean;
           created_at: string;
           updated_at: string;
+          translations: Json;
         };
         Insert: never;
         Update: never;
@@ -619,6 +626,7 @@ export type Database = {
           virtue_decrease: number;
           created_at: string;
           updated_at: string;
+          translations: Json;
         };
         Insert: never;
         Update: never;
@@ -636,6 +644,7 @@ export type Database = {
           demon_damage: number;
           created_at: string;
           updated_at: string;
+          translations: Json;
         };
         Insert: never;
         Update: never;
@@ -665,6 +674,7 @@ export type Database = {
           display_order: number;
           created_at: string;
           updated_at: string;
+          translations: Json;
         };
         Insert: never;
         Update: never;

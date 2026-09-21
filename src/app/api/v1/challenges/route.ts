@@ -2,6 +2,12 @@ import { throwDatabaseError } from '@/lib/api/database';
 import { ApiError } from '@/lib/api/errors';
 import { errorResponse, ok } from '@/lib/api/response';
 import { requireUser } from '@/lib/auth/require-user';
+import {
+  catalogResponseHeaders,
+  localizeCatalogRow,
+  readCatalogLanguage,
+  resolveCatalogLanguage,
+} from '@/lib/catalog/localization';
 
 export const dynamic = 'force-dynamic';
 
@@ -9,6 +15,11 @@ export async function GET(request: Request) {
   try {
     const { supabase, userId } = await requireUser(request);
     const url = new URL(request.url);
+    const language = await resolveCatalogLanguage(
+      supabase,
+      userId,
+      readCatalogLanguage(url),
+    );
     const status = url.searchParams.get('status') ?? 'active';
 
     if (
@@ -57,8 +68,12 @@ export async function GET(request: Request) {
     return ok(
       rows.map((assignment) => ({
         ...assignment,
-        definition:
-          definitionMap.get(assignment.challenge_definition_id) ?? null,
+        definition: definitionMap.has(assignment.challenge_definition_id)
+          ? localizeCatalogRow(
+              definitionMap.get(assignment.challenge_definition_id)!,
+              language,
+            )
+          : null,
         progressPercentage: Number(
           Math.min(
             100,
@@ -66,6 +81,7 @@ export async function GET(request: Request) {
           ).toFixed(2),
         ),
       })),
+      { headers: catalogResponseHeaders(language) },
     );
   } catch (error) {
     return errorResponse(error, request);
