@@ -18,6 +18,7 @@ describe('GET /api/v1/leaderboards', () => {
   it('returns the current user entry when it is outside the requested page', async () => {
     const currentUserId = '11111111-1111-4111-8111-111111111111';
     const otherUserId = '22222222-2222-4222-8222-222222222222';
+    const saintAvatarId = '44444444-4444-4444-8444-444444444444';
     const period = {
       id: '33333333-3333-4333-8333-333333333333',
       period_type: 'weekly',
@@ -87,6 +88,7 @@ describe('GET /api/v1/leaderboards', () => {
           avatar_url: null,
           title: null,
           country_code: 'US',
+          saint_avatar_id: saintAvatarId,
         },
         {
           user_id: currentUserId,
@@ -95,6 +97,7 @@ describe('GET /api/v1/leaderboards', () => {
           avatar_url: null,
           title: null,
           country_code: 'CA',
+          saint_avatar_id: null,
         },
       ],
       error: null,
@@ -133,6 +136,7 @@ describe('GET /api/v1/leaderboards', () => {
               user_id: otherUserId,
               display_name: 'Page Player',
               countryCode: 'US',
+              saintAvatarId,
             },
           },
         ],
@@ -143,6 +147,7 @@ describe('GET /api/v1/leaderboards', () => {
             user_id: currentUserId,
             display_name: 'Current Player',
             countryCode: 'CA',
+            saintAvatarId: null,
           },
         },
       },

@@ -79,7 +79,9 @@ export async function GET(request: Request) {
       ? await supabase
           .schema('app')
           .from('leaderboard_profiles')
-          .select('user_id,display_name,username,avatar_url,title,country_code')
+          .select(
+            'user_id,display_name,username,avatar_url,title,country_code,saint_avatar_id',
+          )
           .in('user_id', userIds)
       : { data: [], error: null };
 
@@ -100,6 +102,7 @@ export async function GET(request: Request) {
           avatar_url: profile?.avatar_url ?? null,
           title: profile?.title ?? null,
           countryCode: profile?.country_code ?? null,
+          saintAvatarId: profile?.saint_avatar_id ?? null,
         },
       };
     };

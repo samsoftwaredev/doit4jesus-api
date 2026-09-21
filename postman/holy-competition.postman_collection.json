@@ -999,7 +999,7 @@
                 { "key": "offset", "value": "0" }
               ]
             },
-            "description": "Ranks the authenticated user and confirmed friends by the same period points as the existing leaderboard. Each nested `friend` includes its nullable `countryCode`. The response also includes `currentUserEntry` even when the authenticated user is outside the requested page (or `null` when no entry is available)."
+            "description": "Ranks the authenticated user and confirmed friends by the same period points as the existing leaderboard. Each nested `friend` includes its nullable `countryCode` and `saintAvatarId`. The response also includes `currentUserEntry` even when the authenticated user is outside the requested page (or `null` when no entry is available)."
           }
         },
         {
@@ -1021,7 +1021,7 @@
                 { "key": "offset", "value": "0" }
               ]
             },
-            "description": "Returns the authenticated user and confirmed friends in one comparison view. Each nested `profile` includes its nullable `countryCode`. Entries also include period rank and activity counts, total XP, lifetime points, current level, Rosary total, badge count, and timezone-aware Rosary streaks."
+            "description": "Returns the authenticated user and confirmed friends in one comparison view. Each nested `profile` includes its nullable `countryCode` and `saintAvatarId`. Entries also include period rank and activity counts, total XP, lifetime points, current level, Rosary total, badge count, and timezone-aware Rosary streaks."
           }
         },
         {
@@ -1676,7 +1676,7 @@
                 }
               ]
             },
-            "description": "Returns ranked weekly or yearly leaderboard entries for the requested scope. Current projections refresh every five minutes. Each entry is enriched with a `profile` (display name, username, avatar, title) and an `isCurrentUser` flag.\n\nThe response also includes `currentUserEntry`, which is the authenticated user's entry even when it falls outside the requested page (or `null` when no entry exists), plus the matched `period` object and pagination metadata (`total`, `limit`, `offset`).\n\n**Example — country leaderboard for the US**\n`?periodType=weekly&scopeType=country&scopeReference=US`"
+            "description": "Returns ranked weekly or yearly leaderboard entries for the requested scope. Current projections refresh every five minutes. Each entry is enriched with a `profile` (display name, username, avatar, title, country code, and nullable saint avatar ID) and an `isCurrentUser` flag.\n\nThe response also includes `currentUserEntry`, which is the authenticated user's entry even when it falls outside the requested page (or `null` when no entry exists), plus the matched `period` object and pagination metadata (`total`, `limit`, `offset`).\n\n**Example — country leaderboard for the US**\n`?periodType=weekly&scopeType=country&scopeReference=US`"
           }
         }
       ]

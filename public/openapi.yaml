@@ -940,7 +940,8 @@ paths:
       description: >-
         Uses the same period points as the global leaderboard, but calculates
         rank across the current user and their confirmed friends only. Each
-        nested friend profile includes its nullable countryCode.
+        nested friend profile includes its nullable countryCode and
+        saintAvatarId.
       parameters:
         - in: query
           name: periodType
@@ -970,7 +971,7 @@ paths:
                       scriptureReadingsCount: 4
                       prayersCount: 9
                       isCurrentUser: false
-                      friend: { id: 11111111-1111-4111-8111-111111111111, displayName: Maria Santos, username: mariasantos, avatarUrl: 'https://example.com/avatars/mariasantos.png', title: Prayer Champion, countryCode: MX }
+                      friend: { id: 11111111-1111-4111-8111-111111111111, displayName: Maria Santos, username: mariasantos, avatarUrl: 'https://example.com/avatars/mariasantos.png', title: Prayer Champion, countryCode: MX, saintAvatarId: a1000000-0000-4000-8000-000000000002 }
                   currentUserEntry:
                     rank: 2
                     points: 120
@@ -978,7 +979,7 @@ paths:
                     scriptureReadingsCount: 2
                     prayersCount: 5
                     isCurrentUser: true
-                    friend: { id: 9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002, displayName: Test User, username: testuser, avatarUrl: 'https://example.com/avatars/testuser.png', title: Faithful Beginner, countryCode: US }
+                    friend: { id: 9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002, displayName: Test User, username: testuser, avatarUrl: 'https://example.com/avatars/testuser.png', title: Faithful Beginner, countryCode: US, saintAvatarId: null }
                   total: 2
   /api/v1/me/friends/comparison:
     get:
@@ -988,7 +989,7 @@ paths:
         leaderboard period. Each entry includes period activity counts, total
         XP, lifetime points, current level, Rosary total, badge count, and
         timezone-aware current and year-to-date longest Rosary streaks. Each
-        nested profile includes its nullable countryCode.
+        nested profile includes its nullable countryCode and saintAvatarId.
       parameters:
         - in: query
           name: periodType
@@ -1016,7 +1017,7 @@ paths:
                       periodPoints: 240
                       periodActivity: { rosariesCount: 3, scriptureReadingsCount: 4, prayersCount: 9 }
                       isCurrentUser: false
-                      profile: { id: 11111111-1111-4111-8111-111111111111, displayName: Maria Santos, username: mariasantos, avatarUrl: 'https://example.com/avatars/mariasantos.png', title: Prayer Champion, countryCode: MX }
+                      profile: { id: 11111111-1111-4111-8111-111111111111, displayName: Maria Santos, username: mariasantos, avatarUrl: 'https://example.com/avatars/mariasantos.png', title: Prayer Champion, countryCode: MX, saintAvatarId: a1000000-0000-4000-8000-000000000002 }
                       totalXp: 920
                       lifetimePoints: 2050
                       currentLevel: { levelNumber: 3, code: disciple, name: Disciple }
@@ -1704,7 +1705,7 @@ paths:
                       prayers_count: 9
                       updated_at: '2026-08-17T10:00:00Z'
                       isCurrentUser: false
-                      profile: { user_id: 11111111-1111-4111-8111-111111111111, display_name: Maria Santos, username: mariasantos, avatar_url: 'https://example.com/avatars/mariasantos.png', title: Prayer Champion, countryCode: MX }
+                      profile: { user_id: 11111111-1111-4111-8111-111111111111, display_name: Maria Santos, username: mariasantos, avatar_url: 'https://example.com/avatars/mariasantos.png', title: Prayer Champion, countryCode: MX, saintAvatarId: a1000000-0000-4000-8000-000000000002 }
                   currentUserEntry: null
                 meta: { total: 1, limit: 50, offset: 0 }
   /api/v1/prayer-map:
@@ -2827,6 +2828,33 @@ components:
           anyOf:
             - { type: string, minLength: 2, maxLength: 6, pattern: '^[A-Z]{2}(?:-[A-Z]{3})?$' }
             - { type: 'null' }
+    LeaderboardFriendProfile:
+      type: object
+      additionalProperties: false
+      required: [id, displayName, username, avatarUrl, title, countryCode, saintAvatarId]
+      properties:
+        id: { type: string, format: uuid }
+        displayName: { type: string }
+        username:
+          anyOf:
+            - { type: string }
+            - { type: 'null' }
+        avatarUrl:
+          anyOf:
+            - { type: string }
+            - { type: 'null' }
+        title:
+          anyOf:
+            - { type: string }
+            - { type: 'null' }
+        countryCode:
+          anyOf:
+            - { type: string, minLength: 2, maxLength: 6, pattern: '^[A-Z]{2}(?:-[A-Z]{3})?$' }
+            - { type: 'null' }
+        saintAvatarId:
+          anyOf:
+            - { type: string, format: uuid }
+            - { type: 'null' }
     FriendDetailLevel:
       type: object
       additionalProperties: false
@@ -2943,7 +2971,7 @@ components:
         scriptureReadingsCount: { type: integer, format: int64, minimum: 0 }
         prayersCount: { type: integer, format: int64, minimum: 0 }
         isCurrentUser: { type: boolean }
-        friend: { $ref: '#/components/schemas/FriendProfile' }
+        friend: { $ref: '#/components/schemas/LeaderboardFriendProfile' }
     FriendsLeaderboardData:
       type: object
       additionalProperties: false
@@ -2995,7 +3023,7 @@ components:
         periodPoints: { type: integer, format: int64, minimum: 0 }
         periodActivity: { $ref: '#/components/schemas/PeriodActivity' }
         isCurrentUser: { type: boolean }
-        profile: { $ref: '#/components/schemas/FriendProfile' }
+        profile: { $ref: '#/components/schemas/LeaderboardFriendProfile' }
         totalXp: { type: integer, format: int64, minimum: 0 }
         lifetimePoints: { type: integer, format: int64, minimum: 0 }
         currentLevel: { $ref: '#/components/schemas/CurrentLevel' }
@@ -3040,7 +3068,7 @@ components:
     GlobalLeaderboardProfile:
       type: object
       additionalProperties: false
-      required: [user_id, display_name, username, avatar_url, title, countryCode]
+      required: [user_id, display_name, username, avatar_url, title, countryCode, saintAvatarId]
       properties:
         user_id: { type: string, format: uuid }
         display_name: { type: string }
@@ -3059,6 +3087,10 @@ components:
         countryCode:
           anyOf:
             - { type: string, minLength: 2, maxLength: 6, pattern: '^[A-Z]{2}(?:-[A-Z]{3})?$' }
+            - { type: 'null' }
+        saintAvatarId:
+          anyOf:
+            - { type: string, format: uuid }
             - { type: 'null' }
     GlobalLeaderboardEntry:
       type: object

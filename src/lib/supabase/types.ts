@@ -343,6 +343,7 @@ export type Database = {
           avatar_url: string | null;
           title: string | null;
           country_code: string | null;
+          saint_avatar_id: string | null;
         };
         Relationships: [];
       };

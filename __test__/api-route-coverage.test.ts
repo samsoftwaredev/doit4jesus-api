@@ -563,26 +563,27 @@ describe('previously uncovered API route handlers', () => {
   });
 
   it('returns friends, comparison, and friends leaderboard data', async () => {
+    const saintAvatarId = 'a1000000-0000-4000-8000-000000000002';
     const friendsLeaderboard = {
       entries: [
         {
-          friend: { id: RESOURCE_ID, countryCode: 'US' },
+          friend: { id: RESOURCE_ID, countryCode: 'US', saintAvatarId },
           isCurrentUser: false,
         },
       ],
       currentUserEntry: {
-        friend: { id: USER_ID, countryCode: null },
+        friend: { id: USER_ID, countryCode: null, saintAvatarId: null },
         isCurrentUser: true,
       },
     };
     const friendsComparison = {
       entries: [
         {
-          profile: { id: RESOURCE_ID, countryCode: 'US' },
+          profile: { id: RESOURCE_ID, countryCode: 'US', saintAvatarId },
           isCurrentUser: false,
         },
         {
-          profile: { id: USER_ID, countryCode: null },
+          profile: { id: USER_ID, countryCode: null, saintAvatarId: null },
           isCurrentUser: true,
         },
       ],
