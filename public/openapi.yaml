@@ -1304,6 +1304,40 @@ paths:
               example:
                 data: { rosariesPrayed: 42 }
         '401': { $ref: '#/components/responses/Unauthorized' }
+  /api/v1/rosary/stats:
+    get:
+      security:
+        - supabaseBearer: []
+        - {}
+      summary: Get the global lifetime Rosary total
+      description: >-
+        Returns the lifetime sum of self-reported and verified Rosary activity
+        quantities across all users. Anonymous requests return a null current-user
+        contribution. When valid Supabase cookie or Bearer authentication is
+        supplied, the response also includes that user's qualifying lifetime total
+        and percentage of the global total, rounded to four decimal places.
+        Rejected activities are excluded. Invalid supplied Bearer credentials
+        return an authentication error.
+      responses:
+        '200':
+          description: Global lifetime Rosary statistic and optional user contribution
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/GlobalRosaryStatsResponse' }
+              examples:
+                anonymous:
+                  value:
+                    data:
+                      totalRosariesPrayed: 12345
+                      currentUserContribution: null
+                authenticated:
+                  value:
+                    data:
+                      totalRosariesPrayed: 12345
+                      currentUserContribution:
+                        rosariesPrayed: 42
+                        percentage: 0.3402
+        '401': { $ref: '#/components/responses/Unauthorized' }
   /api/v1/progress:
     get:
       summary: Get XP and level progress
@@ -2652,6 +2686,33 @@ components:
       required: [data]
       properties:
         data: { $ref: '#/components/schemas/RosaryStats' }
+    CurrentUserRosaryContribution:
+      type: object
+      additionalProperties: false
+      required: [rosariesPrayed, percentage]
+      properties:
+        rosariesPrayed: { type: integer, format: int64, minimum: 0 }
+        percentage:
+          type: number
+          minimum: 0
+          maximum: 100
+          description: Percentage of the global total, rounded to four decimal places.
+    GlobalRosaryStats:
+      type: object
+      additionalProperties: false
+      required: [totalRosariesPrayed, currentUserContribution]
+      properties:
+        totalRosariesPrayed: { type: integer, format: int64, minimum: 0 }
+        currentUserContribution:
+          anyOf:
+            - { $ref: '#/components/schemas/CurrentUserRosaryContribution' }
+            - { type: 'null' }
+    GlobalRosaryStatsResponse:
+      type: object
+      additionalProperties: false
+      required: [data]
+      properties:
+        data: { $ref: '#/components/schemas/GlobalRosaryStats' }
     UserSearchResult:
       type: object
       additionalProperties: false

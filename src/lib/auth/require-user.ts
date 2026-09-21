@@ -1,6 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 
 import { ApiError } from '@/lib/api/errors';
+import { readBearerToken } from '@/lib/auth/bearer-token';
 import { createBearerClient } from '@/lib/supabase/bearer';
 import { createClient } from '@/lib/supabase/server';
 import type { Database } from '@/lib/supabase/types';
@@ -11,18 +12,6 @@ export type AuthenticatedContext = {
   claims: Record<string, unknown>;
   authMode: 'cookie' | 'bearer';
 };
-
-function readBearerToken(request: Request) {
-  const authorization = request.headers.get('authorization');
-  if (!authorization) return null;
-
-  const [scheme, token] = authorization.split(' ', 2);
-  if (scheme?.toLowerCase() !== 'bearer' || !token) {
-    throw ApiError.unauthorized('Authorization must use the Bearer scheme.');
-  }
-
-  return token;
-}
 
 export async function requireUser(
   request: Request,

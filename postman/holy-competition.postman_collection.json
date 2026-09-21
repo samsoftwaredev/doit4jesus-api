@@ -1303,6 +1303,20 @@
           }
         },
         {
+          "name": "Get global lifetime Rosaries prayed",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/rosary/stats",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "rosary", "stats"]
+            },
+            "description": "Public, optionally authenticated endpoint returning `totalRosariesPrayed`, the lifetime sum of self-reported and verified Rosary activity quantities across all users. Anonymous requests return `currentUserContribution: null`. To receive the current user's `rosariesPrayed` and four-decimal `percentage`, change this request to inherit the collection's Bearer authentication. Rejected activities are excluded; invalid supplied Bearer credentials return 401."
+          }
+        },
+        {
           "name": "Get lifetime Rosaries prayed",
           "request": {
             "method": "GET",
