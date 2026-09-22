@@ -402,11 +402,13 @@ paths:
       summary: Get today’s Mass readings
       description: >-
         Resolves today in the configured LITURGY_TIMEZONE, then returns the
-        universal Roman-calendar celebration and locally curated NABRE
-        Scripture references and NABRE verse text from the checked-in local
-        book files. For country=US, a versioned local USCCB snapshot takes
-        precedence and returns its source metadata. No external liturgical or
-        Bible service is called at request time.
+        universal Roman-calendar celebration and locally curated Scripture
+        references with verse text from checked-in local book files. The
+        default text is NABRE; locale=es or an es-* locale selects the Spanish
+        Biblia de Jerusalén and adds localizedCitation. For country=US, a
+        versioned local USCCB snapshot takes precedence and returns its source
+        metadata. No external liturgical or Bible service is called at request
+        time.
       parameters:
         - { $ref: '#/components/parameters/LiturgyCountry' }
         - { $ref: '#/components/parameters/LiturgyDiocese' }
@@ -414,6 +416,10 @@ paths:
       responses:
         '200':
           description: The current day’s liturgical context and Mass readings
+          headers:
+            Content-Language:
+              schema: { type: string, enum: [en, es] }
+              description: Language of the returned Scripture text.
           content:
             application/json:
               schema: { $ref: '#/components/schemas/MassReadingsResponse' }
@@ -440,6 +446,10 @@ paths:
       responses:
         '200':
           description: The day’s liturgical context and Mass readings
+          headers:
+            Content-Language:
+              schema: { type: string, enum: [en, es] }
+              description: Language of the returned Scripture text.
           content:
             application/json:
               schema: { $ref: '#/components/schemas/MassReadingsResponse' }
@@ -1895,8 +1905,11 @@ components:
     LiturgyLocale:
       in: query
       name: locale
-      description: Optional BCP 47 locale metadata; citations remain translation-neutral.
-      schema: { type: string, example: en-US }
+      description: >-
+        Optional BCP 47 locale. es and es-* select Spanish Biblia de Jerusalén
+        verse text; all other locales use English NABRE. The canonical citation
+        remains translation-neutral.
+      schema: { type: string, example: es-MX }
     ExaminationCategory:
       in: query
       name: category
@@ -2355,16 +2368,20 @@ components:
     ScriptureReading:
       type: object
       additionalProperties: false
-      required: [type, citation, text]
+      required: [type, citation]
       properties:
         type:
           type: string
           enum: [FIRST_READING, RESPONSORIAL_PSALM, SECOND_READING, EPISTLE, GOSPEL_ACCLAMATION, GOSPEL, OTHER]
         citation: { type: string, example: 'Acts 2:1-11' }
+        localizedCitation:
+          type: string
+          description: Spanish display citation when a Spanish locale is selected.
+          example: 'Hechos 2:1-11'
         optional: { type: boolean, default: false }
         text:
           type: string
-          description: NABRE verse text sourced from the matching local book file.
+          description: Verse text from the selected local Bible when the cited passage is available.
     LiturgicalReadingSet:
       type: object
       additionalProperties: false
@@ -2419,11 +2436,11 @@ components:
             country: { type: string }
             diocese: { type: string }
             locale: { type: string }
-            dataVersion: { type: string, example: v2 }
-            scriptureTextSource: { type: string, enum: [NABRE] }
+            dataVersion: { type: string, example: v3 }
+            scriptureTextSource: { type: string, enum: [NABRE, BIBLIA_DE_JERUSALEN] }
             scriptureTextUnavailable:
               type: boolean
-              description: True when a cited passage is not yet present in the local NABRE book files.
+              description: True when a cited passage is not present in the selected local Bible files.
             lectionarySource: { type: string, enum: [USCCB, LOCAL] }
             lectionaryNumber: { type: string, example: '423' }
             sourceUrl: { type: string, format: uri }

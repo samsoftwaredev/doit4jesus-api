@@ -1,5 +1,6 @@
 import type { ScriptureReading } from '@/liturgy/models';
 import { canonicalBookForCitation } from '@/liturgy/scripture/NabreScriptureRepository';
+import { spanishBibleBookLoaders } from '@/liturgy/scripture/SpanishBibleBookLoaders';
 
 type BibleVerse = { verse: number; text: string };
 type BibleChapter = { chapter: number; verses: BibleVerse[] };
@@ -11,6 +12,19 @@ type VerseRange = {
   endChapter: number;
   endVerse: number;
 };
+
+export type ScriptureLanguage = 'en' | 'es';
+
+export function scriptureLanguageForLocale(
+  locale: string | null | undefined,
+): ScriptureLanguage {
+  if (!locale) return 'en';
+  try {
+    return new Intl.Locale(locale).language === 'es' ? 'es' : 'en';
+  } catch {
+    return 'en';
+  }
+}
 
 const singleChapterBooks = new Set([
   'Obadiah',
@@ -107,6 +121,14 @@ const bookLoaders: Record<string, BookLoader> = {
   Zephaniah: () => import('@/data/bible/books/Zephaniah.json'),
 };
 
+const bookLoadersByLanguage: Record<
+  ScriptureLanguage,
+  Record<string, BookLoader>
+> = {
+  en: bookLoaders,
+  es: spanishBibleBookLoaders,
+};
+
 function parseVerseNumber(value: string) {
   const match = value.match(/^\d+/);
   return match ? Number.parseInt(match[0], 10) : null;
@@ -177,16 +199,35 @@ function parseRanges(citation: string): { book: string; ranges: VerseRange[] } {
   return { book, ranges };
 }
 
+function localizeCitation(citation: string, bookName: string) {
+  const trimmed = citation.trim();
+  const match = trimmed.match(
+    /^((?:[1-3]\s*)?[A-Za-z]+(?:\s+[A-Za-z]+)*)\s+(?=\d)/,
+  );
+  return match ? `${bookName}${trimmed.slice(match[1].length)}` : citation;
+}
+
 export class NabreVerseMapper {
   private readonly cache = new Map<string, BibleBook>();
 
-  async mapReading(reading: ScriptureReading): Promise<ScriptureReading> {
+  async mapReading(
+    reading: ScriptureReading,
+    language: ScriptureLanguage = 'en',
+  ): Promise<ScriptureReading> {
     const { book, ranges } = parseRanges(reading.citation);
-    const bibleBook = await this.getBook(book);
+    const bibleBook = await this.getBook(book, language);
     const verses = this.selectVerses(bibleBook, ranges, reading.citation);
 
     return {
       ...reading,
+      ...(language === 'es'
+        ? {
+            localizedCitation: localizeCitation(
+              reading.citation,
+              bibleBook.book,
+            ),
+          }
+        : {}),
       text: verses
         .map(
           (verse) =>
@@ -196,33 +237,54 @@ export class NabreVerseMapper {
     };
   }
 
-  async mapReadings(readings: ScriptureReading[]) {
+  async mapReadings(
+    readings: ScriptureReading[],
+    language: ScriptureLanguage = 'en',
+  ) {
     return Promise.all(
       readings.map(async (reading) => {
         try {
-          return await this.mapReading(reading);
+          return await this.mapReading(reading, language);
         } catch (error) {
-          // A reference remains useful even if the currently checked-in NABRE
-          // book file has not yet supplied those verses. Do not turn a valid
-          // USCCB lectionary result into a server error or fabricate text.
-          if (error instanceof NabreVerseMappingError) return reading;
+          // A reference remains useful even if the selected local Bible has
+          // not supplied those verses. Do not turn a valid USCCB lectionary
+          // result into a server error or fabricate text.
+          if (error instanceof NabreVerseMappingError) {
+            if (language === 'es') {
+              try {
+                const { book } = parseRanges(reading.citation);
+                const bibleBook = await this.getBook(book, language);
+                return {
+                  ...reading,
+                  localizedCitation: localizeCitation(
+                    reading.citation,
+                    bibleBook.book,
+                  ),
+                };
+              } catch {
+                return reading;
+              }
+            }
+            return reading;
+          }
           throw error;
         }
       }),
     );
   }
 
-  private async getBook(book: string) {
-    const cached = this.cache.get(book);
+  private async getBook(book: string, language: ScriptureLanguage) {
+    const cacheKey = `${language}:${book}`;
+    const cached = this.cache.get(cacheKey);
     if (cached) return cached;
 
-    const loader = bookLoaders[book];
+    const loader = bookLoadersByLanguage[language][book];
     if (!loader)
       throw new NabreVerseMappingError(
-        `No local NABRE book file exists for ${book}.`,
+        `No local ${language} Bible book file exists for ${book}.`,
       );
     const loaded = await loader();
-    this.cache.set(book, loaded.default);
+    this.cache.set(cacheKey, loaded.default);
     return loaded.default;
   }
 

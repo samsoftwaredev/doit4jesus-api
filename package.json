@@ -19,6 +19,7 @@
     "check:outdated:strict": "node scripts/check-outdated-packages.mjs --strict",
     "verify:commit": "pnpm run typecheck && pnpm run format && pnpm run lint && pnpm test && pnpm run check:outdated",
     "verify:push": "pnpm run typecheck && pnpm run format:check && pnpm run lint:check && pnpm test && pnpm run check:outdated:strict",
+    "import:spanish-bible": "node scripts/import-spanish-bible.mjs",
     "import:usccb-lectionary": "node scripts/import-usccb-lectionary.mjs",
     "import:usccb-calendar": "node scripts/import-usccb-calendar-text.mjs",
     "build:username-profanity": "node scripts/build-username-profanity-data.mjs",

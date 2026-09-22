@@ -19,7 +19,15 @@ export async function GET(request: Request) {
       locale: url.searchParams.get('locale') ?? undefined,
       includeVerseText: true,
     });
-    return ok(result, { headers: { 'Cache-Control': 'private, max-age=300' } });
+    return ok(result, {
+      headers: {
+        'Cache-Control': 'private, max-age=300',
+        'Content-Language':
+          result.metadata?.scriptureTextSource === 'BIBLIA_DE_JERUSALEN'
+            ? 'es'
+            : 'en',
+      },
+    });
   } catch (error) {
     return errorResponse(
       error instanceof Error

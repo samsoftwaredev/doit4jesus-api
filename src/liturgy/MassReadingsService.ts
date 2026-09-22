@@ -3,9 +3,12 @@ import { LiturgicalDayResolver } from '@/liturgy/calendar/LiturgicalDayResolver'
 import { LocalLectionaryRepository } from '@/liturgy/lectionary/LectionaryRepository';
 import { LectionaryResolver } from '@/liturgy/lectionary/LectionaryResolver';
 import type { DailyMassReadings } from '@/liturgy/models';
-import { NabreVerseMapper } from '@/liturgy/scripture/NabreVerseMapper';
+import {
+  NabreVerseMapper,
+  scriptureLanguageForLocale,
+} from '@/liturgy/scripture/NabreVerseMapper';
 
-const DATA_VERSION = 'v2';
+const DATA_VERSION = 'v3';
 const DEFAULT_TIMEZONE = 'America/Chicago';
 const CACHE_TTL_MILLISECONDS = 5 * 60 * 1_000;
 
@@ -74,10 +77,10 @@ function normalizeInput(input: GetMassReadingsInput): GetMassReadingsInput {
     );
   }
 
-  const locale = input.locale?.trim();
+  let locale = input.locale?.trim();
   if (locale) {
     try {
-      Intl.getCanonicalLocales(locale);
+      [locale] = Intl.getCanonicalLocales(locale);
     } catch {
       throw new ApiError(
         400,
@@ -170,12 +173,16 @@ export class MassReadingsService {
       );
     }
 
+    const scriptureLanguage = scriptureLanguageForLocale(normalized.locale);
     const readingSets =
       normalized.includeVerseText !== false
         ? await Promise.all(
             resolution.readingSets.map(async (readingSet) => ({
               ...readingSet,
-              readings: await this.verseMapper.mapReadings(readingSet.readings),
+              readings: await this.verseMapper.mapReadings(
+                readingSet.readings,
+                scriptureLanguage,
+              ),
             })),
           )
         : resolution.readingSets;
@@ -214,7 +221,8 @@ export class MassReadingsService {
         ...(normalized.diocese ? { diocese: normalized.diocese } : {}),
         ...(normalized.locale ? { locale: normalized.locale } : {}),
         dataVersion: DATA_VERSION,
-        scriptureTextSource: 'NABRE',
+        scriptureTextSource:
+          scriptureLanguage === 'es' ? 'BIBLIA_DE_JERUSALEN' : 'NABRE',
         ...(scriptureTextUnavailable ? { scriptureTextUnavailable: true } : {}),
         ...(resolution.sourceUrl
           ? {

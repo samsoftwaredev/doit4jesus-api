@@ -9,7 +9,10 @@ import {
 jest.mock('../src/lib/auth/require-user', () => ({ requireUser: jest.fn() }));
 jest.mock('../src/lib/api/response', () => ({
   errorResponse: jest.fn(),
-  ok: (data: unknown) => ({ json: async () => ({ data }) }),
+  ok: (data: unknown, init: ResponseInit = {}) => ({
+    headers: new Headers(init.headers),
+    json: async () => ({ data }),
+  }),
 }));
 jest.mock('../src/liturgy/MassReadingsService', () => ({
   applicationToday: jest.fn(),
@@ -53,11 +56,41 @@ describe('liturgy routes', () => {
     );
 
     expect(await response.json()).toEqual({ data: payload });
+    expect(response.headers.get('Content-Language')).toBe('en');
     expect(mockedGetMassReadings).toHaveBeenCalledWith({
       date: '2026-08-21',
       country: 'US',
       diocese: 'dallas',
       locale: undefined,
+      includeVerseText: true,
+    });
+  });
+
+  it('marks Spanish Scripture responses with their content language', async () => {
+    const spanishPayload = {
+      ...payload,
+      metadata: {
+        dataVersion: 'v3',
+        locale: 'es-MX',
+        scriptureTextSource: 'BIBLIA_DE_JERUSALEN' as const,
+      },
+    };
+    mockedGetMassReadings.mockResolvedValueOnce(spanishPayload);
+
+    const response = await getReadings(
+      {
+        url: 'http://localhost/api/v1/liturgy/readings/2026-08-21?locale=es-MX',
+      } as Request,
+      { params: Promise.resolve({ date: '2026-08-21' }) },
+    );
+
+    expect(await response.json()).toEqual({ data: spanishPayload });
+    expect(response.headers.get('Content-Language')).toBe('es');
+    expect(mockedGetMassReadings).toHaveBeenCalledWith({
+      date: '2026-08-21',
+      country: undefined,
+      diocese: undefined,
+      locale: 'es-MX',
       includeVerseText: true,
     });
   });

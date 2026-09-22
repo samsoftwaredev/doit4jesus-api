@@ -56,10 +56,13 @@ export interface CanonicalReference {
 
 export interface ScriptureReading {
   type: ScriptureReadingType;
+  /** Stable, translation-neutral lectionary citation. */
   citation: string;
+  /** Locale-specific display citation; currently present for Spanish text. */
+  localizedCitation?: string;
   canonicalReference?: CanonicalReference;
   optional?: boolean;
-  /** Present only when the caller opts into local NABRE verse text. */
+  /** Present only when the caller opts into available local verse text. */
   text?: string;
 }
 
@@ -114,8 +117,8 @@ export interface DailyMassReadings {
     diocese?: string;
     locale?: string;
     dataVersion: string;
-    scriptureTextSource?: 'NABRE';
-    /** True when at least one cited passage is not present in local Bible files. */
+    scriptureTextSource?: 'NABRE' | 'BIBLIA_DE_JERUSALEN';
+    /** True when at least one cited passage is not present in the selected local Bible. */
     scriptureTextUnavailable?: boolean;
     lectionarySource?: 'USCCB' | 'LOCAL';
     lectionaryNumber?: string;

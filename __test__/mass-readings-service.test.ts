@@ -183,6 +183,30 @@ describe('MassReadingsService', () => {
     }
   });
 
+  it('maps every English-supported 2026 reading from the Spanish Bible', async () => {
+    for (const date of usccbDailyLectionary.keys()) {
+      const english = await getMassReadings({
+        date,
+        country: 'US',
+        locale: 'en',
+      });
+      const spanish = await getMassReadings({
+        date,
+        country: 'US',
+        locale: 'es',
+      });
+
+      expect(spanish.readings).toHaveLength(english.readings.length);
+      for (const [index, reading] of english.readings.entries()) {
+        if (reading.text === undefined) continue;
+        expect(spanish.readings[index].text).toEqual(expect.any(String));
+        expect(spanish.readings[index].localizedCitation).toEqual(
+          expect.any(String),
+        );
+      }
+    }
+  });
+
   it('returns a daily payload with local Scripture text and regional metadata', async () => {
     const result = await getMassReadings({
       date: '2026-08-21',
@@ -203,7 +227,7 @@ describe('MassReadingsService', () => {
         country: 'US',
         diocese: 'dallas',
         locale: 'en-US',
-        dataVersion: 'v2',
+        dataVersion: 'v3',
         lectionarySource: 'USCCB',
         lectionaryNumber: '423',
       },
@@ -252,6 +276,27 @@ describe('MassReadingsService', () => {
 
     expect(ezekiel?.text).toContain('Ezekiel 37:1');
     expect(result.metadata?.scriptureTextSource).toBe('NABRE');
+  });
+
+  it('uses the Spanish Bible for Spanish regional locales', async () => {
+    const result = await getMassReadings({
+      date: '2026-08-21',
+      locale: 'ES-mx',
+    });
+    const ezekiel = result.readings.find(
+      (reading) => reading.citation === 'Ez 37:1-14',
+    );
+
+    expect(ezekiel).toMatchObject({
+      citation: 'Ez 37:1-14',
+      localizedCitation: 'Ezequiel 37:1-14',
+    });
+    expect(ezekiel?.text).toContain('Ezequiel 37:1');
+    expect(ezekiel?.text).toContain('La mano de Yahveh fue sobre mí');
+    expect(result.metadata).toMatchObject({
+      locale: 'es-MX',
+      scriptureTextSource: 'BIBLIA_DE_JERUSALEN',
+    });
   });
 
   it('rejects malformed and impossible ISO dates', async () => {
@@ -305,5 +350,33 @@ describe('MassReadingsService', () => {
 
     expect(reading.text).toContain('Genesis 1:31');
     expect(reading.text).toContain('Genesis 2:2');
+  });
+
+  it('maps a Spanish cross-chapter citation with a localized label', async () => {
+    const mapper = new NabreVerseMapper();
+    const reading = await mapper.mapReading(
+      {
+        type: 'FIRST_READING',
+        citation: 'Gn 1:31—2:2',
+      },
+      'es',
+    );
+
+    expect(reading.localizedCitation).toBe('Génesis 1:31—2:2');
+    expect(reading.text).toContain('Génesis 1:31');
+    expect(reading.text).toContain('Génesis 2:2');
+  });
+
+  it.each([
+    ['1 Cor 1:1-2', '1 Corintios 1:1-2'],
+    ['Sg 1:1-2', 'Cantar de los Cantares 1:1-2'],
+    ['Tb 1:1-2', 'Tobías 1:1-2'],
+    ['Jude 1-2', 'Judas 1-2'],
+  ])('maps Spanish canonical variants for %s', async (citation, label) => {
+    const mapper = new NabreVerseMapper();
+    const reading = await mapper.mapReading({ type: 'OTHER', citation }, 'es');
+
+    expect(reading.localizedCitation).toBe(label);
+    expect(reading.text).toEqual(expect.any(String));
   });
 });

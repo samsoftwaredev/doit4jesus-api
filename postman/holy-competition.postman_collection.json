@@ -438,7 +438,7 @@
     },
     {
       "name": "Liturgy",
-      "description": "Catholic Mass readings backed by a local lectionary dataset. For country=US, a versioned local USCCB snapshot takes precedence; its source URL and lectionary number are returned in metadata. The API maps available citations to NABRE verse text from checked-in book files and makes no external liturgical request at runtime.",
+      "description": "Catholic Mass readings backed by a local lectionary dataset. For country=US, a versioned local USCCB snapshot takes precedence; its source URL and lectionary number are returned in metadata. The API maps available citations to English NABRE or Spanish Biblia de Jerusalén text from checked-in book files and makes no external liturgical request at runtime.",
       "item": [
         {
           "name": "Get today’s Mass readings",
@@ -446,7 +446,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/liturgy/today?country=US&diocese=dallas&locale=en-US",
+              "raw": "{{baseUrl}}/api/v1/liturgy/today?country=US&diocese=dallas&locale=es-MX",
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "liturgy", "today"],
               "query": [
@@ -463,13 +463,13 @@
                 },
                 {
                   "key": "locale",
-                  "value": "en-US",
-                  "description": "Optional BCP 47 locale metadata.",
+                  "value": "es-MX",
+                  "description": "Optional BCP 47 locale. es and es-* select Spanish Scripture text.",
                   "disabled": true
                 }
               ]
             },
-            "description": "Uses LITURGY_TIMEZONE (America/Chicago by default) to determine today’s date. Each reading includes mapped local NABRE verse text. A 404 READINGS_NOT_FOUND means the calendar resolved but the local lectionary dataset has no entry; the API never guesses citations."
+            "description": "Uses LITURGY_TIMEZONE (America/Chicago by default) to determine today’s date. Each available reading includes mapped local NABRE text by default or Biblia de Jerusalén text for locale=es or es-*. Spanish readings also include localizedCitation. A 404 READINGS_NOT_FOUND means the calendar resolved but the local lectionary dataset has no entry; the API never guesses citations."
           }
         },
         {
@@ -478,7 +478,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/liturgy/readings/2026-12-25?country=US",
+              "raw": "{{baseUrl}}/api/v1/liturgy/readings/2026-12-25?country=US&locale=es",
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "liturgy", "readings", "2026-12-25"],
               "query": [
@@ -486,10 +486,15 @@
                   "key": "country",
                   "value": "US",
                   "description": "Optional two-letter country code."
+                },
+                {
+                  "key": "locale",
+                  "value": "es",
+                  "description": "Selects Spanish Biblia de Jerusalén verse text."
                 }
               ]
             },
-            "description": "The date path must be a real YYYY-MM-DD value. Every reading includes mapped local NABRE verse text. Christmas returns its Vigil, Night, Dawn, and Day variants in readingSets, while readings exposes the first valid set for convenience."
+            "description": "The date path must be a real YYYY-MM-DD value. Available readings include mapped local NABRE text by default or Biblia de Jerusalén text for locale=es or es-*. Christmas returns its Vigil, Night, Dawn, and Day variants in readingSets, while readings exposes the first valid set for convenience."
           }
         }
       ]
@@ -1624,7 +1629,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"activityCode\": \"PRAYER\",\n  \"occurredAt\": \"2026-07-18T08:00:00-07:00\",\n  \"completedAt\": \"2026-07-18T08:30:00-07:00\",\n  \"durationSeconds\": 1800,\n  \"quantity\": 1,\n  \"countryCode\": \"US\",\n  \"metadata\": {}\n}",
+              "raw": "{\n  \"activityCode\": \"SCRIPTURE\",\n  \"occurredAt\": \"2026-09-22T08:00:00-05:00\",\n  \"completedAt\": \"2026-09-22T08:20:00-05:00\",\n  \"durationSeconds\": 1200,\n  \"quantity\": 1,\n  \"countryCode\": \"US\",\n  \"metadata\": {\n    \"passage\": \"Luke 10:25-37\",\n    \"translation\": \"NRSVCE\"\n  }\n}",
               "options": { "raw": { "language": "json" } }
             },
             "url": {
@@ -1632,8 +1637,36 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "activities"]
             },
-            "description": "Records a spiritual activity through a transactional RPC. The server calculates XP, challenge updates, equipment-requirement progress, and mapped defense completion. Supply activityCode, occurredAt, quantity, and optional completedAt, durationSeconds, countryCode, or metadata. Include a UUID Idempotency-Key header for each submission."
-          }
+            "description": "Records a spiritual activity through a transactional RPC. The server calculates XP, challenge updates, equipment-requirement progress, and mapped defense completion. Supply activityCode, occurredAt, quantity, and optional completedAt, durationSeconds, countryCode, or metadata. For Scripture activities, passage and translation can be supplied as metadata. Include a UUID Idempotency-Key header for each submission."
+          },
+          "response": [
+            {
+              "name": "201 Created — Scripture activity recorded",
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "cookie": [],
+              "body": "{\n  \"data\": {\n    \"replayed\": false,\n    \"activity\": {\n      \"id\": \"40000000-0000-4000-8000-000000000002\",\n      \"user_id\": \"9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002\",\n      \"activity_code\": \"SCRIPTURE\",\n      \"occurred_at\": \"2026-09-22T13:00:00+00:00\",\n      \"completed_at\": \"2026-09-22T13:20:00+00:00\",\n      \"duration_seconds\": 1200,\n      \"quantity\": 1,\n      \"verification_status\": \"self_reported\",\n      \"source\": \"manual\",\n      \"country_code\": \"US\",\n      \"idempotency_key\": \"a1000000-0000-4000-8000-000000000001\",\n      \"metadata\": {\n        \"passage\": \"Luke 10:25-37\",\n        \"translation\": \"NRSVCE\"\n      },\n      \"created_at\": \"2026-09-22T13:20:01+00:00\"\n    },\n    \"progressUpdates\": [],\n    \"battleUpdates\": [],\n    \"newBadges\": [],\n    \"xp\": {\n      \"points\": 20,\n      \"totalXp\": 965,\n      \"currentLevel\": 3\n    }\n  }\n}"
+            },
+            {
+              "name": "422 Unprocessable Entity — Invalid activity payload",
+              "status": "Unprocessable Entity",
+              "code": 422,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json" },
+                {
+                  "key": "x-request-id",
+                  "value": "req_activity_validation_01"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"error\": {\n    \"code\": \"VALIDATION_ERROR\",\n    \"message\": \"The request payload is invalid.\",\n    \"details\": {\n      \"formErrors\": [],\n      \"fieldErrors\": {\n        \"occurredAt\": [\n          \"Invalid ISO datetime\"\n        ]\n      }\n    },\n    \"requestId\": \"req_activity_validation_01\"\n  }\n}"
+            }
+          ]
         }
       ]
     },

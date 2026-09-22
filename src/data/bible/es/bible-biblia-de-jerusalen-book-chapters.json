@@ -1,0 +1,294 @@
+[
+  {
+    "Book": "Génesis",
+    "Chapters": 50
+  },
+  {
+    "Book": "Éxodo",
+    "Chapters": 40
+  },
+  {
+    "Book": "Levítico",
+    "Chapters": 27
+  },
+  {
+    "Book": "Números",
+    "Chapters": 36
+  },
+  {
+    "Book": "Deuteronomio",
+    "Chapters": 34
+  },
+  {
+    "Book": "Josué",
+    "Chapters": 24
+  },
+  {
+    "Book": "Jueces",
+    "Chapters": 21
+  },
+  {
+    "Book": "Rut",
+    "Chapters": 4
+  },
+  {
+    "Book": "1 Samuel",
+    "Chapters": 31
+  },
+  {
+    "Book": "2 Samuel",
+    "Chapters": 24
+  },
+  {
+    "Book": "1 Reyes",
+    "Chapters": 22
+  },
+  {
+    "Book": "2 Reyes",
+    "Chapters": 25
+  },
+  {
+    "Book": "1 Crónicas",
+    "Chapters": 29
+  },
+  {
+    "Book": "2 Crónicas",
+    "Chapters": 36
+  },
+  {
+    "Book": "Esdras",
+    "Chapters": 10
+  },
+  {
+    "Book": "Nehemías",
+    "Chapters": 13
+  },
+  {
+    "Book": "Tobías",
+    "Chapters": 14
+  },
+  {
+    "Book": "Judit",
+    "Chapters": 16
+  },
+  {
+    "Book": "Ester",
+    "Chapters": 16
+  },
+  {
+    "Book": "1 Macabeos",
+    "Chapters": 16
+  },
+  {
+    "Book": "2 Macabeos",
+    "Chapters": 15
+  },
+  {
+    "Book": "Job",
+    "Chapters": 42
+  },
+  {
+    "Book": "Salmos",
+    "Chapters": 150
+  },
+  {
+    "Book": "Proverbios",
+    "Chapters": 31
+  },
+  {
+    "Book": "Eclesiastés",
+    "Chapters": 12
+  },
+  {
+    "Book": "Cantar de los Cantares",
+    "Chapters": 8
+  },
+  {
+    "Book": "Sabiduría",
+    "Chapters": 19
+  },
+  {
+    "Book": "Eclesiástico",
+    "Chapters": 52
+  },
+  {
+    "Book": "Isaías",
+    "Chapters": 66
+  },
+  {
+    "Book": "Jeremías",
+    "Chapters": 52
+  },
+  {
+    "Book": "Lamentaciones",
+    "Chapters": 5
+  },
+  {
+    "Book": "Baruc",
+    "Chapters": 6
+  },
+  {
+    "Book": "Ezequiel",
+    "Chapters": 48
+  },
+  {
+    "Book": "Daniel",
+    "Chapters": 14
+  },
+  {
+    "Book": "Oseas",
+    "Chapters": 14
+  },
+  {
+    "Book": "Joel",
+    "Chapters": 4
+  },
+  {
+    "Book": "Amós",
+    "Chapters": 9
+  },
+  {
+    "Book": "Abdías",
+    "Chapters": 1
+  },
+  {
+    "Book": "Jonás",
+    "Chapters": 4
+  },
+  {
+    "Book": "Miqueas",
+    "Chapters": 7
+  },
+  {
+    "Book": "Nahúm",
+    "Chapters": 3
+  },
+  {
+    "Book": "Habacuc",
+    "Chapters": 3
+  },
+  {
+    "Book": "Sofonías",
+    "Chapters": 3
+  },
+  {
+    "Book": "Ageo",
+    "Chapters": 2
+  },
+  {
+    "Book": "Zacarías",
+    "Chapters": 14
+  },
+  {
+    "Book": "Malaquías",
+    "Chapters": 3
+  },
+  {
+    "Book": "Mateo",
+    "Chapters": 28
+  },
+  {
+    "Book": "Marcos",
+    "Chapters": 16
+  },
+  {
+    "Book": "Lucas",
+    "Chapters": 24
+  },
+  {
+    "Book": "Juan",
+    "Chapters": 21
+  },
+  {
+    "Book": "Hechos",
+    "Chapters": 28
+  },
+  {
+    "Book": "Romanos",
+    "Chapters": 16
+  },
+  {
+    "Book": "1 Corintios",
+    "Chapters": 16
+  },
+  {
+    "Book": "2 Corintios",
+    "Chapters": 13
+  },
+  {
+    "Book": "Gálatas",
+    "Chapters": 6
+  },
+  {
+    "Book": "Efesios",
+    "Chapters": 6
+  },
+  {
+    "Book": "Filipenses",
+    "Chapters": 4
+  },
+  {
+    "Book": "Colosenses",
+    "Chapters": 4
+  },
+  {
+    "Book": "1 Tesalonicenses",
+    "Chapters": 5
+  },
+  {
+    "Book": "2 Tesalonicenses",
+    "Chapters": 3
+  },
+  {
+    "Book": "1 Timoteo",
+    "Chapters": 6
+  },
+  {
+    "Book": "2 Timoteo",
+    "Chapters": 4
+  },
+  {
+    "Book": "Tito",
+    "Chapters": 3
+  },
+  {
+    "Book": "Filemón",
+    "Chapters": 1
+  },
+  {
+    "Book": "Hebreos",
+    "Chapters": 13
+  },
+  {
+    "Book": "Santiago",
+    "Chapters": 5
+  },
+  {
+    "Book": "1 Pedro",
+    "Chapters": 5
+  },
+  {
+    "Book": "2 Pedro",
+    "Chapters": 3
+  },
+  {
+    "Book": "1 Juan",
+    "Chapters": 5
+  },
+  {
+    "Book": "2 Juan",
+    "Chapters": 1
+  },
+  {
+    "Book": "3 Juan",
+    "Chapters": 1
+  },
+  {
+    "Book": "Judas",
+    "Chapters": 1
+  },
+  {
+    "Book": "Apocalipsis",
+    "Chapters": 22
+  }
+]
