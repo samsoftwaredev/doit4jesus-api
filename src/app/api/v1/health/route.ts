@@ -5,7 +5,7 @@ export const dynamic = 'force-dynamic';
 export async function GET() {
   return ok({
     status: 'ok',
-    service: 'holy-competition-api',
+    service: 'doit4jesus-api',
     timestamp: new Date().toISOString(),
   });
 }

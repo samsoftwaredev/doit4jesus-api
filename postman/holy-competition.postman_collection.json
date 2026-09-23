@@ -1,8 +1,8 @@
 {
   "info": {
-    "name": "Holy Competition API",
-    "_postman_id": "holy-competition-api-v1",
-    "description": "REST API for the Holy Competition app. Built with Next.js Route Handlers and Supabase Auth.\n\n**Authentication**\nAll endpoints (except `/health`) require a valid Supabase JWT.\nSet the `accessToken` collection variable to your Supabase `access_token` and every request will include it automatically as a Bearer token.\n\n**Idempotency**\nEvery reward-bearing POST requires an `Idempotency-Key`. Keep the same key when retrying a request; use a new key for a new action.\n\n**Base URL**\nSwitch the `baseUrl` variable between `http://localhost:3000` (local) and your production URL.",
+    "name": "DoIt4Jesus API",
+    "_postman_id": "doit4jesus-api-v1",
+    "description": "REST API for the DoIt4Jesus app. Built with Next.js Route Handlers and Supabase Auth.\n\n**Authentication**\nAll endpoints (except `/health`) require a valid Supabase JWT.\nSet the `accessToken` collection variable to your Supabase `access_token` and every request will include it automatically as a Bearer token.\n\n**Idempotency**\nEvery reward-bearing POST requires an `Idempotency-Key`. Keep the same key when retrying a request; use a new key for a new action.\n\n**Base URL**\nSwitch the `baseUrl` variable between `http://localhost:3000` (local) and your production URL.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [

@@ -15,7 +15,7 @@ authorized application.
 Regenerate the checked-in files from the pinned upstream input with:
 
 ```sh
-pnpm import:spanish-bible -- --input=/path/to/BibliAPI/db/biblia.json
+npm run import:spanish-bible -- --input=/path/to/BibliAPI/db/biblia.json
 ```
 
 The importer verifies the source file's SHA-256 checksum before writing any

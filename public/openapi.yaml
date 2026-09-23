@@ -1,6 +1,6 @@
 openapi: 3.1.0
 info:
-  title: Holy Competition API
+  title: DoIt4Jesus API
   version: 1.0.0
   description: >-
     REST API implemented with Next.js 16 Route Handlers and Supabase Auth.
@@ -24,7 +24,7 @@ paths:
               example:
                 data:
                   status: ok
-                  service: holy-competition-api
+                  service: doit4jesus-api
                   timestamp: '2026-08-17T12:00:00.000Z'
   /api/v1/contact-requests:
     post:

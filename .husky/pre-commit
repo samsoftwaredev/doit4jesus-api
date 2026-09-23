@@ -1,1 +1,1 @@
-pnpm run verify:commit
+npm run verify:commit

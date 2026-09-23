@@ -1,4 +1,4 @@
-# Holy Competition API
+# DoIt4Jesus API
 
 Production-oriented API scaffold for the supplied PostgreSQL/Supabase schema, implemented with Next.js 16 App Router Route Handlers and deployable to Vercel.
 

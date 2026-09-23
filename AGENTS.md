@@ -4,7 +4,7 @@
 
 This is a Next.js TypeScript application backed by Supabase/PostgreSQL.
 
-- Package manager: pnpm 10.5.2.
+- Package manager: npm 11.19.0.
 - Node.js: 24 or newer.
 - Tests: Jest.
 - API routes: `src/app/api/v1/`.
@@ -16,13 +16,13 @@ This is a Next.js TypeScript application backed by Supabase/PostgreSQL.
 
 ## Development commands
 
-- Install dependencies: `pnpm install`.
-- Start the development server: `pnpm dev`.
-- Type-check: `pnpm typecheck`.
-- Check linting: `pnpm lint:check`.
-- Check formatting: `pnpm format:check`.
-- Run tests: `pnpm test`.
-- Run full pre-push verification: `pnpm verify:push`.
+- Install dependencies: `npm install` (or `npm ci` for a clean lockfile install).
+- Start the development server: `npm run dev`.
+- Type-check: `npm run typecheck`.
+- Check linting: `npm run lint:check`.
+- Check formatting: `npm run format:check`.
+- Run tests: `npm test`.
+- Run full pre-push verification: `npm run verify:push`.
 
 ## API changes
 

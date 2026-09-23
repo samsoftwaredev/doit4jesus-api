@@ -2,7 +2,7 @@
   "name": "doit4jesus",
   "version": "0.1.0",
   "private": true,
-  "packageManager": "pnpm@10.5.2",
+  "packageManager": "npm@11.19.0",
   "engines": {
     "node": ">=24.0.0"
   },
@@ -17,8 +17,8 @@
     "typecheck": "tsc --noEmit --project tsconfig.verify.json",
     "check:outdated": "node scripts/check-outdated-packages.mjs",
     "check:outdated:strict": "node scripts/check-outdated-packages.mjs --strict",
-    "verify:commit": "pnpm run typecheck && pnpm run format && pnpm run lint && pnpm test && pnpm run check:outdated",
-    "verify:push": "pnpm run typecheck && pnpm run format:check && pnpm run lint:check && pnpm test && pnpm run check:outdated:strict",
+    "verify:commit": "npm run typecheck && npm run format && npm run lint && npm test && npm run check:outdated",
+    "verify:push": "npm run typecheck && npm run format:check && npm run lint:check && npm test && npm run check:outdated:strict",
     "import:spanish-bible": "node scripts/import-spanish-bible.mjs",
     "import:usccb-lectionary": "node scripts/import-usccb-lectionary.mjs",
     "import:usccb-calendar": "node scripts/import-usccb-calendar-text.mjs",

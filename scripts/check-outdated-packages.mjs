@@ -9,15 +9,11 @@
 import { spawnSync } from 'node:child_process';
 
 const strict = process.argv.includes('--strict');
-const result = spawnSync(
-  'pnpm',
-  ['outdated', '--format', 'json', '--no-color'],
-  {
-    encoding: 'utf8',
-    shell: process.platform === 'win32',
-    timeout: 15_000,
-  },
-);
+const result = spawnSync('npm', ['outdated', '--json', '--color=false'], {
+  encoding: 'utf8',
+  shell: process.platform === 'win32',
+  timeout: 15_000,
+});
 
 function failOrWarn(message) {
   const output = strict ? console.error : console.warn;
@@ -39,7 +35,7 @@ if (result.error) {
         }));
   } catch {
     failOrWarn(
-      `Unable to read pnpm outdated output: ${result.stderr.trim() || 'unknown error'}.`,
+      `Unable to read npm outdated output: ${result.stderr.trim() || 'unknown error'}.`,
     );
   }
 

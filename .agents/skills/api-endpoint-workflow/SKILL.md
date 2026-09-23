@@ -43,7 +43,7 @@ Keep OpenAPI requiredness, nullability, enums, bounds, defaults, and examples al
 
 Cover the success path and relevant contract boundaries: authentication, malformed JSON, invalid or omitted inputs, normalization, pagination, database error mapping, idempotent replay, and response shape. Avoid assertions that merely duplicate implementation details.
 
-Run the smallest focused Jest command first, then `pnpm typecheck`, `pnpm lint:check`, and `pnpm format:check` for changed code. Run `pnpm verify:push` when the change is broad or before final handoff if practical. Report exactly which checks ran and any checks that remain.
+Run the smallest focused Jest command first, then `npm run typecheck`, `npm run lint:check`, and `npm run format:check` for changed code. Run `npm run verify:push` when the change is broad or before final handoff if practical. Report exactly which checks ran and any checks that remain.
 
 ## Handoff
 

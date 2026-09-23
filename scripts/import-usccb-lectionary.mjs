@@ -6,9 +6,9 @@
  * never call USCCB.
  *
  * Examples:
- *   pnpm import:usccb-lectionary -- --year=2026
- *   pnpm import:usccb-lectionary -- --from=2026-08-22 --to=2026-12-31
- *   pnpm import:usccb-lectionary -- --input-html=/path/to/page.html --date=2026-11-02
+ *   npm run import:usccb-lectionary -- --year=2026
+ *   npm run import:usccb-lectionary -- --from=2026-08-22 --to=2026-12-31
+ *   npm run import:usccb-lectionary -- --input-html=/path/to/page.html --date=2026-11-02
  */
 import { readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';

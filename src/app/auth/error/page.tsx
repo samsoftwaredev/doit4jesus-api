@@ -28,11 +28,7 @@ export default function AuthErrorPage() {
             one.
           </Typography>
           <Stack spacing={1.5}>
-            <Button
-              href="/auth/login"
-              variant="contained"
-              size="large"
-            >
+            <Button href="/auth/login" variant="contained" size="large">
               Back to Sign In
             </Button>
             <Button

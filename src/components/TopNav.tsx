@@ -65,7 +65,7 @@ export default function TopNav() {
             fontWeight={700}
             sx={{ textDecoration: 'none', color: 'inherit', flexGrow: 1 }}
           >
-            Holy Competition
+            DoIt4Jesus
           </Typography>
 
           {/* Right side */}

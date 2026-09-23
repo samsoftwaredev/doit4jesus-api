@@ -45,7 +45,7 @@ export default function HomePage() {
     >
       <Stack alignItems="center" spacing={3}>
         <Typography variant="h3" component="h1" fontWeight={700}>
-          Holy Competition
+          DoIt4Jesus
         </Typography>
         <Stack direction="row" spacing={2}>
           <Button variant="contained" size="large" href="/auth/login">

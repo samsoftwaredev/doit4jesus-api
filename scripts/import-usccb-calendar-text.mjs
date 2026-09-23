@@ -10,7 +10,7 @@
  * a richer daily USCCB record already in the snapshot always takes precedence.
  *
  * Extract the source with a local PDF-text tool, then run:
- *   pnpm import:usccb-calendar -- --input=/path/to/2026cal.txt --year=2026
+ *   npm run import:usccb-calendar -- --input=/path/to/2026cal.txt --year=2026
  */
 import { readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';

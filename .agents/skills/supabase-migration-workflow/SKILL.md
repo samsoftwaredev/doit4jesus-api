@@ -51,7 +51,7 @@ Never execute a migration against a hosted project unless the user explicitly re
 - Validate SQL against a local database when available. Use fail-fast execution and a transaction when the operation supports it.
 - For destructive SQL, satisfy the destructive-operation gate even on a local database with valuable state.
 - Run seed verification when seed data changes.
-- Run relevant Jest tests and `pnpm typecheck`; add lint and formatting checks when TypeScript or documentation changed.
+- Run relevant Jest tests and `npm run typecheck`; add lint and formatting checks when TypeScript or documentation changed.
 - Query the resulting catalogs, function signatures, policies, grants, constraints, indexes, and representative data rather than treating a zero exit code as complete verification.
 
 Report the migration filename, affected objects and rows, execution environment, synchronization work, commands run, and any unapplied or unverified state.

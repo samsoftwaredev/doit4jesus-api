@@ -19,7 +19,7 @@ The generated `src/data/username-prohibited-terms.json` records these source
 identifiers and checksums. Rebuild it with:
 
 ```bash
-pnpm run build:username-profanity
+npm run build:username-profanity
 ```
 
 ## Matching policy
