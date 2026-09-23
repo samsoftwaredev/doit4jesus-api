@@ -1,9 +1,9 @@
 /** @jest-environment node */
 import { NextRequest } from 'next/server';
 
-import { middleware } from '../src/middleware';
+import { proxy } from '../src/proxy';
 
-describe('API CORS middleware', () => {
+describe('API CORS proxy', () => {
   it('allows the Idempotency-Key header in localhost preflight requests', () => {
     const request = new NextRequest('http://localhost:3000/api/v1/activities', {
       method: 'OPTIONS',
@@ -15,7 +15,7 @@ describe('API CORS middleware', () => {
       },
     });
 
-    const response = middleware(request);
+    const response = proxy(request);
     const allowedHeaders =
       response.headers
         .get('Access-Control-Allow-Headers')

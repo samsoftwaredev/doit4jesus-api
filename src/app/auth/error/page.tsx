@@ -4,7 +4,6 @@ import Container from '@mui/material/Container';
 import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import NextLink from 'next/link';
 
 export default function AuthErrorPage() {
   return (
@@ -30,7 +29,6 @@ export default function AuthErrorPage() {
           </Typography>
           <Stack spacing={1.5}>
             <Button
-              component={NextLink}
               href="/auth/login"
               variant="contained"
               size="large"
@@ -38,7 +36,6 @@ export default function AuthErrorPage() {
               Back to Sign In
             </Button>
             <Button
-              component={NextLink}
               href="/auth/forgot-password"
               variant="outlined"
               size="large"

@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 const LOCALHOST_ORIGIN = /^http:\/\/localhost(:\d+)?$/;
 const ALLOWED_HEADERS = 'Content-Type, Authorization, Idempotency-Key';
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const origin = request.headers.get('origin') ?? '';
   const isLocalhostOrigin = LOCALHOST_ORIGIN.test(origin);
 

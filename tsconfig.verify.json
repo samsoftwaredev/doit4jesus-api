@@ -11,5 +11,5 @@
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts"
   ],
-  "exclude": ["node_modules", "supabase/functions", "__test__", "utils"]
+  "exclude": ["node_modules", "supabase/functions", "__test__"]
 }
