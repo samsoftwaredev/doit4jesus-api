@@ -1246,6 +1246,63 @@
       ]
     },
     {
+      "name": "Screen Data",
+      "description": "Authenticated aggregate snapshots for the initial Home, Prayer, and Community screens. Each request loads only the selected screen; global Rosary stats remains a separate lazy request.",
+      "item": [
+        {
+          "name": "Get Home screen data",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/screen-data?screen=home&country=US&diocese=dallas&locale=en-US",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "screen-data"],
+              "query": [
+                { "key": "screen", "value": "home" },
+                { "key": "country", "value": "US" },
+                { "key": "diocese", "value": "dallas" },
+                { "key": "locale", "value": "en-US" }
+              ]
+            },
+            "description": "Returns the Home sections. Isolated section failures are represented by a null section and `meta.errors`."
+          }
+        },
+        {
+          "name": "Get Prayer screen data",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/screen-data?screen=prayer&selectedMonth=7&selectedYear=2026",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "screen-data"],
+              "query": [
+                { "key": "screen", "value": "prayer" },
+                { "key": "selectedMonth", "value": "7" },
+                { "key": "selectedYear", "value": "2026" }
+              ]
+            },
+            "description": "Returns the Prayer initial sections; global Rosary stats is intentionally not included."
+          }
+        },
+        {
+          "name": "Get Community screen data",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/screen-data?screen=community",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "screen-data"],
+              "query": [{ "key": "screen", "value": "community" }]
+            },
+            "description": "Returns friends, incoming pending friend requests, and the weekly friends leaderboard."
+          }
+        }
+      ]
+    },
+    {
       "name": "Progress & Levels",
       "description": "XP progress, level breakdown, and the full level definition catalog.",
       "item": [

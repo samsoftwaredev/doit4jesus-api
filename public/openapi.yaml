@@ -1357,6 +1357,60 @@ paths:
                         rosariesPrayed: 42
                         percentage: 0.3402
         '401': { $ref: '#/components/responses/Unauthorized' }
+  /api/v1/screen-data:
+    get:
+      summary: Load initial data for one authenticated application screen
+      description: >-
+        Loads the fixed initial sections for Home, Prayer, or Community in
+        parallel. Each successful section preserves its source endpoint's
+        `data` and optional `meta` payload. A failed independent section is
+        returned as null and described by `meta.errors`; request validation and
+        authentication failures remain normal top-level errors. Global Rosary
+        statistics are intentionally excluded and remain lazy-loaded.
+      parameters:
+        - in: query
+          name: screen
+          required: true
+          schema: { type: string, enum: [home, prayer, community] }
+        - in: query
+          name: country
+          schema: { type: string, minLength: 1, maxLength: 10 }
+          description: Optional Home liturgy country.
+        - in: query
+          name: diocese
+          schema: { type: string, minLength: 1, maxLength: 120 }
+          description: Optional Home liturgy diocese.
+        - in: query
+          name: locale
+          schema: { type: string, minLength: 1, maxLength: 35 }
+          description: Optional Home liturgy locale.
+        - in: query
+          name: selectedMonth
+          schema: { type: integer, minimum: 1, maximum: 12 }
+          description: Optional Prayer Rosary-completion month.
+        - in: query
+          name: selectedYear
+          schema: { type: integer, minimum: 1, maximum: 9998 }
+          description: Optional Prayer Rosary-completion year.
+      responses:
+        '200':
+          description: Requested screen snapshot, including any isolated section errors
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ScreenDataResponse' }
+              examples:
+                community:
+                  value:
+                    data:
+                      screen: community
+                      sections:
+                        friends: { data: [], meta: { limit: 20, offset: 0, hasMore: false, nextOffset: null } }
+                        incomingFriendRequests: { data: [], meta: { limit: 20, offset: 0, hasMore: false, nextOffset: null } }
+                        friendsWeeklyLeaderboard: { data: [] }
+                    meta:
+                      errors: {}
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '422': { $ref: '#/components/responses/ValidationError' }
   /api/v1/progress:
     get:
       summary: Get XP and level progress
@@ -1956,6 +2010,49 @@ components:
     ValidationError:
       description: Request validation failed
   schemas:
+    ScreenDataResponse:
+      type: object
+      additionalProperties: false
+      required: [data, meta]
+      properties:
+        data:
+          type: object
+          additionalProperties: false
+          required: [screen, sections]
+          properties:
+            screen: { type: string, enum: [home, prayer, community] }
+            sections:
+              type: object
+              description: >-
+                Home keys: rosaryStreak, rosaryStats, progress, rosaryReminder,
+                liturgyToday, scriptureActivities, levels, rosaryActivities,
+                examinationQuestion, badges. Prayer keys: prayerIntentions, me,
+                rosaryCompletion, rosaryStreak, weeklyGlobalLeaderboard,
+                yearlyGlobalLeaderboard. Community keys: friends,
+                incomingFriendRequests, friendsWeeklyLeaderboard. Each value is
+                either `{ data, meta? }`, matching its standalone endpoint, or null.
+              additionalProperties:
+                anyOf:
+                  - type: 'null'
+                  - type: object
+                    required: [data]
+                    properties:
+                      data: {}
+                      meta: { type: object, additionalProperties: true }
+        meta:
+          type: object
+          additionalProperties: false
+          required: [errors]
+          properties:
+            errors:
+              type: object
+              additionalProperties:
+                type: object
+                additionalProperties: false
+                required: [code, message]
+                properties:
+                  code: { type: string }
+                  message: { type: string }
     ContactSubject:
       type: string
       description: |-
