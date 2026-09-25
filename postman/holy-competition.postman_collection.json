@@ -297,6 +297,30 @@
           }
         },
         {
+          "name": "Delete user account",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/users/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "admin", "users", "{{userId}}"]
+            },
+            "description": "Administrator-only permanent deletion of the target Auth account and linked application data. Qualifying Rosary quantities remain only in the anonymous global total."
+          },
+          "response": [
+            {
+              "name": "204 No Content",
+              "status": "No Content",
+              "code": 204,
+              "_postman_previewlanguage": "text",
+              "header": [],
+              "cookie": [],
+              "body": ""
+            }
+          ]
+        },
+        {
           "name": "Make a prayer intention visible",
           "request": {
             "method": "PATCH",
@@ -1121,6 +1145,30 @@
               ],
               "cookie": [],
               "body": "{\n  \"data\": {\n    \"userId\": \"9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002\",\n    \"displayName\": \"Samuel Ruiz\",\n    \"username\": \"SamuelR\",\n    \"avatarUrl\": null,\n    \"title\": null,\n    \"gender\": \"male\",\n    \"saintAvatarId\": null,\n    \"preferredLanguage\": \"en\",\n    \"timezone\": \"America/Chicago\",\n    \"countryCode\": \"US\",\n    \"countryName\": \"United States\",\n    \"leaderboardVisibility\": \"public\",\n    \"prayerMapVisibility\": \"aggregated\",\n    \"profileSetup\": {\n      \"complete\": true,\n      \"missingFields\": [],\n      \"nextStep\": null,\n      \"completedAt\": null\n    },\n    \"createdAt\": \"2026-08-28T18:40:00.000Z\",\n    \"updatedAt\": \"2026-08-28T18:48:00.000Z\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Delete current account",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "me"]
+            },
+            "description": "Permanently deletes the authenticated user's Auth account and linked application data. Qualifying Rosary quantities are retained only in the anonymous global lifetime total. This action cannot be undone."
+          },
+          "response": [
+            {
+              "name": "204 No Content",
+              "status": "No Content",
+              "code": 204,
+              "_postman_previewlanguage": "text",
+              "header": [],
+              "cookie": [],
+              "body": ""
             }
           ]
         },

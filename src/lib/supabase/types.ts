@@ -138,6 +138,21 @@ export type Database = {
         Update: never;
         Relationships: [];
       };
+      deleted_account_rosary_totals: {
+        Row: {
+          singleton: boolean;
+          rosaries_prayed: number;
+        };
+        Insert: {
+          singleton?: boolean;
+          rosaries_prayed?: number;
+        };
+        Update: Partial<{
+          singleton: boolean;
+          rosaries_prayed: number;
+        }>;
+        Relationships: [];
+      };
       user_profiles: {
         Row: {
           user_id: string;
@@ -970,6 +985,10 @@ export type Database = {
       get_global_rosary_stats: {
         Args: Record<string, never>;
         Returns: Json;
+      };
+      delete_user_account: {
+        Args: { p_user_id: string };
+        Returns: undefined;
       };
       search_users: {
         Args: {

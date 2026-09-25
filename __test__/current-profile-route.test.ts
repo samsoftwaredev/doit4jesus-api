@@ -1,4 +1,5 @@
-import { GET, PATCH } from '../src/app/api/v1/me/route';
+import { DELETE, GET, PATCH } from '../src/app/api/v1/me/route';
+import { ApiError } from '../src/lib/api/errors';
 import { errorResponse } from '../src/lib/api/response';
 import { requireUser } from '../src/lib/auth/require-user';
 
@@ -9,6 +10,7 @@ jest.mock('../src/lib/auth/require-user', () => ({
 jest.mock('../src/lib/api/response', () => ({
   errorResponse: jest.fn(),
   ok: (data: unknown) => ({ json: async () => ({ data }) }),
+  noContent: () => ({ status: 204 }),
 }));
 
 const mockedRequireUser = jest.mocked(requireUser);
@@ -45,6 +47,21 @@ function countryQuery(country = { name: 'United States' }) {
 }
 
 describe('/api/v1/me', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('rejects an unauthenticated account-deletion request', async () => {
+    mockedRequireUser.mockRejectedValue(ApiError.unauthorized());
+
+    await DELETE({ url: 'http://localhost/api/v1/me' } as Request);
+
+    expect(mockedErrorResponse).toHaveBeenCalledWith(
+      expect.objectContaining({ status: 401, code: 'UNAUTHORIZED' }),
+      expect.anything(),
+    );
+  });
+
   it('returns persisted identity fields and the resolved country name', async () => {
     const profileQuery: Record<string, jest.Mock> = {};
     profileQuery.select = jest.fn().mockReturnValue(profileQuery);
@@ -144,6 +161,42 @@ describe('/api/v1/me', () => {
         code: 'VALIDATION_ERROR',
         details: { reason: 'PROHIBITED_TERM' },
       }),
+      expect.anything(),
+    );
+  });
+
+  it('permanently deletes the current account and preserves its anonymous Rosary contribution', async () => {
+    const rpc = jest.fn().mockResolvedValue({ data: null, error: null });
+    const supabase = { schema: jest.fn(() => ({ rpc })) };
+    mockedRequireUser.mockResolvedValue({ supabase, userId } as never);
+
+    const response = await DELETE({
+      url: 'http://localhost/api/v1/me',
+    } as Request);
+
+    expect(rpc).toHaveBeenCalledWith('delete_user_account', {
+      p_user_id: userId,
+    });
+    expect(response.status).toBe(204);
+  });
+
+  it('returns a safe error when account deletion fails', async () => {
+    const rpc = jest.fn().mockResolvedValue({
+      data: null,
+      error: { code: 'XX000', message: 'internal details' },
+    });
+    const supabase = { schema: jest.fn(() => ({ rpc })) };
+    mockedRequireUser.mockResolvedValue({ supabase, userId } as never);
+    const consoleError = jest
+      .spyOn(console, 'error')
+      .mockImplementation(() => undefined);
+
+    await DELETE({ url: 'http://localhost/api/v1/me' } as Request);
+
+    consoleError.mockRestore();
+
+    expect(mockedErrorResponse).toHaveBeenCalledWith(
+      expect.anything(),
       expect.anything(),
     );
   });

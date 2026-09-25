@@ -83,6 +83,23 @@ paths:
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { description: Administrator role required }
         '422': { $ref: '#/components/responses/ValidationError' }
+  /api/v1/admin/users/{userId}:
+    delete:
+      summary: Permanently delete a user account
+      description: >-
+        Administrator-only account deletion. It permanently deletes the target
+        user's Auth identity and linked application data while retaining only
+        their anonymous qualifying Rosary contribution in the global total.
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '204': { description: Account permanently deleted. The successful response body is empty. }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { description: Administrator role required }
+        '422': { $ref: '#/components/responses/ValidationError' }
   /api/v1/prayer-intentions:
     get:
       summary: List approved, unexpired prayer-intention cards
@@ -1123,6 +1140,15 @@ paths:
                 data: { userId: 9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002, displayName: Test User, username: testuser, avatarUrl: 'https://example.com/avatars/testuser.png', title: Prayer Warrior, gender: male, saintAvatarId: null, preferredLanguage: en, timezone: America/Chicago, countryCode: US, countryName: United States, leaderboardVisibility: public, prayerMapVisibility: aggregated, profileSetup: { complete: true, missingFields: [], nextStep: null, completedAt: '2026-08-17T12:00:00Z' }, createdAt: '2026-06-01T12:00:00Z', updatedAt: '2026-08-17T12:00:00Z' }
         '409': { description: Username conflict }
         '422': { $ref: '#/components/responses/ValidationError' }
+    delete:
+      summary: Permanently delete the current account
+      description: >-
+        Permanently deletes the authenticated user's Auth identity and linked
+        application data. The account's qualifying Rosary quantity is retained
+        only as an anonymous contribution to the global lifetime total.
+      responses:
+        '204': { description: Account permanently deleted. The successful response body is empty. }
+        '401': { $ref: '#/components/responses/Unauthorized' }
   /api/v1/me/notification-preferences:
     get:
       summary: Get the current user's reminder preferences

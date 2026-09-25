@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+export const accountUserIdSchema = z.uuid();
+
 export const userSearchQuerySchema = z.object({
   q: z
     .string()

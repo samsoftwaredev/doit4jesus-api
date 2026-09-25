@@ -1,5 +1,5 @@
 import { throwDatabaseError } from '@/lib/api/database';
-import { errorResponse, ok } from '@/lib/api/response';
+import { errorResponse, noContent, ok } from '@/lib/api/response';
 import { readJson } from '@/lib/api/validation';
 import { requireUser } from '@/lib/auth/require-user';
 import {
@@ -63,6 +63,21 @@ export async function PATCH(request: Request) {
     throwDatabaseError(error, 'Unable to update the profile.');
     const location = await loadProfileLocation(supabase, data.country_code);
     return ok(toCurrentProfile(data, location));
+  } catch (error) {
+    return errorResponse(error, request);
+  }
+}
+
+export async function DELETE(request: Request) {
+  try {
+    const { supabase, userId } = await requireUser(request);
+    const { error: deletionError } = await supabase
+      .schema('api')
+      .rpc('delete_user_account', { p_user_id: userId });
+
+    throwDatabaseError(deletionError, 'Unable to delete the account.');
+
+    return noContent();
   } catch (error) {
     return errorResponse(error, request);
   }
