@@ -1128,6 +1128,25 @@ set
   idempotency_key = excluded.idempotency_key,
   metadata = excluded.metadata;
 
+-- Keep the daily Scripture completion fixture linked to its recorded activity.
+insert into prayer.daily_scripture_completions (
+  user_id,
+  reading_date,
+  activity_id,
+  completed_at
+)
+values
+  (
+    '9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002',
+    current_date - 1,
+    '40000000-0000-4000-8000-000000000002',
+    now() - interval '1 day'
+  )
+on conflict (user_id, reading_date) do update
+set
+  activity_id = excluded.activity_id,
+  completed_at = excluded.completed_at;
+
 -- Seed 25 distinct completed Rosary days for test@test.com in the fixed,
 -- historical month of July 2026. The timestamps are noon America/Chicago so
 -- each entry remains on its intended local calendar day.

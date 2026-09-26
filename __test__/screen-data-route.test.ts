@@ -79,7 +79,7 @@ describe('GET /api/v1/screen-data', () => {
       context,
       'ROSARY',
     );
-    expect(mockedLoaders.loadLiturgyToday).toHaveBeenCalledWith({
+    expect(mockedLoaders.loadLiturgyToday).toHaveBeenCalledWith(context, {
       screen: 'home',
       country: 'US',
       diocese: 'dallas',

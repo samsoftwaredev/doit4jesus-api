@@ -1,6 +1,7 @@
 import { GET as getReadings } from '../src/app/api/v1/liturgy/readings/[date]/route';
 import { GET as getToday } from '../src/app/api/v1/liturgy/today/route';
 import { requireUser } from '../src/lib/auth/require-user';
+import { loadDailyScriptureCompletion } from '../src/lib/liturgy/completion';
 import {
   applicationToday,
   getMassReadings,
@@ -18,10 +19,16 @@ jest.mock('../src/liturgy/MassReadingsService', () => ({
   applicationToday: jest.fn(),
   getMassReadings: jest.fn(),
 }));
+jest.mock('../src/lib/liturgy/completion', () => ({
+  loadDailyScriptureCompletion: jest.fn(),
+}));
 
 const mockedRequireUser = jest.mocked(requireUser);
 const mockedGetMassReadings = jest.mocked(getMassReadings);
 const mockedApplicationToday = jest.mocked(applicationToday);
+const mockedLoadDailyScriptureCompletion = jest.mocked(
+  loadDailyScriptureCompletion,
+);
 
 const payload = {
   date: '2026-08-21',
@@ -45,6 +52,10 @@ describe('liturgy routes', () => {
     mockedRequireUser.mockResolvedValue({ userId: 'user-id' } as never);
     mockedGetMassReadings.mockResolvedValue(payload);
     mockedApplicationToday.mockReturnValue('2026-08-21');
+    mockedLoadDailyScriptureCompletion.mockResolvedValue({
+      completed: false,
+      completedAt: null,
+    });
   });
 
   it('serves a validated day through the versioned readings route', async () => {
@@ -55,7 +66,12 @@ describe('liturgy routes', () => {
       { params: Promise.resolve({ date: '2026-08-21' }) },
     );
 
-    expect(await response.json()).toEqual({ data: payload });
+    expect(await response.json()).toEqual({
+      data: {
+        ...payload,
+        completion: { completed: false, completedAt: null },
+      },
+    });
     expect(response.headers.get('Content-Language')).toBe('en');
     expect(mockedGetMassReadings).toHaveBeenCalledWith({
       date: '2026-08-21',
@@ -84,7 +100,12 @@ describe('liturgy routes', () => {
       { params: Promise.resolve({ date: '2026-08-21' }) },
     );
 
-    expect(await response.json()).toEqual({ data: spanishPayload });
+    expect(await response.json()).toEqual({
+      data: {
+        ...spanishPayload,
+        completion: { completed: false, completedAt: null },
+      },
+    });
     expect(response.headers.get('Content-Language')).toBe('es');
     expect(mockedGetMassReadings).toHaveBeenCalledWith({
       date: '2026-08-21',
@@ -100,7 +121,12 @@ describe('liturgy routes', () => {
       url: 'http://localhost/api/v1/liturgy/today',
     } as Request);
 
-    expect(await response.json()).toEqual({ data: payload });
+    expect(await response.json()).toEqual({
+      data: {
+        ...payload,
+        completion: { completed: false, completedAt: null },
+      },
+    });
     expect(mockedApplicationToday).toHaveBeenCalledWith();
     expect(mockedGetMassReadings).toHaveBeenCalledWith({
       date: '2026-08-21',

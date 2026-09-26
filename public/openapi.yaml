@@ -1188,6 +1188,29 @@ paths:
                   eucharisticAdoration: false
         '401': { $ref: '#/components/responses/Unauthorized' }
         '422': { $ref: '#/components/responses/ValidationError' }
+  /api/v1/me/daily-scripture/completions:
+    post:
+      summary: Mark a Daily Scripture reading complete
+      description: >-
+        Validates the canonical reading date against the USCCB lectionary
+        before recording the authenticated user's permanent completion.
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CompleteDailyScripture' }
+      responses:
+        '201':
+          description: Daily Scripture completion and linked Scripture activity created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/DailyScriptureCompletionResponse' }
+        '200': { description: Existing completion replayed }
+        '400': { description: Missing or invalid idempotency key or JSON body }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '422': { $ref: '#/components/responses/ValidationError' }
   /api/v1/me/onboarding/complete:
     post:
       summary: Complete required profile onboarding
@@ -2521,7 +2544,7 @@ components:
     DailyMassReadings:
       type: object
       additionalProperties: false
-      required: [date, celebration, cycles, readings]
+      required: [date, celebration, cycles, readings, completion]
       properties:
         date: { type: string, format: date }
         celebration:
@@ -2547,6 +2570,7 @@ components:
         readings:
           type: array
           items: { $ref: '#/components/schemas/ScriptureReading' }
+        completion: { $ref: '#/components/schemas/DailyScriptureCompletion' }
         readingSets:
           type: array
           description: Present when a celebration offers multiple Mass formularies or options.
@@ -2573,6 +2597,28 @@ components:
       required: [data]
       properties:
         data: { $ref: '#/components/schemas/DailyMassReadings' }
+    DailyScriptureCompletion:
+      type: object
+      additionalProperties: false
+      required: [completed, completedAt]
+      properties:
+        completed: { type: boolean }
+        completedAt:
+          anyOf:
+            - { type: string, format: date-time }
+            - { type: 'null' }
+    CompleteDailyScripture:
+      type: object
+      additionalProperties: false
+      required: [readingDate]
+      properties:
+        readingDate: { type: string, format: date }
+    DailyScriptureCompletionResponse:
+      type: object
+      additionalProperties: false
+      required: [data]
+      properties:
+        data: { type: object }
     CountrySearchResult:
       type: object
       additionalProperties: false

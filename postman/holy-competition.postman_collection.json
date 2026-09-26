@@ -1123,6 +1123,27 @@
           ]
         },
         {
+          "name": "Complete Daily Scripture",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Idempotency-Key", "value": "{{$guid}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"readingDate\": \"2026-09-25\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/me/daily-scripture/completions",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "me", "daily-scripture", "completions"]
+            },
+            "description": "Validates the date against the USCCB lectionary, then records one permanent completion for the authenticated user and liturgical date plus one linked Scripture activity."
+          }
+        },
+        {
           "name": "Get current profile",
           "request": {
             "method": "GET",

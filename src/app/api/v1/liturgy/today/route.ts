@@ -1,6 +1,7 @@
 import { ApiError } from '@/lib/api/errors';
 import { errorResponse, ok } from '@/lib/api/response';
 import { requireUser } from '@/lib/auth/require-user';
+import { loadDailyScriptureCompletion } from '@/lib/liturgy/completion';
 import {
   applicationToday,
   getMassReadings,
@@ -10,7 +11,7 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
   try {
-    await requireUser(request);
+    const { supabase } = await requireUser(request);
     const url = new URL(request.url);
     const result = await getMassReadings({
       date: applicationToday(),
@@ -19,15 +20,22 @@ export async function GET(request: Request) {
       locale: url.searchParams.get('locale') ?? undefined,
       includeVerseText: true,
     });
-    return ok(result, {
-      headers: {
-        'Cache-Control': 'private, max-age=300',
-        'Content-Language':
-          result.metadata?.scriptureTextSource === 'BIBLIA_DE_JERUSALEN'
-            ? 'es'
-            : 'en',
+    const completion = await loadDailyScriptureCompletion(
+      supabase,
+      result.date,
+    );
+    return ok(
+      { ...result, completion },
+      {
+        headers: {
+          'Cache-Control': 'private, max-age=300',
+          'Content-Language':
+            result.metadata?.scriptureTextSource === 'BIBLIA_DE_JERUSALEN'
+              ? 'es'
+              : 'en',
+        },
       },
-    });
+    );
   } catch (error) {
     return errorResponse(
       error instanceof Error

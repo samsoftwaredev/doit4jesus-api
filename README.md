@@ -121,6 +121,7 @@ Never send the service-role key to a browser or native application.
 | ---------------- | -------------------------------------------- | ------------------------------------------------------- |
 | GET              | `/api/v1/health`                             | Health check                                            |
 | GET/PATCH/DELETE | `/api/v1/me`                                 | Current profile; DELETE permanently removes the account |
+| POST             | `/api/v1/me/daily-scripture/completions`     | Persist a completion; validates the date against USCCB  |
 | DELETE           | `/api/v1/admin/users/:userId`                | Administrator-only permanent account deletion           |
 | GET              | `/api/v1/screen-data`                        | Initial data for one Home, Prayer, or Community screen  |
 | GET/PATCH        | `/api/v1/me/notification-preferences`        | Onboarding reminder preferences                         |

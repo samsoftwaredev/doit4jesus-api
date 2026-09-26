@@ -10,6 +10,7 @@ import {
   selectRandomExaminationQuestion,
 } from '@/lib/examination-of-conscience/daily-question';
 import { toExaminationQuestion } from '@/lib/examination-of-conscience/question';
+import { loadDailyScriptureCompletion } from '@/lib/liturgy/completion';
 import { loadCurrentProfile } from '@/lib/profiles/current-profile';
 import type { ScreenDataQuery } from '@/lib/schemas/screen-data';
 import { getPublicImageUrl } from '@/lib/supabase/storage';
@@ -235,6 +236,7 @@ export async function loadCurrentUser(context: Context) {
 }
 
 export async function loadLiturgyToday(
+  context: Context,
   query: Pick<ScreenDataQuery, 'country' | 'diocese' | 'locale'>,
 ) {
   const result = await getMassReadings({
@@ -244,7 +246,11 @@ export async function loadLiturgyToday(
     locale: query.locale,
     includeVerseText: true,
   });
-  return payload(result);
+  const completion = await loadDailyScriptureCompletion(
+    context.supabase,
+    result.date,
+  );
+  return payload({ ...result, completion });
 }
 
 export async function loadFriends(context: Context) {

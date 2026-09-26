@@ -858,6 +858,17 @@ export type Database = {
         Update: never;
         Relationships: [];
       };
+      daily_scripture_completions: {
+        Row: {
+          user_id: string;
+          reading_date: string;
+          activity_id: string | null;
+          completed_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
       prayer_intention_approval_counts: {
         Row: {
           user_id: string;
@@ -984,6 +995,14 @@ export type Database = {
       };
       get_global_rosary_stats: {
         Args: Record<string, never>;
+        Returns: Json;
+      };
+      get_my_daily_scripture_completion: {
+        Args: { p_reading_date: string };
+        Returns: Json;
+      };
+      complete_daily_scripture: {
+        Args: { p_reading_date: string; p_idempotency_key: string };
         Returns: Json;
       };
       delete_user_account: {

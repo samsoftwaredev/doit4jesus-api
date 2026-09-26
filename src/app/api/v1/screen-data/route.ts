@@ -74,7 +74,7 @@ export async function GET(request: Request) {
             rosaryStats: () => loadRosaryStats(context),
             progress: () => loadProgress(context),
             rosaryReminder: () => loadRosaryReminder(context),
-            liturgyToday: () => loadLiturgyToday(query),
+            liturgyToday: () => loadLiturgyToday(context, query),
             scriptureActivities: () => loadActivities(context, 'SCRIPTURE'),
             levels: () => loadLevels(context),
             rosaryActivities: () => loadActivities(context, 'ROSARY'),
