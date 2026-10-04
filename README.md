@@ -125,7 +125,7 @@ Never send the service-role key to a browser or native application.
 | DELETE           | `/api/v1/admin/users/:userId`                | Administrator-only permanent account deletion           |
 | GET              | `/api/v1/screen-data`                        | Initial data for one Home, Prayer, or Community screen  |
 | GET/PATCH        | `/api/v1/me/notification-preferences`        | Onboarding reminder preferences                         |
-| POST             | `/api/v1/me/onboarding/complete`             | Transactional profile-setup completion                  |
+| POST             | `/api/v1/me/onboarding/complete`             | Transactional profile setup; reminders default off      |
 | GET              | `/api/v1/usernames/validate`                 | Username rules, availability, and suggestions           |
 | GET              | `/api/v1/progress`                           | XP and current/next level                               |
 | GET              | `/api/v1/levels`                             | Level definitions                                       |

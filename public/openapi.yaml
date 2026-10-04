@@ -1216,9 +1216,10 @@ paths:
       summary: Complete required profile onboarding
       description: >-
         Atomically validates and saves the canonical display name, optional
-        username, gender, country, and reminder preferences. Completion is
-        derived from the required persisted values rather than the audit
-        timestamp alone.
+        username, gender, and country. New users begin with all reminder
+        preferences disabled and can opt in through the notification-preferences
+        endpoint. Completion is derived from the required persisted values rather
+        than the audit timestamp alone.
       requestBody:
         required: true
         content:
@@ -1226,7 +1227,7 @@ paths:
             schema: { $ref: '#/components/schemas/CompleteProfileSetup' }
       responses:
         '200':
-          description: Refreshed profile and reminder preferences
+          description: Refreshed profile
           content:
             application/json:
               schema: { $ref: '#/components/schemas/CompleteProfileSetupResponse' }
@@ -1253,10 +1254,6 @@ paths:
                       completedAt: '2026-08-28T18:52:34.591Z'
                     createdAt: '2026-08-28T18:40:00.000Z'
                     updatedAt: '2026-08-28T18:52:34.591Z'
-                  notificationPreferences:
-                    dailyRosaryReminder: true
-                    confessionReminder: true
-                    eucharisticAdoration: false
         '401': { $ref: '#/components/responses/Unauthorized' }
         '409': { description: Username conflict }
         '422': { $ref: '#/components/responses/ValidationError' }
@@ -2836,7 +2833,7 @@ components:
     CompleteProfileSetup:
       type: object
       additionalProperties: false
-      required: [displayName, username, gender, countryCode, notificationPreferences]
+      required: [displayName, username, gender, countryCode]
       properties:
         displayName: { type: string, minLength: 1, maxLength: 80, example: Samuel Ruiz }
         username:
@@ -2845,7 +2842,6 @@ components:
             - { type: 'null' }
         gender: { type: string, enum: [male, female] }
         countryCode: { type: string, minLength: 2, maxLength: 6, pattern: '^[A-Z]{2}(?:-[A-Z]{3})?$', example: US }
-        notificationPreferences: { $ref: '#/components/schemas/NotificationPreferences' }
     CompleteProfileSetupResponse:
       type: object
       additionalProperties: false
@@ -2854,10 +2850,9 @@ components:
         data:
           type: object
           additionalProperties: false
-          required: [profile, notificationPreferences]
+          required: [profile]
           properties:
             profile: { $ref: '#/components/schemas/CurrentProfile' }
-            notificationPreferences: { $ref: '#/components/schemas/NotificationPreferences' }
     RecordActivity:
       type: object
       additionalProperties: false

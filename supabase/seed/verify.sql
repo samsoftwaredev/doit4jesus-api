@@ -52,6 +52,46 @@ $$;
 
 do $$
 begin
+  if to_regclass('prayer.prayer_events') is not null then
+    raise exception 'The retired prayer.prayer_events ledger still exists';
+  end if;
+
+  if not exists (
+    select 1
+    from competition.badge_definitions badge
+    join competition.badge_requirement_definitions requirement
+      on requirement.badge_id = badge.id
+    join competition.badge_requirement_activity_rules activity_rule
+      on activity_rule.badge_requirement_id = requirement.id
+    where badge.code = 'FIRST_ROSARY'
+      and requirement.required_value = 1
+      and activity_rule.activity_code = 'ROSARY'
+      and activity_rule.progress_mode = 'activity_quantity'
+      and activity_rule.metadata_filter = '{}'::jsonb
+  ) then
+    raise exception 'FIRST_ROSARY must have a canonical Rosary activity rule';
+  end if;
+
+  if not exists (
+    select 1
+    from competition.badge_definitions badge
+    join competition.badge_requirement_definitions requirement
+      on requirement.badge_id = badge.id
+    join competition.badge_requirement_activity_rules activity_rule
+      on activity_rule.badge_requirement_id = requirement.id
+    where badge.code = 'SCRIPTURE_SEEKER'
+      and requirement.required_value = 5
+      and activity_rule.activity_code = 'SCRIPTURE'
+      and activity_rule.progress_mode = 'activity_quantity'
+      and activity_rule.metadata_filter = '{}'::jsonb
+  ) then
+    raise exception 'SCRIPTURE_SEEKER must have a canonical Scripture activity rule';
+  end if;
+end
+$$;
+
+do $$
+begin
   if exists (
     select 1
     from competition.leaderboard_periods

@@ -980,6 +980,42 @@ set
   rules = excluded.rules,
   display_order = excluded.display_order;
 
+-- These activity-based badges predate the requirement-rule system. Seed their
+-- canonical requirements explicitly so the seed remains valid when it is run
+-- against an already-migrated database as well as after a clean reset.
+insert into competition.badge_requirement_definitions (
+  badge_id,
+  requirement_type,
+  required_value,
+  description,
+  rules,
+  display_order,
+  translations
+)
+select
+  badge.id,
+  source.requirement_type,
+  source.required_value,
+  source.description,
+  source.rules,
+  source.display_order,
+  source.translations
+from (
+  values
+    ('FIRST_ROSARY', 'rosary_completed', 1, 'Pray your first complete rosary.', '{}'::jsonb, 1,
+      jsonb_build_object('es', jsonb_build_object('description', 'Reza tu primer rosario completo.'))),
+    ('SCRIPTURE_SEEKER', 'scripture_reading_sessions', 5, 'Complete five Scripture reading sessions.', '{}'::jsonb, 1,
+      jsonb_build_object('es', jsonb_build_object('description', 'Completa cinco sesiones de lectura de la Escritura.')))
+) as source(code, requirement_type, required_value, description, rules, display_order, translations)
+join competition.badge_definitions badge on badge.code = source.code
+on conflict (badge_id, display_order) do update
+set
+  requirement_type = excluded.requirement_type,
+  required_value = excluded.required_value,
+  description = excluded.description,
+  rules = excluded.rules,
+  translations = excluded.translations;
+
 insert into competition.badge_requirement_activity_rules (
   badge_requirement_id,
   activity_code,
@@ -995,6 +1031,32 @@ values
   ('e1000000-0000-4000-8000-000000000006', 'PRAYER', 'consecutive_days', '{}'::jsonb),
   ('e1000000-0000-4000-8000-000000000007', 'SERVICE', 'activity_quantity', '{}'::jsonb),
   ('e1000000-0000-4000-8000-000000000008', 'RULE_OF_LIFE', 'consecutive_days', '{}'::jsonb)
+on conflict (badge_requirement_id) do update
+set
+  activity_code = excluded.activity_code,
+  progress_mode = excluded.progress_mode,
+  metadata_filter = excluded.metadata_filter;
+
+insert into competition.badge_requirement_activity_rules (
+  badge_requirement_id,
+  activity_code,
+  progress_mode,
+  metadata_filter
+)
+select
+  requirement.id,
+  source.activity_code,
+  source.progress_mode,
+  source.metadata_filter
+from (
+  values
+    ('FIRST_ROSARY', 'rosary_completed', 'ROSARY', 'activity_quantity', '{}'::jsonb),
+    ('SCRIPTURE_SEEKER', 'scripture_reading_sessions', 'SCRIPTURE', 'activity_quantity', '{}'::jsonb)
+) as source(badge_code, requirement_type, activity_code, progress_mode, metadata_filter)
+join competition.badge_definitions badge on badge.code = source.badge_code
+join competition.badge_requirement_definitions requirement
+  on requirement.badge_id = badge.id
+  and requirement.requirement_type = source.requirement_type
 on conflict (badge_requirement_id) do update
 set
   activity_code = excluded.activity_code,
@@ -1092,6 +1154,10 @@ set
 -- ---------------------------------------------------------------------------
 -- Competition activity and progress
 -- ---------------------------------------------------------------------------
+
+-- Seed explicit badge fixtures below, so keep the canonical activity trigger
+-- from awarding the same non-repeatable badges with generated IDs first.
+select set_config('api.record_spiritual_activity_badges', 'true', true);
 
 insert into competition.spiritual_activities (
   id,
@@ -1191,6 +1257,8 @@ set
   country_code = excluded.country_code,
   idempotency_key = excluded.idempotency_key,
   metadata = excluded.metadata;
+
+select set_config('api.record_spiritual_activity_badges', '', true);
 
 insert into competition.point_ledger (
   id,
@@ -1581,37 +1649,8 @@ set
   prayer_duration_seconds = excluded.prayer_duration_seconds;
 
 -- ---------------------------------------------------------------------------
--- Prayer events and privacy-safe aggregates
+-- Privacy-safe aggregates
 -- ---------------------------------------------------------------------------
-
-insert into prayer.prayer_events (
-  id,
-  user_id,
-  activity_id,
-  prayer_type,
-  quantity,
-  started_at,
-  completed_at,
-  country_code,
-  visibility,
-  metadata
-)
-values
-  ('f0000000-0000-4000-8000-000000000001', '9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002', '40000000-0000-4000-8000-000000000001', 'rosary', 1, now() - interval '2 hours 30 minutes', now() - interval '2 hours', 'US', 'aggregated', '{"mysteries":"joyful"}'::jsonb),
-  ('f0000000-0000-4000-8000-000000000002', '9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002', '40000000-0000-4000-8000-000000000003', 'intercession', 1, now() - interval '2 days 10 minutes', now() - interval '2 days', 'US', 'aggregated', '{"intentionCategory":"community"}'::jsonb),
-  ('f0000000-0000-4000-8000-000000000003', '11111111-1111-4111-8111-111111111111', '40000000-0000-4000-8000-000000000004', 'rosary', 1, now() - interval '1 hour 25 minutes', now() - interval '1 hour', 'MX', 'aggregated', '{"groupPrayer":true}'::jsonb),
-  ('f0000000-0000-4000-8000-000000000004', '22222222-2222-4222-8222-222222222222', '40000000-0000-4000-8000-000000000006', 'adoration', 1, now() - interval '3 hours 45 minutes', now() - interval '3 hours', 'US', 'private', '{}')
-on conflict (id) do update
-set
-  user_id = excluded.user_id,
-  activity_id = excluded.activity_id,
-  prayer_type = excluded.prayer_type,
-  quantity = excluded.quantity,
-  started_at = excluded.started_at,
-  completed_at = excluded.completed_at,
-  country_code = excluded.country_code,
-  visibility = excluded.visibility,
-  metadata = excluded.metadata;
 
 insert into prayer.country_daily_aggregates (
   country_code,

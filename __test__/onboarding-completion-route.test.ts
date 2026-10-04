@@ -1,12 +1,8 @@
 import { POST } from '../src/app/api/v1/me/onboarding/complete/route';
 import { requireUser } from '../src/lib/auth/require-user';
-import { loadNotificationPreferences } from '../src/lib/notifications/preferences';
 import { loadCurrentProfile } from '../src/lib/profiles/current-profile';
 
 jest.mock('../src/lib/auth/require-user', () => ({ requireUser: jest.fn() }));
-jest.mock('../src/lib/notifications/preferences', () => ({
-  loadNotificationPreferences: jest.fn(),
-}));
 jest.mock('../src/lib/profiles/current-profile', () => ({
   loadCurrentProfile: jest.fn(),
 }));
@@ -20,9 +16,6 @@ jest.mock('../src/lib/api/response', () => ({
 
 const mockedRequireUser = jest.mocked(requireUser);
 const mockedLoadCurrentProfile = jest.mocked(loadCurrentProfile);
-const mockedLoadNotificationPreferences = jest.mocked(
-  loadNotificationPreferences,
-);
 const userId = '9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002';
 function request(body: unknown) {
   return {
@@ -36,7 +29,7 @@ function request(body: unknown) {
 }
 
 describe('POST /api/v1/me/onboarding/complete', () => {
-  it('atomically saves the normalized setup snapshot and returns refreshed state', async () => {
+  it('atomically saves the normalized setup snapshot and returns the refreshed profile', async () => {
     const rpc = jest.fn().mockResolvedValue({
       data: { completedAt: '2026-08-28T12:00:00.000Z' },
       error: null,
@@ -46,16 +39,8 @@ describe('POST /api/v1/me/onboarding/complete', () => {
       displayName: 'Samuel Ruiz',
       profileSetup: { complete: true, missingFields: [], nextStep: null },
     };
-    const notificationPreferences = {
-      dailyRosaryReminder: true,
-      confessionReminder: false,
-      eucharisticAdoration: true,
-    };
     mockedRequireUser.mockResolvedValue({ supabase, userId } as never);
     mockedLoadCurrentProfile.mockResolvedValue(profile as never);
-    mockedLoadNotificationPreferences.mockResolvedValue(
-      notificationPreferences,
-    );
 
     const response = await POST(
       request({
@@ -63,7 +48,6 @@ describe('POST /api/v1/me/onboarding/complete', () => {
         username: 'SamuelR',
         gender: 'male',
         countryCode: 'us',
-        notificationPreferences,
       }),
     );
 
@@ -72,12 +56,9 @@ describe('POST /api/v1/me/onboarding/complete', () => {
       p_username: 'SamuelR',
       p_gender: 'male',
       p_country_code: 'US',
-      p_daily_rosary_reminder: true,
-      p_confession_reminder: false,
-      p_eucharistic_adoration: true,
     });
     expect(await response.json()).toEqual({
-      data: { profile, notificationPreferences },
+      data: { profile },
     });
     expect(response.headers.get('Cache-Control')).toBe('no-store');
   });
@@ -95,11 +76,6 @@ describe('POST /api/v1/me/onboarding/complete', () => {
         username: 'faithful_fuck',
         gender: 'male',
         countryCode: 'US',
-        notificationPreferences: {
-          dailyRosaryReminder: true,
-          confessionReminder: true,
-          eucharisticAdoration: true,
-        },
       }),
     );
 
@@ -113,7 +89,6 @@ describe('POST /api/v1/me/onboarding/complete', () => {
       userId,
     } as never);
     mockedLoadCurrentProfile.mockResolvedValue({} as never);
-    mockedLoadNotificationPreferences.mockResolvedValue({} as never);
 
     await POST(
       request({
@@ -121,11 +96,6 @@ describe('POST /api/v1/me/onboarding/complete', () => {
         username: 'SamuelR',
         gender: 'male',
         countryCode: 'gb-eng',
-        notificationPreferences: {
-          dailyRosaryReminder: true,
-          confessionReminder: true,
-          eucharisticAdoration: true,
-        },
       }),
     );
 
@@ -134,9 +104,30 @@ describe('POST /api/v1/me/onboarding/complete', () => {
       p_username: 'SamuelR',
       p_gender: 'male',
       p_country_code: 'GB-ENG',
-      p_daily_rosary_reminder: true,
-      p_confession_reminder: true,
-      p_eucharistic_adoration: true,
     });
+  });
+
+  it('rejects notification preferences as an unknown onboarding field', async () => {
+    const rpc = jest.fn();
+    mockedRequireUser.mockResolvedValue({
+      supabase: { schema: jest.fn(() => ({ rpc })) },
+      userId,
+    } as never);
+
+    await POST(
+      request({
+        displayName: 'Samuel Ruiz',
+        username: 'SamuelR',
+        gender: 'male',
+        countryCode: 'US',
+        notificationPreferences: {
+          dailyRosaryReminder: true,
+          confessionReminder: true,
+          eucharisticAdoration: true,
+        },
+      }),
+    );
+
+    expect(rpc).not.toHaveBeenCalled();
   });
 });

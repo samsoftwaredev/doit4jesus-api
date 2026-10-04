@@ -2,9 +2,9 @@ import { throwDatabaseError } from '@/lib/api/database';
 import type { AuthenticatedContext } from '@/lib/auth/require-user';
 
 export const DEFAULT_NOTIFICATION_PREFERENCES = {
-  dailyRosaryReminder: true,
-  confessionReminder: true,
-  eucharisticAdoration: true,
+  dailyRosaryReminder: false,
+  confessionReminder: false,
+  eucharisticAdoration: false,
 } as const;
 
 export async function loadNotificationPreferences(

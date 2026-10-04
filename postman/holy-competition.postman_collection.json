@@ -1288,7 +1288,7 @@
             "header": [{ "key": "Content-Type", "value": "application/json" }],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"displayName\": \"Samuel Ruiz\",\n  \"username\": \"SamuelR\",\n  \"gender\": \"male\",\n  \"countryCode\": \"US\",\n  \"notificationPreferences\": {\n    \"dailyRosaryReminder\": true,\n    \"confessionReminder\": true,\n    \"eucharisticAdoration\": false\n  }\n}",
+              "raw": "{\n  \"displayName\": \"Samuel Ruiz\",\n  \"username\": \"SamuelR\",\n  \"gender\": \"male\",\n  \"countryCode\": \"US\"\n}",
               "options": { "raw": { "language": "json" } }
             },
             "url": {
@@ -1296,7 +1296,7 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "me", "onboarding", "complete"]
             },
-            "description": "Use for Enter the Mission. Atomically validates and persists the profile plus reminder preferences. Navigate with replacement only after this succeeds and profileSetup.complete is true."
+            "description": "Use for Enter the Mission. Atomically validates and persists the profile. New users begin with reminders disabled; configure them separately through notification preferences. Navigate with replacement only after this succeeds and profileSetup.complete is true."
           },
           "response": [
             {
@@ -1308,7 +1308,7 @@
                 { "key": "Content-Type", "value": "application/json" }
               ],
               "cookie": [],
-              "body": "{\n  \"data\": {\n    \"profile\": {\n      \"userId\": \"9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002\",\n      \"displayName\": \"Samuel Ruiz\",\n      \"username\": \"SamuelR\",\n      \"gender\": \"male\",\n      \"countryCode\": \"US\",\n      \"countryName\": \"United States\",\n      \"profileSetup\": {\n        \"complete\": true,\n        \"missingFields\": [],\n        \"nextStep\": null,\n        \"completedAt\": \"2026-08-28T18:52:34.591Z\"\n      }\n    },\n    \"notificationPreferences\": {\n      \"dailyRosaryReminder\": true,\n      \"confessionReminder\": true,\n      \"eucharisticAdoration\": false\n    }\n  }\n}"
+              "body": "{\n  \"data\": {\n    \"profile\": {\n      \"userId\": \"9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002\",\n      \"displayName\": \"Samuel Ruiz\",\n      \"username\": \"SamuelR\",\n      \"gender\": \"male\",\n      \"countryCode\": \"US\",\n      \"countryName\": \"United States\",\n      \"profileSetup\": {\n        \"complete\": true,\n        \"missingFields\": [],\n        \"nextStep\": null,\n        \"completedAt\": \"2026-08-28T18:52:34.591Z\"\n      }\n    }\n  }\n}"
             }
           ]
         }

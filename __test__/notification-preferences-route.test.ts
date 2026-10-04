@@ -25,7 +25,7 @@ function preferenceQuery(data: unknown) {
 }
 
 describe('/api/v1/me/notification-preferences', () => {
-  it('returns enabled defaults when a legacy profile has no preference row', async () => {
+  it('returns disabled defaults when a profile has no preference row', async () => {
     const from = jest.fn().mockReturnValue(preferenceQuery(null));
     mockedRequireUser.mockResolvedValue({
       supabase: { schema: jest.fn(() => ({ from })) },
@@ -36,9 +36,9 @@ describe('/api/v1/me/notification-preferences', () => {
 
     expect(await response.json()).toEqual({
       data: {
-        dailyRosaryReminder: true,
-        confessionReminder: true,
-        eucharisticAdoration: true,
+        dailyRosaryReminder: false,
+        confessionReminder: false,
+        eucharisticAdoration: false,
       },
     });
     expect(response.headers.get('Cache-Control')).toBe('no-store');

@@ -2,7 +2,6 @@ import { throwDatabaseError } from '@/lib/api/database';
 import { errorResponse, ok } from '@/lib/api/response';
 import { readJson } from '@/lib/api/validation';
 import { requireUser } from '@/lib/auth/require-user';
-import { loadNotificationPreferences } from '@/lib/notifications/preferences';
 import { loadCurrentProfile } from '@/lib/profiles/current-profile';
 import { completeProfileSetupSchema } from '@/lib/schemas/onboarding';
 import { assertUsernameAllowed } from '@/lib/usernames/moderation';
@@ -23,23 +22,12 @@ export async function POST(request: Request) {
         p_username: input.username,
         p_gender: input.gender,
         p_country_code: input.countryCode,
-        p_daily_rosary_reminder:
-          input.notificationPreferences.dailyRosaryReminder,
-        p_confession_reminder: input.notificationPreferences.confessionReminder,
-        p_eucharistic_adoration:
-          input.notificationPreferences.eucharisticAdoration,
       });
 
     throwDatabaseError(error, 'Unable to complete profile setup.');
-    const [profile, notificationPreferences] = await Promise.all([
-      loadCurrentProfile(supabase, userId),
-      loadNotificationPreferences(supabase, userId),
-    ]);
+    const profile = await loadCurrentProfile(supabase, userId);
 
-    return ok(
-      { profile, notificationPreferences },
-      { headers: { 'Cache-Control': 'no-store' } },
-    );
+    return ok({ profile }, { headers: { 'Cache-Control': 'no-store' } });
   } catch (error) {
     return errorResponse(error, request);
   }

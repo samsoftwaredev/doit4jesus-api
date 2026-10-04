@@ -1005,6 +1005,10 @@ export type Database = {
         Args: { p_reading_date: string; p_idempotency_key: string };
         Returns: Json;
       };
+      reconcile_badge_requirement_progress: {
+        Args: { p_user_id?: string | null };
+        Returns: Json;
+      };
       delete_user_account: {
         Args: { p_user_id: string };
         Returns: undefined;
@@ -1039,9 +1043,6 @@ export type Database = {
           p_username: string | null;
           p_gender: 'male' | 'female';
           p_country_code: string;
-          p_daily_rosary_reminder: boolean;
-          p_confession_reminder: boolean;
-          p_eucharistic_adoration: boolean;
         };
         Returns: Json;
       };
