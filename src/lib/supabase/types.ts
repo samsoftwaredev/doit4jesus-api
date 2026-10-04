@@ -373,6 +373,26 @@ export type Database = {
   };
   competition: EmptySchema & {
     Tables: {
+      point_ledger: {
+        Row: {
+          id: string;
+          user_id: string;
+          point_rule_id: string | null;
+          activity_id: string | null;
+          source_type: string;
+          source_id: string | null;
+          transaction_type: 'award' | 'reversal' | 'adjustment';
+          points: number;
+          reason: string;
+          idempotency_key: string;
+          metadata: Json;
+          occurred_at: string;
+          created_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
       spiritual_activities: {
         Row: {
           id: string;

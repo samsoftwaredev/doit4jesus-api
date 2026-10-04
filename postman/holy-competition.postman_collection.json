@@ -1735,10 +1735,16 @@
                   "value": "",
                   "description": "Filter by activity type (e.g. PRAYER, BIBLE_READING). Case-insensitive.",
                   "disabled": true
+                },
+                {
+                  "key": "include",
+                  "value": "points",
+                  "description": "Add the net point-ledger total for each returned activity, including any reversals or adjustments.",
+                  "disabled": true
                 }
               ]
             },
-            "description": "Returns the authenticated user's spiritual activities in reverse chronological order.\n\nPagination uses a cursor-based approach:\n1. Check `meta.hasMore` in the response.\n2. If `true`, pass `meta.nextCursor` as the `before` query parameter in the next request."
+            "description": "Returns the authenticated user's spiritual activities in reverse chronological order. Add `include=points` to include a signed net `points` total for each activity.\n\nPagination uses a cursor-based approach:\n1. Check `meta.hasMore` in the response.\n2. If `true`, pass `meta.nextCursor` as the `before` query parameter in the next request."
           }
         },
         {

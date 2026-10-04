@@ -150,6 +150,8 @@ historical periods.
 
 Every POST requires an idempotency key. Retrying the same request with the same key returns the original activity instead of awarding points twice.
 
+Use `GET /api/v1/activities?include=points` to add each returned activity's signed net point total, including reversals and adjustments.
+
 ```bash
 curl -X POST 'http://localhost:3000/api/v1/activities' \
   -H 'Authorization: Bearer YOUR_ACCESS_TOKEN' \

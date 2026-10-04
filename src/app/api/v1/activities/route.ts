@@ -3,7 +3,10 @@ import { requireIdempotencyKey } from '@/lib/api/idempotency';
 import { created, errorResponse, ok } from '@/lib/api/response';
 import { parsePositiveInt, readJson } from '@/lib/api/validation';
 import { requireUser } from '@/lib/auth/require-user';
-import { recordActivitySchema } from '@/lib/schemas/activity';
+import {
+  activityHistoryIncludeSchema,
+  recordActivitySchema,
+} from '@/lib/schemas/activity';
 import type { Json } from '@/lib/supabase/types';
 
 export const dynamic = 'force-dynamic';
@@ -15,6 +18,9 @@ export async function GET(request: Request) {
     const limit = parsePositiveInt(url.searchParams.get('limit'), 20, 100);
     const before = url.searchParams.get('before');
     const activityCode = url.searchParams.get('activityCode')?.toUpperCase();
+    const include = activityHistoryIncludeSchema.parse(
+      url.searchParams.get('include') ?? undefined,
+    );
 
     let query = supabase
       .schema('competition')
@@ -33,9 +39,41 @@ export async function GET(request: Request) {
     const hasMore = data.length > limit;
     const items = hasMore ? data.slice(0, limit) : data;
 
+    let itemsWithPoints:
+      | typeof items
+      | Array<(typeof items)[number] & { points: number }> = items;
+
+    if (include === 'points' && items.length > 0) {
+      const { data: pointEntries, error: pointEntriesError } = await supabase
+        .schema('competition')
+        .from('point_ledger')
+        .select('activity_id, points')
+        .eq('user_id', userId)
+        .in(
+          'activity_id',
+          items.map((activity) => activity.id),
+        );
+
+      throwDatabaseError(pointEntriesError, 'Unable to load activity points.');
+
+      const pointsByActivityId = new Map<string, number>();
+      for (const entry of pointEntries ?? []) {
+        if (!entry.activity_id) continue;
+        pointsByActivityId.set(
+          entry.activity_id,
+          (pointsByActivityId.get(entry.activity_id) ?? 0) + entry.points,
+        );
+      }
+
+      itemsWithPoints = items.map((activity) => ({
+        ...activity,
+        points: pointsByActivityId.get(activity.id) ?? 0,
+      }));
+    }
+
     return ok(
-      items,
-      {},
+      itemsWithPoints,
+      { headers: { 'Cache-Control': 'private, no-store' } },
       {
         limit,
         hasMore,

@@ -1708,6 +1708,10 @@ paths:
         - in: query
           name: activityCode
           schema: { type: string }
+        - in: query
+          name: include
+          description: Adds the net point-ledger total for each returned activity.
+          schema: { type: string, enum: [points] }
       responses:
         '200':
           description: Activity page
@@ -1725,6 +1729,7 @@ paths:
                     verification_status: self_reported
                     source: manual
                     metadata: { mysteries: joyful }
+                    points: 25
                 meta: { limit: 20, hasMore: false, nextCursor: null }
     post:
       summary: Record an activity and apply its transactional effects

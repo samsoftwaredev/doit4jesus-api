@@ -18,3 +18,5 @@ export const recordActivitySchema = z
     metadata: z.record(z.string(), z.unknown()).default({}),
   })
   .strict();
+
+export const activityHistoryIncludeSchema = z.enum(['points']).optional();
