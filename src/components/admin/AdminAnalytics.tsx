@@ -8,7 +8,7 @@ import { useEffect, useState } from 'react';
 
 import { supabaseClient } from '@/app/classes/supabaseClient';
 
-import AdminAppMetrics from './AdminAppMetrics';
+import AdminManagementCards from './AdminManagementCards';
 
 export default function AdminAnalytics() {
   const [accessToken, setAccessToken] = useState<string | null>(null);
@@ -33,19 +33,19 @@ export default function AdminAnalytics() {
   return (
     <Container maxWidth="xl" sx={{ py: 3 }}>
       <Typography component="h1" variant="h4" fontWeight={700}>
-        Admin Analytics
+        Admin Center
       </Typography>
       <Typography variant="body1" color="text.secondary" mt={0.5}>
-        Privacy-preserving, aggregate product health metrics.
+        Review analytics and manage administrative workflows.
       </Typography>
 
       {!sessionResolved && <Skeleton sx={{ mt: 3 }} height={420} />}
       {sessionResolved && !accessToken && (
         <Alert severity="warning" sx={{ mt: 3 }}>
-          Sign in with an administrator account to view app analytics.
+          Sign in with an administrator account to access the Admin Center.
         </Alert>
       )}
-      {accessToken && <AdminAppMetrics accessToken={accessToken} />}
+      {accessToken && <AdminManagementCards accessToken={accessToken} />}
     </Container>
   );
 }

@@ -100,6 +100,21 @@ paths:
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { description: Administrator role required }
         '422': { $ref: '#/components/responses/ValidationError' }
+  /api/v1/admin/notification-summary:
+    get:
+      summary: Get actionable administrator queue notification summary
+      description: >-
+        Returns exact counts and up to three newest previews for open contact
+        requests, pending prayer intentions, and pending church change requests.
+        Used by the administrator queue notification bell.
+      responses:
+        '200':
+          description: Administrator queue summary
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AdminNotificationSummaryResponse' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { description: Administrator role required }
   /api/v1/prayer-intentions:
     get:
       summary: List approved, unexpired prayer-intention cards
@@ -2369,6 +2384,79 @@ components:
           type: array
           items: { $ref: '#/components/schemas/AdminPrayerIntention' }
         meta: { $ref: '#/components/schemas/OffsetPageMeta' }
+    AdminNotificationSummaryResponse:
+      type: object
+      additionalProperties: false
+      required: [data]
+      properties:
+        data:
+          type: object
+          additionalProperties: false
+          required: [total, contacts, prayerIntentions, churchChangeRequests]
+          properties:
+            total: { type: integer, minimum: 0 }
+            contacts:
+              $ref: '#/components/schemas/AdminContactQueueSummary'
+            prayerIntentions:
+              $ref: '#/components/schemas/AdminPrayerIntentionQueueSummary'
+            churchChangeRequests:
+              $ref: '#/components/schemas/AdminChurchChangeQueueSummary'
+    AdminContactQueueSummary:
+      type: object
+      additionalProperties: false
+      required: [count, items]
+      properties:
+        count: { type: integer, minimum: 0 }
+        items:
+          type: array
+          maxItems: 3
+          items:
+            type: object
+            additionalProperties: false
+            required: [id, name, subject, createdAt]
+            properties:
+              id: { type: string, format: uuid }
+              name: { type: string, maxLength: 120 }
+              subject: { $ref: '#/components/schemas/ContactSubject' }
+              createdAt: { type: string, format: date-time }
+    AdminPrayerIntentionQueueSummary:
+      type: object
+      additionalProperties: false
+      required: [count, items]
+      properties:
+        count: { type: integer, minimum: 0 }
+        items:
+          type: array
+          maxItems: 3
+          items:
+            type: object
+            additionalProperties: false
+            required: [id, title, createdAt]
+            properties:
+              id: { type: string, format: uuid }
+              title: { type: string, maxLength: 120 }
+              createdAt: { type: string, format: date-time }
+    AdminChurchChangeQueueSummary:
+      type: object
+      additionalProperties: false
+      required: [count, items]
+      properties:
+        count: { type: integer, minimum: 0 }
+        items:
+          type: array
+          maxItems: 3
+          items:
+            type: object
+            additionalProperties: false
+            required: [id, requestType, churchId, createdAt]
+            properties:
+              id: { type: string, format: uuid }
+              requestType: { type: string, enum: [create_church, schedule_update] }
+              churchId:
+                anyOf:
+                  - { type: string, format: uuid }
+                  - { type: 'null' }
+              createdAt: { type: string, format: date-time }
     ReviewPrayerIntention:
       type: object
       additionalProperties: false

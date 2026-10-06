@@ -47,14 +47,9 @@ export default function HomePage() {
         <Typography variant="h3" component="h1" fontWeight={700}>
           DoIt4Jesus
         </Typography>
-        <Stack direction="row" spacing={2}>
-          <Button variant="contained" size="large" href="/auth/login">
-            Sign In
-          </Button>
-          <Button variant="outlined" size="large" href="/auth/signup">
-            Create Account
-          </Button>
-        </Stack>
+        <Button variant="contained" size="large" href="/auth/login">
+          Sign In
+        </Button>
       </Stack>
     </Box>
   );

@@ -21,6 +21,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 import { supabaseClient } from '@/app/classes/supabaseClient';
+import AdminQueueBell from '@/components/admin/AdminQueueBell';
 import { useUser } from '@/context/UserContext';
 
 export default function TopNav() {
@@ -77,6 +78,7 @@ export default function TopNav() {
           ) : user ? (
             <>
               {/* Authenticated */}
+              <AdminQueueBell />
               <IconButton
                 onClick={(e) => setAnchorEl(e.currentTarget)}
                 size="small"
@@ -139,27 +141,14 @@ export default function TopNav() {
               </Menu>
             </>
           ) : (
-            <>
-              {/* Unauthenticated */}
-              <Stack direction="row" spacing={1}>
-                <Button
-                  component={NextLink}
-                  href="/auth/login"
-                  variant="outlined"
-                  size="small"
-                >
-                  Sign In
-                </Button>
-                <Button
-                  component={NextLink}
-                  href="/auth/signup"
-                  variant="contained"
-                  size="small"
-                >
-                  Sign Up
-                </Button>
-              </Stack>
-            </>
+            <Button
+              component={NextLink}
+              href="/auth/login"
+              variant="outlined"
+              size="small"
+            >
+              Sign In
+            </Button>
           )}
         </Toolbar>
       </Container>

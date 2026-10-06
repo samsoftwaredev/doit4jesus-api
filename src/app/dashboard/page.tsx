@@ -50,15 +50,15 @@ export default function DashboardPage() {
               <AnalyticsOutlinedIcon color="primary" fontSize="large" />
               <Box>
                 <Typography component="h2" variant="h6" fontWeight={700}>
-                  Admin Analytics
+                  Admin Center
                 </Typography>
                 <Typography variant="body2" color="text.secondary" mt={0.5}>
-                  Review aggregate growth, activation, retention, and Rosary
-                  practice trends.
+                  Review analytics and manage support, moderation, church, and
+                  content workflows.
                 </Typography>
               </Box>
               <Button href="/dashboard/admin" variant="outlined">
-                Open Admin Analytics
+                Open Admin Center
               </Button>
             </Stack>
           </CardContent>

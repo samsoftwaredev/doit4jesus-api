@@ -269,6 +269,19 @@
       "description": "Administrator-only moderation queue. Use the seeded test@test.com account's JWT locally. Only pending intentions can be reviewed.",
       "item": [
         {
+          "name": "Get admin queue notification summary",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/notification-summary",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "admin", "notification-summary"]
+            },
+            "description": "Returns exact actionable queue counts and up to three newest previews for contact requests, prayer intentions, and church change requests."
+          }
+        },
+        {
           "name": "List prayer intentions for review",
           "request": {
             "method": "GET",

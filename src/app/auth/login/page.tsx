@@ -1,11 +1,9 @@
 'use client';
 
-import GoogleIcon from '@mui/icons-material/Google';
 import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Container from '@mui/material/Container';
-import Divider from '@mui/material/Divider';
 import Link from '@mui/material/Link';
 import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
@@ -42,23 +40,6 @@ export default function LoginPage() {
 
     router.push('/dashboard');
     router.refresh();
-  }
-
-  async function handleGoogleSignIn() {
-    setLoading(true);
-    setError(null);
-
-    const { error } = await supabaseClient.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
-      },
-    });
-
-    if (error) {
-      setError(error.message);
-      setLoading(false);
-    }
   }
 
   return (
@@ -101,17 +82,6 @@ export default function LoginPage() {
             >
               Sign In
             </Button>
-            <Divider>or</Divider>
-            <Button
-              type="button"
-              variant="outlined"
-              size="large"
-              startIcon={<GoogleIcon />}
-              onClick={handleGoogleSignIn}
-              loading={loading}
-            >
-              Continue with Google
-            </Button>
           </Stack>
           <Stack mt={2} spacing={0.5} alignItems="center">
             <Link
@@ -121,12 +91,6 @@ export default function LoginPage() {
             >
               Forgot password?
             </Link>
-            <Typography variant="body2" color="text.secondary">
-              No account?{' '}
-              <Link component={NextLink} href="/auth/signup">
-                Sign up
-              </Link>
-            </Typography>
           </Stack>
         </Paper>
       </Container>
