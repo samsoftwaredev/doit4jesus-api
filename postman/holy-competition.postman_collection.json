@@ -475,7 +475,7 @@
     },
     {
       "name": "Liturgy",
-      "description": "Catholic Mass readings backed by a local lectionary dataset. For country=US, a versioned local USCCB snapshot takes precedence; its source URL and lectionary number are returned in metadata. The API maps available citations to English NABRE or Spanish Biblia de Jerusalén text from checked-in book files and makes no external liturgical request at runtime.",
+      "description": "Catholic Mass readings backed by a local lectionary dataset. For country=US, a versioned local USCCB snapshot takes precedence; its source URL and lectionary number are returned in metadata. The API maps available citations to English Douay-Rheims or Spanish Biblia de Jerusalén text from checked-in book files and makes no external liturgical request at runtime.",
       "item": [
         {
           "name": "Get today’s Mass readings",
@@ -506,7 +506,7 @@
                 }
               ]
             },
-            "description": "Uses LITURGY_TIMEZONE (America/Chicago by default) to determine today’s date. Each available reading includes mapped local NABRE text by default or Biblia de Jerusalén text for locale=es or es-*. Spanish readings also include localizedCitation. A 404 READINGS_NOT_FOUND means the calendar resolved but the local lectionary dataset has no entry; the API never guesses citations."
+            "description": "Uses LITURGY_TIMEZONE (America/Chicago by default) to determine today’s date. Each available reading includes mapped local Douay-Rheims text by default or Biblia de Jerusalén text for locale=es or es-*. Spanish readings also include localizedCitation. A 404 READINGS_NOT_FOUND means the calendar resolved but the local lectionary dataset has no entry; the API never guesses citations."
           }
         },
         {
@@ -531,7 +531,7 @@
                 }
               ]
             },
-            "description": "The date path must be a real YYYY-MM-DD value. Available readings include mapped local NABRE text by default or Biblia de Jerusalén text for locale=es or es-*. Christmas returns its Vigil, Night, Dawn, and Day variants in readingSets, while readings exposes the first valid set for convenience."
+            "description": "The date path must be a real YYYY-MM-DD value. Available readings include mapped local Douay-Rheims text by default or Biblia de Jerusalén text for locale=es or es-*. Christmas returns its Vigil, Night, Dawn, and Day variants in readingSets, while readings exposes the first valid set for convenience."
           }
         }
       ]

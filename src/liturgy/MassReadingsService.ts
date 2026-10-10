@@ -4,11 +4,11 @@ import { LocalLectionaryRepository } from '@/liturgy/lectionary/LectionaryReposi
 import { LectionaryResolver } from '@/liturgy/lectionary/LectionaryResolver';
 import type { DailyMassReadings } from '@/liturgy/models';
 import {
-  NabreVerseMapper,
+  DouayRheimsVerseMapper,
   scriptureLanguageForLocale,
-} from '@/liturgy/scripture/NabreVerseMapper';
+} from '@/liturgy/scripture/DouayRheimsVerseMapper';
 
-const DATA_VERSION = 'v3';
+const DATA_VERSION = 'v4';
 const DEFAULT_TIMEZONE = 'America/Chicago';
 const CACHE_TTL_MILLISECONDS = 5 * 60 * 1_000;
 
@@ -144,7 +144,7 @@ export class MassReadingsService {
       new LocalLectionaryRepository(),
     ),
     private readonly cache: MassReadingsCache = new InMemoryMassReadingsCache(),
-    private readonly verseMapper = new NabreVerseMapper(),
+    private readonly verseMapper = new DouayRheimsVerseMapper(),
   ) {}
 
   async getMassReadings(
@@ -222,7 +222,7 @@ export class MassReadingsService {
         ...(normalized.locale ? { locale: normalized.locale } : {}),
         dataVersion: DATA_VERSION,
         scriptureTextSource:
-          scriptureLanguage === 'es' ? 'BIBLIA_DE_JERUSALEN' : 'NABRE',
+          scriptureLanguage === 'es' ? 'BIBLIA_DE_JERUSALEN' : 'DOUAY_RHEIMS',
         ...(scriptureTextUnavailable ? { scriptureTextUnavailable: true } : {}),
         ...(resolution.sourceUrl
           ? {

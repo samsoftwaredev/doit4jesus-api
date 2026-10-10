@@ -1,5 +1,5 @@
 import type { ScriptureReading } from '@/liturgy/models';
-import { canonicalBookForCitation } from '@/liturgy/scripture/NabreScriptureRepository';
+import { canonicalBookForCitation } from '@/liturgy/scripture/DouayRheimsScriptureRepository';
 import { spanishBibleBookLoaders } from '@/liturgy/scripture/SpanishBibleBookLoaders';
 
 type BibleVerse = { verse: number; text: string };
@@ -34,10 +34,10 @@ const singleChapterBooks = new Set([
   '3John',
 ]);
 
-export class NabreVerseMappingError extends Error {
+export class DouayRheimsVerseMappingError extends Error {
   constructor(message: string) {
     super(message);
-    this.name = 'NabreVerseMappingError';
+    this.name = 'DouayRheimsVerseMappingError';
   }
 }
 
@@ -145,7 +145,9 @@ function parseRanges(citation: string): { book: string; ranges: VerseRange[] } {
     .match(/^((?:[1-3]\s*)?[A-Za-z]+(?:\s+[A-Za-z]+)*)\s+(\d.+)$/);
   const book = canonicalBookForCitation(normalizedCitation);
   if (!match || !book) {
-    throw new NabreVerseMappingError(`Unsupported NABRE citation: ${citation}`);
+    throw new DouayRheimsVerseMappingError(
+      `Unsupported Douay-Rheims citation: ${citation}`,
+    );
   }
 
   let activeChapter: number | null = null;
@@ -159,8 +161,8 @@ function parseRanges(citation: string): { book: string; ranges: VerseRange[] } {
     const chapterMatch = reference.trim().match(/^(\d+)\s*:\s*(.+)$/);
     const verseExpression = chapterMatch?.[2] ?? reference.trim();
     if (!chapterMatch && !singleChapterBooks.has(book)) {
-      throw new NabreVerseMappingError(
-        `Unsupported NABRE citation segment: ${citation}`,
+      throw new DouayRheimsVerseMappingError(
+        `Unsupported Douay-Rheims citation segment: ${citation}`,
       );
     }
     activeChapter = chapterMatch ? Number.parseInt(chapterMatch[1], 10) : 1;
@@ -172,8 +174,8 @@ function parseRanges(citation: string): { book: string; ranges: VerseRange[] } {
         /^(\d+[a-z]*)(?:\s*-\s*(?:(\d+)\s*:\s*)?(\d+[a-z]*))?$/i,
       );
       if (!rangeMatch || activeChapter === null) {
-        throw new NabreVerseMappingError(
-          `Unsupported NABRE verse range: ${citation}`,
+        throw new DouayRheimsVerseMappingError(
+          `Unsupported Douay-Rheims verse range: ${citation}`,
         );
       }
 
@@ -183,8 +185,8 @@ function parseRanges(citation: string): { book: string; ranges: VerseRange[] } {
         : activeChapter;
       const endVerse = parseVerseNumber(rangeMatch[3] ?? rangeMatch[1]);
       if (!startVerse || !endVerse || endChapter < activeChapter) {
-        throw new NabreVerseMappingError(
-          `Invalid NABRE verse range: ${citation}`,
+        throw new DouayRheimsVerseMappingError(
+          `Invalid Douay-Rheims verse range: ${citation}`,
         );
       }
       ranges.push({
@@ -207,7 +209,7 @@ function localizeCitation(citation: string, bookName: string) {
   return match ? `${bookName}${trimmed.slice(match[1].length)}` : citation;
 }
 
-export class NabreVerseMapper {
+export class DouayRheimsVerseMapper {
   private readonly cache = new Map<string, BibleBook>();
 
   async mapReading(
@@ -249,7 +251,7 @@ export class NabreVerseMapper {
           // A reference remains useful even if the selected local Bible has
           // not supplied those verses. Do not turn a valid USCCB lectionary
           // result into a server error or fabricate text.
-          if (error instanceof NabreVerseMappingError) {
+          if (error instanceof DouayRheimsVerseMappingError) {
             if (language === 'es') {
               try {
                 const { book } = parseRanges(reading.citation);
@@ -280,7 +282,7 @@ export class NabreVerseMapper {
 
     const loader = bookLoadersByLanguage[language][book];
     if (!loader)
-      throw new NabreVerseMappingError(
+      throw new DouayRheimsVerseMappingError(
         `No local ${language} Bible book file exists for ${book}.`,
       );
     const loaded = await loader();
@@ -307,7 +309,7 @@ export class NabreVerseMapper {
           (candidate) => candidate.chapter === chapterNumber,
         );
         if (!chapter) {
-          throw new NabreVerseMappingError(
+          throw new DouayRheimsVerseMappingError(
             `Chapter ${chapterNumber} is unavailable for ${citation}.`,
           );
         }
@@ -330,8 +332,8 @@ export class NabreVerseMapper {
     }
 
     if (selected.length === 0) {
-      throw new NabreVerseMappingError(
-        `No local NABRE verses matched ${citation}.`,
+      throw new DouayRheimsVerseMappingError(
+        `No local Douay-Rheims verses matched ${citation}.`,
       );
     }
     return selected;

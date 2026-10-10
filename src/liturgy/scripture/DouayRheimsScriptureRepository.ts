@@ -1,4 +1,4 @@
-import bibleBooks from '@/data/bible/bible-nabre-book-chapters.json';
+import bibleBooks from '@/data/bible/bible-douay-rheims-book-chapters.json';
 import type { CanonicalReference } from '@/liturgy/models';
 
 type BibleBook = { Book: string; Chapters: number };
@@ -114,11 +114,11 @@ export function canonicalBookForCitation(citation: string) {
 }
 
 /**
- * Local NABRE catalogue used to validate lectionary references. It deliberately
+ * Local Douay-Rheims catalogue used to validate lectionary references. It deliberately
  * reads only the tiny book/chapter index; verse text stays in `src/data/bible`
  * until a future text endpoint uses a licensed provider.
  */
-export class NabreScriptureRepository {
+export class DouayRheimsScriptureRepository {
   private readonly books = new Map(
     (bibleBooks as BibleBook[]).map((book) => [book.Book, book.Chapters]),
   );

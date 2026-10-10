@@ -7,8 +7,8 @@ import { LiturgicalDayResolver } from '../src/liturgy/calendar/LiturgicalDayReso
 import { usccbDailyLectionary } from '../src/liturgy/data/lectionary/usccb';
 import { LocalLectionaryRepository } from '../src/liturgy/lectionary/LectionaryRepository';
 import { LectionaryResolver } from '../src/liturgy/lectionary/LectionaryResolver';
-import { NabreScriptureRepository } from '../src/liturgy/scripture/NabreScriptureRepository';
-import { NabreVerseMapper } from '../src/liturgy/scripture/NabreVerseMapper';
+import { DouayRheimsScriptureRepository } from '../src/liturgy/scripture/DouayRheimsScriptureRepository';
+import { DouayRheimsVerseMapper } from '../src/liturgy/scripture/DouayRheimsVerseMapper';
 
 const calendar = new LiturgicalDayResolver();
 const lectionary = new LectionaryResolver(new LocalLectionaryRepository());
@@ -171,7 +171,7 @@ describe('MassReadingsService', () => {
     }
   });
 
-  it('resolves every 2026 USCCB reading and maps available local NABRE text', async () => {
+  it('resolves every 2026 USCCB reading and maps available local Douay-Rheims text', async () => {
     for (const date of usccbDailyLectionary.keys()) {
       const result = await getMassReadings({ date, country: 'US' });
       expect(result.readings).not.toHaveLength(0);
@@ -227,13 +227,13 @@ describe('MassReadingsService', () => {
         country: 'US',
         diocese: 'dallas',
         locale: 'en-US',
-        dataVersion: 'v3',
+        dataVersion: 'v4',
         lectionarySource: 'USCCB',
         lectionaryNumber: '423',
       },
     });
     expect(result.readings[0].text).toContain('Ezekiel 37:1');
-    expect(result.metadata?.scriptureTextSource).toBe('NABRE');
+    expect(result.metadata?.scriptureTextSource).toBe('DOUAY_RHEIMS');
   });
 
   it('returns Christmas reading sets from the service', async () => {
@@ -265,17 +265,18 @@ describe('MassReadingsService', () => {
         }),
       ]),
     );
-    expect(result.readings[0].text).toContain('Ezekiel 43:1');
+    expect(result.readings[0].text).toBeUndefined();
+    expect(result.metadata?.scriptureTextUnavailable).toBe(true);
   });
 
-  it('maps local NABRE book text into the standard response body', async () => {
+  it('maps local Douay-Rheims book text into the standard response body', async () => {
     const result = await getMassReadings({ date: '2026-08-21' });
     const ezekiel = result.readings.find(
       (reading) => reading.citation === 'Ez 37:1-14',
     );
 
     expect(ezekiel?.text).toContain('Ezekiel 37:1');
-    expect(result.metadata?.scriptureTextSource).toBe('NABRE');
+    expect(result.metadata?.scriptureTextSource).toBe('DOUAY_RHEIMS');
   });
 
   it('uses the Spanish Bible for Spanish regional locales', async () => {
@@ -332,17 +333,17 @@ describe('MassReadingsService', () => {
     expect(second).toBe(first);
   });
 
-  it('uses the local NABRE catalogue for citation validation', () => {
-    const nabre = new NabreScriptureRepository();
-    expect(nabre.supportsCitation('Ez 37:1-14')).toBe(true);
-    expect(nabre.supportsCitation('Ezekiel 43:1-7ab')).toBe(true);
-    expect(nabre.supportsCitation('1 Corinthians 1:1-9')).toBe(true);
-    expect(nabre.supportsCitation('Mt 22:34-40')).toBe(true);
-    expect(nabre.supportsCitation('Unknown 1:1')).toBe(false);
+  it('uses the local Douay-Rheims catalogue for citation validation', () => {
+    const douayRheims = new DouayRheimsScriptureRepository();
+    expect(douayRheims.supportsCitation('Ez 37:1-14')).toBe(true);
+    expect(douayRheims.supportsCitation('Ezekiel 43:1-7ab')).toBe(true);
+    expect(douayRheims.supportsCitation('1 Corinthians 1:1-9')).toBe(true);
+    expect(douayRheims.supportsCitation('Mt 22:34-40')).toBe(true);
+    expect(douayRheims.supportsCitation('Unknown 1:1')).toBe(false);
   });
 
   it('maps a cross-chapter citation from the individual local book file', async () => {
-    const mapper = new NabreVerseMapper();
+    const mapper = new DouayRheimsVerseMapper();
     const reading = await mapper.mapReading({
       type: 'FIRST_READING',
       citation: 'Gn 1:31—2:2',
@@ -353,7 +354,7 @@ describe('MassReadingsService', () => {
   });
 
   it('maps a Spanish cross-chapter citation with a localized label', async () => {
-    const mapper = new NabreVerseMapper();
+    const mapper = new DouayRheimsVerseMapper();
     const reading = await mapper.mapReading(
       {
         type: 'FIRST_READING',
@@ -373,7 +374,7 @@ describe('MassReadingsService', () => {
     ['Tb 1:1-2', 'Tobías 1:1-2'],
     ['Jude 1-2', 'Judas 1-2'],
   ])('maps Spanish canonical variants for %s', async (citation, label) => {
-    const mapper = new NabreVerseMapper();
+    const mapper = new DouayRheimsVerseMapper();
     const reading = await mapper.mapReading({ type: 'OTHER', citation }, 'es');
 
     expect(reading.localizedCitation).toBe(label);

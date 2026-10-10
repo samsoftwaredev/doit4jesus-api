@@ -19,6 +19,7 @@
     "check:outdated:strict": "node scripts/check-outdated-packages.mjs --strict",
     "verify:commit": "npm run typecheck && npm run format && npm run lint && npm test && npm run check:outdated",
     "verify:push": "npm run typecheck && npm run format:check && npm run lint:check && npm test && npm run check:outdated:strict",
+    "import:douay-rheims-bible": "node scripts/import-douay-rheims-bible.mjs",
     "import:spanish-bible": "node scripts/import-spanish-bible.mjs",
     "import:usccb-lectionary": "node scripts/import-usccb-lectionary.mjs",
     "import:usccb-calendar": "node scripts/import-usccb-calendar-text.mjs",

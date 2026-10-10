@@ -13,7 +13,7 @@
   },
   {
     "Book": "Numbers",
-    "Chapters": 36
+    "Chapters": 35
   },
   {
     "Book": "Deuteronomy",
@@ -21,15 +21,15 @@
   },
   {
     "Book": "Joshua",
-    "Chapters": 24
+    "Chapters": 22
   },
   {
     "Book": "Judges",
-    "Chapters": 21
+    "Chapters": 17
   },
   {
     "Book": "Ruth",
-    "Chapters": 4
+    "Chapters": 2
   },
   {
     "Book": "1Samuel",
@@ -49,7 +49,7 @@
   },
   {
     "Book": "1Chronicles",
-    "Chapters": 29
+    "Chapters": 27
   },
   {
     "Book": "2Chronicles",
@@ -61,7 +61,7 @@
   },
   {
     "Book": "Nehemiah",
-    "Chapters": 13
+    "Chapters": 11
   },
   {
     "Book": "Tobit",
@@ -69,11 +69,11 @@
   },
   {
     "Book": "Judith",
-    "Chapters": 16
+    "Chapters": 11
   },
   {
     "Book": "Esther",
-    "Chapters": 10
+    "Chapters": 13
   },
   {
     "Book": "1Maccabees",
@@ -81,7 +81,7 @@
   },
   {
     "Book": "2Maccabees",
-    "Chapters": 15
+    "Chapters": 14
   },
   {
     "Book": "Job",
@@ -109,7 +109,7 @@
   },
   {
     "Book": "Sirach",
-    "Chapters": 51
+    "Chapters": 48
   },
   {
     "Book": "Isaiah",
@@ -117,7 +117,7 @@
   },
   {
     "Book": "Jeremiah",
-    "Chapters": 52
+    "Chapters": 51
   },
   {
     "Book": "Lamentations",
@@ -129,7 +129,7 @@
   },
   {
     "Book": "Ezekiel",
-    "Chapters": 48
+    "Chapters": 44
   },
   {
     "Book": "Daniel",
@@ -137,15 +137,15 @@
   },
   {
     "Book": "Hosea",
-    "Chapters": 14
+    "Chapters": 11
   },
   {
     "Book": "Joel",
-    "Chapters": 4
+    "Chapters": 3
   },
   {
     "Book": "Amos",
-    "Chapters": 9
+    "Chapters": 7
   },
   {
     "Book": "Obadiah",
@@ -157,7 +157,7 @@
   },
   {
     "Book": "Micah",
-    "Chapters": 7
+    "Chapters": 6
   },
   {
     "Book": "Nahum",
@@ -177,11 +177,11 @@
   },
   {
     "Book": "Zechariah",
-    "Chapters": 14
+    "Chapters": 11
   },
   {
     "Book": "Malachi",
-    "Chapters": 3
+    "Chapters": 4
   },
   {
     "Book": "Matthew",
@@ -209,7 +209,7 @@
   },
   {
     "Book": "1Corinthians",
-    "Chapters": 16
+    "Chapters": 15
   },
   {
     "Book": "2Corinthians",

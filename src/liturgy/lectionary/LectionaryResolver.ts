@@ -4,7 +4,7 @@ import type {
   LiturgicalDay,
   ReadingSet,
 } from '@/liturgy/models';
-import { NabreScriptureRepository } from '@/liturgy/scripture/NabreScriptureRepository';
+import { DouayRheimsScriptureRepository } from '@/liturgy/scripture/DouayRheimsScriptureRepository';
 
 export interface LectionaryResolution {
   primary: ReadingSet | undefined;
@@ -21,7 +21,7 @@ export interface LectionaryResolution {
 export class LectionaryResolver {
   constructor(
     private readonly repository: LectionaryRepository,
-    private readonly scriptureRepository = new NabreScriptureRepository(),
+    private readonly scriptureRepository = new DouayRheimsScriptureRepository(),
   ) {}
 
   resolve(day: LiturgicalDay): LectionaryResolution {
@@ -89,7 +89,7 @@ export class LectionaryResolver {
     for (const reading of readingSets.flatMap((set) => set.readings)) {
       if (!this.scriptureRepository.supportsCitation(reading.citation)) {
         throw new Error(
-          `Lectionary citation is not supported by the local NABRE catalogue: ${reading.citation}`,
+          `Lectionary citation is not supported by the local Douay-Rheims catalogue: ${reading.citation}`,
         );
       }
     }

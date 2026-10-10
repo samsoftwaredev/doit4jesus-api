@@ -436,7 +436,7 @@ paths:
         Resolves today in the configured LITURGY_TIMEZONE, then returns the
         universal Roman-calendar celebration and locally curated Scripture
         references with verse text from checked-in local book files. The
-        default text is NABRE; locale=es or an es-* locale selects the Spanish
+        default text is Douay-Rheims; locale=es or an es-* locale selects the Spanish
         Biblia de Jerusalén and adds localizedCitation. For country=US, a
         versioned local USCCB snapshot takes precedence and returns its source
         metadata. No external liturgical or Bible service is called at request
@@ -2027,7 +2027,7 @@ components:
       name: locale
       description: >-
         Optional BCP 47 locale. es and es-* select Spanish Biblia de Jerusalén
-        verse text; all other locales use English NABRE. The canonical citation
+        verse text; all other locales use English Douay-Rheims. The canonical citation
         remains translation-neutral.
       schema: { type: string, example: es-MX }
     ExaminationCategory:
@@ -2673,8 +2673,8 @@ components:
             country: { type: string }
             diocese: { type: string }
             locale: { type: string }
-            dataVersion: { type: string, example: v3 }
-            scriptureTextSource: { type: string, enum: [NABRE, BIBLIA_DE_JERUSALEN] }
+            dataVersion: { type: string, example: v4 }
+            scriptureTextSource: { type: string, enum: [DOUAY_RHEIMS, BIBLIA_DE_JERUSALEN] }
             scriptureTextUnavailable:
               type: boolean
               description: True when a cited passage is not present in the selected local Bible files.

@@ -86,7 +86,7 @@ describe('liturgy routes', () => {
     const spanishPayload = {
       ...payload,
       metadata: {
-        dataVersion: 'v3',
+        dataVersion: 'v4',
         locale: 'es-MX',
         scriptureTextSource: 'BIBLIA_DE_JERUSALEN' as const,
       },

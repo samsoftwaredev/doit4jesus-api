@@ -117,7 +117,7 @@ export interface DailyMassReadings {
     diocese?: string;
     locale?: string;
     dataVersion: string;
-    scriptureTextSource?: 'NABRE' | 'BIBLIA_DE_JERUSALEN';
+    scriptureTextSource?: 'DOUAY_RHEIMS' | 'BIBLIA_DE_JERUSALEN';
     /** True when at least one cited passage is not present in the selected local Bible. */
     scriptureTextUnavailable?: boolean;
     lectionarySource?: 'USCCB' | 'LOCAL';
