@@ -26,6 +26,7 @@
     "build:username-profanity": "node scripts/build-username-profanity-data.mjs",
     "export": "next export",
     "prepare": "husky",
+    "supabase:types": "supabase gen types typescript --local --schema app,competition,prayer,api > supabase/types.ts",
     "test": "jest --watch=false --passWithNoTests",
     "test-coverage": "jest --coverage",
     "test:watch": "jest"
