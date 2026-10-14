@@ -63,6 +63,35 @@ different name.
 
 `SUPABASE_SERVICE_ROLE_KEY` is server-only and is not used by the public API routes. Keep it only for trusted workers or administrative jobs.
 
+### 3a. Configure the Resend Email Center
+
+The admin Email Center requires a Resend API key, a Resend-verified sender,
+reply address, physical mailing address, existing Segment ID, webhook signing
+secret, and the deployed app URL:
+
+```text
+RESEND_API_KEY
+RESEND_FROM_EMAIL
+RESEND_REPLY_TO
+RESEND_PHYSICAL_ADDRESS
+RESEND_SEGMENT_ID
+RESEND_WEBHOOK_SECRET
+APP_URL
+```
+
+Configure Resend to deliver `email.sent`, `email.delivered`,
+`email.bounced`, `email.complained`, `email.opened`, `email.clicked`,
+`email.suppressed`, and `contact.updated` events to:
+
+```text
+https://YOUR_DOMAIN/api/v1/webhooks/resend
+```
+
+Campaigns use Resend Broadcasts and the configured Segment. The app only
+launches a draft after it has passed a send to every saved test-recipient
+address. The active-user audience is used only where the operator has
+documented existing marketing consent.
+
 ### 4. Install and run
 
 ```bash

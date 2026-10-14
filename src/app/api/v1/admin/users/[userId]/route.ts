@@ -13,7 +13,7 @@ export async function DELETE(request: Request, context: Context) {
     const { supabase } = await requireAdmin(request);
     const { error } = await supabase
       .schema('api')
-      .rpc('delete_user_account', { p_user_id: userId });
+      .rpc('admin_delete_user_account', { p_user_id: userId });
 
     throwDatabaseError(error, 'Unable to delete the account.');
     return noContent();

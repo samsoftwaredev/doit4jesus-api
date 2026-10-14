@@ -26,7 +26,7 @@ describe('DELETE /api/v1/admin/users/{userId}', () => {
       params: Promise.resolve({ userId: USER_ID }),
     });
 
-    expect(rpc).toHaveBeenCalledWith('delete_user_account', {
+    expect(rpc).toHaveBeenCalledWith('admin_delete_user_account', {
       p_user_id: USER_ID,
     });
     expect(response.status).toBe(204);

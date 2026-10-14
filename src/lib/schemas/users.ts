@@ -2,6 +2,19 @@ import { z } from 'zod';
 
 export const accountUserIdSchema = z.uuid();
 
+export const adminUserSearchQuerySchema = z.object({
+  q: z.string().trim().min(2).max(320),
+  limit: z.coerce.number().int().min(1).max(20).default(20),
+});
+
+export const adminUserDeletionPreviewQuerySchema = z.object({
+  section: z
+    .enum(['account', 'community', 'progress', 'prayer'])
+    .default('account'),
+  limit: z.coerce.number().int().min(1).max(100).default(50),
+  offset: z.coerce.number().int().min(0).default(0),
+});
+
 export const userSearchQuerySchema = z.object({
   q: z
     .string()

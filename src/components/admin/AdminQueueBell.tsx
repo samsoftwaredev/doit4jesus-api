@@ -84,7 +84,7 @@ function QueueSection<T>({
         queue.items.map((item) => (
           <MenuItem
             component={NextLink}
-            href={`/dashboard/admin?panel=${panel}`}
+            href={`/dashboard?tab=admin&panel=${panel}`}
             key={(item as { id: string }).id}
             onClick={onNavigate}
             sx={{ alignItems: 'flex-start', py: 1 }}
@@ -102,7 +102,7 @@ function QueueSection<T>({
       )}
       <MenuItem
         component={NextLink}
-        href={`/dashboard/admin?panel=${panel}`}
+        href={`/dashboard?tab=admin&panel=${panel}`}
         onClick={onNavigate}
         sx={{
           color: 'primary.main',

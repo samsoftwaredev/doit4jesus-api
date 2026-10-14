@@ -75,6 +75,11 @@
       "key": "outgoingFriendRequestId",
       "value": "00000000-0000-0000-0000-000000000000",
       "description": "Set this to one of the authenticated user's pending outgoing friend requests before using the cancel request."
+    },
+    {
+      "key": "emailCampaignId",
+      "value": "00000000-0000-0000-0000-000000000000",
+      "description": "Set this from a created email campaign before testing, scheduling, sending, or cancelling it."
     }
   ],
   "auth": {
@@ -310,6 +315,56 @@
           }
         },
         {
+          "name": "Search user accounts for deletion review",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/users?q=member@example.com&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "admin", "users"],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "member@example.com",
+                  "description": "Email substring or exact UUID."
+                },
+                { "key": "limit", "value": "20" }
+              ]
+            },
+            "description": "Administrator-only account lookup. Administrator accounts are returned for review but are protected from deletion."
+          }
+        },
+        {
+          "name": "Preview user account deletion",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/users/{{userId}}/deletion-preview?section=account&limit=50&offset=0",
+              "host": ["{{baseUrl}}"],
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "users",
+                "{{userId}}",
+                "deletion-preview"
+              ],
+              "query": [
+                {
+                  "key": "section",
+                  "value": "account",
+                  "description": "account | community | progress | prayer"
+                },
+                { "key": "limit", "value": "50" },
+                { "key": "offset", "value": "0" }
+              ]
+            },
+            "description": "Returns account/profile data, deletion impact, category counts, and paginated full records for the selected category."
+          }
+        },
+        {
           "name": "Delete user account",
           "request": {
             "method": "DELETE",
@@ -319,7 +374,7 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "admin", "users", "{{userId}}"]
             },
-            "description": "Administrator-only permanent deletion of the target Auth account and linked application data. Qualifying Rosary quantities remain only in the anonymous global total."
+            "description": "Administrator-only permanent deletion of a reviewed non-administrator account. Qualifying Rosary quantities remain only in the anonymous global total."
           },
           "response": [
             {
@@ -2034,6 +2089,86 @@
               ]
             },
             "description": "Sets `read_at` to the current timestamp for the given notification. The notification must belong to the authenticated user.\n\nSet the `notificationId` collection variable to the UUID of the notification.\n\nReturns **204 No Content** on success, **404** if the notification is not found."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin · Email Center",
+      "description": "Administrator-only Resend campaign, test-recipient, analytics, and support-reply workflows.",
+      "item": [
+        {
+          "name": "List campaigns",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/email/campaigns?limit=20&offset=0",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "admin", "email", "campaigns"],
+              "query": [
+                { "key": "limit", "value": "20" },
+                { "key": "offset", "value": "0" }
+              ]
+            },
+            "description": "Lists protected campaign drafts and launch records."
+          }
+        },
+        {
+          "name": "Create campaign draft",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"templateKey\": \"update\",\n  \"subject\": \"A Do It 4 Jesus update\",\n  \"content\": {\n    \"previewText\": \"See what is new this week.\",\n    \"heading\": \"A new way to pray together\",\n    \"body\": \"Thank you for praying with us.\",\n    \"ctaLabel\": \"Open the app\",\n    \"ctaUrl\": \"https://example.com\"\n  }\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/email/campaigns",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "admin", "email", "campaigns"]
+            },
+            "description": "Creates a draft. Add saved test recipients and send a test before launch."
+          }
+        },
+        {
+          "name": "Send or schedule tested campaign",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"scheduledFor\": \"2026-10-15T15:00:00.000Z\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/email/campaigns/{{emailCampaignId}}/send",
+              "host": ["{{baseUrl}}"],
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "email",
+                "campaigns",
+                "{{emailCampaignId}}",
+                "send"
+              ]
+            },
+            "description": "Leave the body as {} to send immediately. The current revision must first pass every saved test recipient."
+          }
+        },
+        {
+          "name": "Email analytics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/email/analytics",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "admin", "email", "analytics"]
+            },
+            "description": "Returns overall and campaign-level Resend event aggregates."
           }
         }
       ]

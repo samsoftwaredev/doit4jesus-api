@@ -83,13 +83,218 @@ paths:
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { description: Administrator role required }
         '422': { $ref: '#/components/responses/ValidationError' }
+  /api/v1/admin/contact-requests/{requestId}/reply:
+    post:
+      summary: Send a branded reply to a contact request
+      parameters:
+        - in: path
+          name: requestId
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [subject, message]
+              properties:
+                subject: { type: string, minLength: 1, maxLength: 160 }
+                message: { type: string, minLength: 1, maxLength: 10000 }
+      responses:
+        '200': { description: Reply accepted by Resend and recorded }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { description: Administrator role required }
+        '422': { $ref: '#/components/responses/ValidationError' }
+        '502': { description: Resend did not accept the reply }
+  /api/v1/admin/email/campaigns:
+    get:
+      summary: List email campaigns
+      parameters:
+        - { $ref: '#/components/parameters/Limit' }
+        - { $ref: '#/components/parameters/Offset' }
+      responses:
+        '200': { description: Paginated administrator email campaigns }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { description: Administrator role required }
+    post:
+      summary: Create an email campaign draft
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [templateKey, subject, content]
+              properties:
+                templateKey: { type: string, enum: [update, announcement] }
+                subject: { type: string, minLength: 1, maxLength: 160 }
+                content:
+                  type: object
+                  additionalProperties: false
+                  required: [previewText, heading, body]
+                  properties:
+                    previewText: { type: string, minLength: 1, maxLength: 180 }
+                    heading: { type: string, minLength: 1, maxLength: 140 }
+                    body: { type: string, minLength: 1, maxLength: 10000 }
+                    ctaLabel: { type: string, minLength: 1, maxLength: 80 }
+                    ctaUrl: { type: string, format: uri, maxLength: 2000 }
+      responses:
+        '201': { description: Campaign draft created }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { description: Administrator role required }
+        '422': { $ref: '#/components/responses/ValidationError' }
+  /api/v1/admin/email/campaigns/{campaignId}:
+    parameters:
+      - in: path
+        name: campaignId
+        required: true
+        schema: { type: string, format: uuid }
+    get:
+      summary: Get an email campaign draft or launch record
+      responses:
+        '200': { description: Campaign record }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { description: Administrator role required }
+        '404': { description: Campaign not found }
+    patch:
+      summary: Update an email campaign draft
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/EmailCampaignInput' }
+      responses:
+        '200': { description: Draft updated; prior test approval is invalidated }
+        '409': { description: Campaign is no longer editable }
+  /api/v1/admin/email/campaigns/{campaignId}/test:
+    post:
+      summary: Send the current campaign revision to every saved test recipient
+      parameters:
+        - in: path
+          name: campaignId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: Every test message was accepted by Resend }
+        '409': { description: Campaign is not draft or the saved test list is empty }
+        '502': { description: Resend did not accept a test message }
+  /api/v1/admin/email/campaigns/{campaignId}/send:
+    post:
+      summary: Send now or schedule a tested email campaign
+      parameters:
+        - in: path
+          name: campaignId
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/EmailCampaignLaunch' }
+      responses:
+        '200': { description: Campaign sent or scheduled through Resend Broadcasts }
+        '409': { description: Current revision has not passed its test or has no eligible recipients }
+        '502': { description: Resend did not accept the campaign }
+  /api/v1/admin/email/campaigns/{campaignId}/cancel:
+    post:
+      summary: Cancel a scheduled email campaign
+      parameters:
+        - in: path
+          name: campaignId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: Scheduled campaign cancelled }
+        '409': { description: Campaign is not scheduled }
+        '502': { description: Resend could not cancel the campaign }
+  /api/v1/admin/email/test-recipients:
+    get:
+      summary: List saved email test recipients
+      responses:
+        '200': { description: Test-recipient page }
+    post:
+      summary: Add an email test recipient
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/EmailTestRecipientInput' }
+      responses:
+        '201': { description: Test recipient added }
+        '409': { description: Address already exists }
+  /api/v1/admin/email/test-recipients/{recipientId}:
+    delete:
+      summary: Remove a saved email test recipient
+      parameters:
+        - in: path
+          name: recipientId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '204': { description: Test recipient removed }
+  /api/v1/admin/email/analytics:
+    get:
+      summary: Get overall and campaign email delivery analytics
+      responses:
+        '200': { description: Sent, delivered, opened, clicked, bounce, complaint, and suppression metrics }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { description: Administrator role required }
+  /api/v1/webhooks/resend:
+    post:
+      security: []
+      summary: Receive signed Resend delivery and contact events
+      responses:
+        '204': { description: Verified event accepted or previously processed }
+        '400': { description: Invalid webhook signature or headers }
+  /api/v1/admin/users:
+    get:
+      summary: Search user accounts for administrator deletion review
+      description: >-
+        Administrator-only lookup. A UUID query is exact; other queries are
+        case-insensitive substrings of account email addresses.
+      parameters:
+        - in: query
+          name: q
+          required: true
+          schema: { type: string, minLength: 2, maxLength: 320 }
+        - in: query
+          name: limit
+          schema: { type: integer, minimum: 1, maximum: 20, default: 20 }
+      responses:
+        '200': { description: Matching accounts, including protected-admin state }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { description: Administrator role required }
+        '422': { $ref: '#/components/responses/ValidationError' }
+  /api/v1/admin/users/{userId}/deletion-preview:
+    get:
+      summary: Review all app-facing data affected by an account deletion
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema: { type: string, format: uuid }
+        - in: query
+          name: section
+          schema: { type: string, enum: [account, community, progress, prayer], default: account }
+        - { $ref: '#/components/parameters/Limit' }
+        - { $ref: '#/components/parameters/Offset' }
+      responses:
+        '200': { description: Account identity, deletion impact, section counts, and a page of full records }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { description: Administrator role required }
+        '404': { description: User account not found }
+        '422': { $ref: '#/components/responses/ValidationError' }
   /api/v1/admin/users/{userId}:
     delete:
       summary: Permanently delete a user account
       description: >-
-        Administrator-only account deletion. It permanently deletes the target
-        user's Auth identity and linked application data while retaining only
-        their anonymous qualifying Rosary contribution in the global total.
+        Administrator-only account deletion after a deletion preview. It
+        permanently deletes the target user's Auth identity and linked
+        application data while retaining only their anonymous qualifying Rosary
+        contribution in the global total. Administrator accounts are protected.
       parameters:
         - in: path
           name: userId
@@ -98,7 +303,8 @@ paths:
       responses:
         '204': { description: Account permanently deleted. The successful response body is empty. }
         '401': { $ref: '#/components/responses/Unauthorized' }
-        '403': { description: Administrator role required }
+        '403': { description: Administrator role required or target account is protected }
+        '404': { description: User account not found }
         '422': { $ref: '#/components/responses/ValidationError' }
   /api/v1/admin/notification-summary:
     get:
@@ -2175,6 +2381,34 @@ components:
           properties:
             id: { type: string, format: uuid }
             createdAt: { type: string, format: date-time }
+    EmailCampaignInput:
+      type: object
+      additionalProperties: false
+      required: [templateKey, subject, content]
+      properties:
+        templateKey: { type: string, enum: [update, announcement] }
+        subject: { type: string, minLength: 1, maxLength: 160 }
+        content:
+          type: object
+          additionalProperties: false
+          required: [previewText, heading, body]
+          properties:
+            previewText: { type: string, minLength: 1, maxLength: 180 }
+            heading: { type: string, minLength: 1, maxLength: 140 }
+            body: { type: string, minLength: 1, maxLength: 10000 }
+            ctaLabel: { type: string, minLength: 1, maxLength: 80 }
+            ctaUrl: { type: string, format: uri, maxLength: 2000 }
+    EmailCampaignLaunch:
+      type: object
+      additionalProperties: false
+      properties:
+        scheduledFor: { type: string, format: date-time }
+    EmailTestRecipientInput:
+      type: object
+      additionalProperties: false
+      required: [email]
+      properties:
+        email: { type: string, format: email, maxLength: 320 }
     ContactRequest:
       type: object
       additionalProperties: false

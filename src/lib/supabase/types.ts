@@ -138,6 +138,190 @@ export type Database = {
         Update: never;
         Relationships: [];
       };
+      users: {
+        Row: {
+          id: string;
+          email: string | null;
+          status: string;
+          email_verified_at: string | null;
+          last_login_at: string | null;
+          created_at: string;
+          updated_at: string;
+          deleted_at: string | null;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      email_test_recipients: {
+        Row: {
+          id: string;
+          email: string;
+          created_by: string | null;
+          created_at: string;
+        };
+        Insert: { id?: string; email: string; created_by?: string | null };
+        Update: never;
+        Relationships: [];
+      };
+      email_campaigns: {
+        Row: {
+          id: string;
+          template_key: 'update' | 'announcement';
+          subject: string;
+          content: Json;
+          rendered_html: string;
+          status: 'draft' | 'scheduled' | 'sent' | 'cancelled' | 'failed';
+          recipient_count: number;
+          resend_broadcast_id: string | null;
+          scheduled_for: string | null;
+          sent_at: string | null;
+          last_tested_revision: string | null;
+          created_by: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          template_key: 'update' | 'announcement';
+          subject: string;
+          content: Json;
+          rendered_html: string;
+          status?: 'draft' | 'scheduled' | 'sent' | 'cancelled' | 'failed';
+          recipient_count?: number;
+          resend_broadcast_id?: string | null;
+          scheduled_for?: string | null;
+          sent_at?: string | null;
+          last_tested_revision?: string | null;
+          created_by?: string | null;
+        };
+        Update: Partial<{
+          template_key: 'update' | 'announcement';
+          subject: string;
+          content: Json;
+          rendered_html: string;
+          status: 'draft' | 'scheduled' | 'sent' | 'cancelled' | 'failed';
+          recipient_count: number;
+          resend_broadcast_id: string | null;
+          scheduled_for: string | null;
+          sent_at: string | null;
+          last_tested_revision: string | null;
+        }>;
+        Relationships: [];
+      };
+      email_test_runs: {
+        Row: {
+          id: string;
+          campaign_id: string;
+          revision: string;
+          recipient_count: number;
+          accepted_count: number;
+          status: 'accepted' | 'failed';
+          created_by: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          campaign_id: string;
+          revision: string;
+          recipient_count: number;
+          accepted_count?: number;
+          status: 'accepted' | 'failed';
+          created_by?: string | null;
+        };
+        Update: Partial<{
+          accepted_count: number;
+          status: 'accepted' | 'failed';
+        }>;
+        Relationships: [];
+      };
+      email_sends: {
+        Row: {
+          id: string;
+          campaign_id: string | null;
+          test_run_id: string | null;
+          contact_request_id: string | null;
+          kind: 'campaign' | 'test' | 'reply';
+          recipient_email: string;
+          resend_email_id: string | null;
+          resend_broadcast_id: string | null;
+          last_event: string | null;
+          sent_at: string | null;
+          delivered_at: string | null;
+          opened_at: string | null;
+          clicked_at: string | null;
+          bounced_at: string | null;
+          complained_at: string | null;
+          suppressed_at: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          campaign_id?: string | null;
+          test_run_id?: string | null;
+          contact_request_id?: string | null;
+          kind: 'campaign' | 'test' | 'reply';
+          recipient_email: string;
+          resend_email_id?: string | null;
+          resend_broadcast_id?: string | null;
+          last_event?: string | null;
+          sent_at?: string | null;
+          delivered_at?: string | null;
+          opened_at?: string | null;
+          clicked_at?: string | null;
+          bounced_at?: string | null;
+          complained_at?: string | null;
+          suppressed_at?: string | null;
+        };
+        Update: Partial<{
+          resend_email_id: string | null;
+          resend_broadcast_id: string | null;
+          last_event: string | null;
+          sent_at: string | null;
+          delivered_at: string | null;
+          opened_at: string | null;
+          clicked_at: string | null;
+          bounced_at: string | null;
+          complained_at: string | null;
+          suppressed_at: string | null;
+        }>;
+        Relationships: [];
+      };
+      email_webhook_events: {
+        Row: {
+          resend_event_id: string;
+          event_type: string;
+          resend_email_id: string | null;
+          resend_broadcast_id: string | null;
+          occurred_at: string;
+          created_at: string;
+        };
+        Insert: {
+          resend_event_id: string;
+          event_type: string;
+          resend_email_id?: string | null;
+          resend_broadcast_id?: string | null;
+          occurred_at: string;
+        };
+        Update: never;
+        Relationships: [];
+      };
+      email_suppressions: {
+        Row: {
+          email: string;
+          reason: 'unsubscribe' | 'bounce' | 'complaint' | 'suppressed';
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          email: string;
+          reason: 'unsubscribe' | 'bounce' | 'complaint' | 'suppressed';
+        };
+        Update: {
+          reason?: 'unsubscribe' | 'bounce' | 'complaint' | 'suppressed';
+        };
+        Relationships: [];
+      };
       deleted_account_rosary_totals: {
         Row: {
           singleton: boolean;
@@ -1032,6 +1216,31 @@ export type Database = {
       delete_user_account: {
         Args: { p_user_id: string };
         Returns: undefined;
+      };
+      admin_delete_user_account: {
+        Args: { p_user_id: string };
+        Returns: undefined;
+      };
+      get_admin_user_deletion_preview: {
+        Args: {
+          p_user_id: string;
+          p_section?: string | null;
+          p_limit?: number | null;
+          p_offset?: number | null;
+        };
+        Returns: Json;
+      };
+      search_admin_users: {
+        Args: { p_query: string; p_limit?: number | null };
+        Returns: Array<{
+          id: string;
+          email: string | null;
+          status: string;
+          created_at: string;
+          display_name: string | null;
+          username: string | null;
+          is_admin: boolean;
+        }>;
       };
       search_users: {
         Args: {

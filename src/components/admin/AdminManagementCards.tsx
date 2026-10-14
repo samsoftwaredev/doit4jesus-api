@@ -1,11 +1,5 @@
 'use client';
 
-import AnalyticsOutlinedIcon from '@mui/icons-material/AnalyticsOutlined';
-import ChurchOutlinedIcon from '@mui/icons-material/ChurchOutlined';
-import ContactMailOutlinedIcon from '@mui/icons-material/ContactMailOutlined';
-import DeleteForeverOutlinedIcon from '@mui/icons-material/DeleteForeverOutlined';
-import FactCheckOutlinedIcon from '@mui/icons-material/FactCheckOutlined';
-import FavoriteBorderOutlinedIcon from '@mui/icons-material/FavoriteBorderOutlined';
 import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -21,6 +15,8 @@ import FormControlLabel from '@mui/material/FormControlLabel';
 import MenuItem from '@mui/material/MenuItem';
 import Stack from '@mui/material/Stack';
 import Switch from '@mui/material/Switch';
+import Tab from '@mui/material/Tab';
+import Tabs from '@mui/material/Tabs';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -29,6 +25,7 @@ import { type ReactNode, useCallback, useEffect, useState } from 'react';
 import { contactSubjectValues } from '@/lib/schemas/contact';
 
 import AdminAppMetrics from './AdminAppMetrics';
+import EmailCenter from './EmailCenter';
 
 type Meta = { hasMore?: boolean; nextOffset?: number | null };
 type ApiResponse<T> = { data?: T; meta?: Meta; error?: { message?: string } };
@@ -128,47 +125,6 @@ async function adminFetch<T>(
   return body;
 }
 
-function ManagementCard({
-  icon,
-  title,
-  description,
-  action,
-  onClick,
-  destructive = false,
-}: {
-  icon: ReactNode;
-  title: string;
-  description: string;
-  action: string;
-  onClick: () => void;
-  destructive?: boolean;
-}) {
-  return (
-    <Card component="section" variant="outlined">
-      <CardContent>
-        <Stack spacing={2} alignItems="flex-start">
-          <Box color={destructive ? 'error.main' : 'primary.main'}>{icon}</Box>
-          <Box>
-            <Typography component="h2" variant="h6" fontWeight={700}>
-              {title}
-            </Typography>
-            <Typography variant="body2" color="text.secondary" mt={0.5}>
-              {description}
-            </Typography>
-          </Box>
-          <Button
-            color={destructive ? 'error' : 'primary'}
-            onClick={onClick}
-            variant="outlined"
-          >
-            {action}
-          </Button>
-        </Stack>
-      </CardContent>
-    </Card>
-  );
-}
-
 function Panel({
   title,
   onClose,
@@ -179,13 +135,21 @@ function Panel({
   children: ReactNode;
 }) {
   return (
-    <Dialog open onClose={onClose} fullWidth maxWidth="md">
-      <DialogTitle>{title}</DialogTitle>
-      <DialogContent dividers>{children}</DialogContent>
-      <DialogActions>
-        <Button onClick={onClose}>Close</Button>
-      </DialogActions>
-    </Dialog>
+    <Box component="section" mt={3}>
+      <Stack
+        direction={{ xs: 'column', sm: 'row' }}
+        alignItems={{ xs: 'flex-start', sm: 'center' }}
+        justifyContent="space-between"
+        spacing={1}
+        mb={2}
+      >
+        <Typography component="h2" variant="h5" fontWeight={700}>
+          {title}
+        </Typography>
+        <Button onClick={onClose}>Return to analytics</Button>
+      </Stack>
+      {children}
+    </Box>
   );
 }
 
@@ -251,6 +215,10 @@ function ContactRequestsPanel({
   });
   const [offset, setOffset] = useState(0);
   const [selected, setSelected] = useState<ContactRequest | null>(null);
+  const [replySubject, setReplySubject] = useState('');
+  const [replyMessage, setReplyMessage] = useState('');
+  const [sendingReply, setSendingReply] = useState(false);
+  const [replyError, setReplyError] = useState<string | null>(null);
   const load = useCallback(
     async (nextOffset = offset) => {
       setState((current) => ({ ...current, loading: true, error: null }));
@@ -290,12 +258,41 @@ function ContactRequestsPanel({
     void load(0);
   }, []); // Load the default queue once when opened.
 
+  async function sendReply() {
+    if (!selected) return;
+    setSendingReply(true);
+    setReplyError(null);
+    try {
+      await adminFetch(
+        token,
+        `/api/v1/admin/contact-requests/${selected.id}/reply`,
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            subject: replySubject,
+            message: replyMessage,
+          }),
+        },
+      );
+      setSelected(null);
+      setReplySubject('');
+      setReplyMessage('');
+      await load(offset);
+    } catch (error) {
+      setReplyError(
+        error instanceof Error ? error.message : 'Unable to send the reply.',
+      );
+    } finally {
+      setSendingReply(false);
+    }
+  }
+
   return (
     <Panel title="Contact Requests" onClose={onClose}>
       <Stack spacing={2}>
         <Alert severity="info">
-          This inbox is read-only. Contact-request statuses cannot be changed
-          through the current API.
+          Send a branded response directly from a contact request. A successful
+          send marks the request as done.
         </Alert>
         <Box
           display="grid"
@@ -378,7 +375,14 @@ function ContactRequestsPanel({
                         {formatDate(item.created_at)} · {item.status}
                       </Typography>
                     </Box>
-                    <Button onClick={() => setSelected(item)}>
+                    <Button
+                      onClick={() => {
+                        setSelected(item);
+                        setReplySubject(`Re: ${item.subject}`);
+                        setReplyMessage('');
+                        setReplyError(null);
+                      }}
+                    >
                       View message
                     </Button>
                   </Stack>
@@ -405,16 +409,40 @@ function ContactRequestsPanel({
               {selected.other_subject ? `: ${selected.other_subject}` : ''}
             </DialogTitle>
             <DialogContent dividers>
-              <Stack spacing={1}>
+              <Stack spacing={1.5}>
                 <Typography variant="body2">
                   From: {selected.name} &lt;{selected.email}&gt;
                 </Typography>
                 <Typography whiteSpace="pre-wrap">
                   {selected.message}
                 </Typography>
+                <Divider />
+                <Typography fontWeight={700}>Reply by email</Typography>
+                {replyError && <Alert severity="error">{replyError}</Alert>}
+                <TextField
+                  label="Subject"
+                  value={replySubject}
+                  onChange={(event) => setReplySubject(event.target.value)}
+                  inputProps={{ maxLength: 160 }}
+                />
+                <TextField
+                  label="Message"
+                  value={replyMessage}
+                  onChange={(event) => setReplyMessage(event.target.value)}
+                  multiline
+                  minRows={4}
+                  inputProps={{ maxLength: 10_000 }}
+                />
               </Stack>
             </DialogContent>
             <DialogActions>
+              <Button
+                disabled={sendingReply || !replySubject || !replyMessage}
+                variant="contained"
+                onClick={() => void sendReply()}
+              >
+                {sendingReply ? 'Sending…' : 'Send reply'}
+              </Button>
               <Button onClick={() => setSelected(null)}>Close</Button>
             </DialogActions>
           </Dialog>
@@ -1245,23 +1273,151 @@ function UserDeletionPanel({
   token: string;
   onClose: () => void;
 }) {
-  const [userId, setUserId] = useState('');
-  const [confirming, setConfirming] = useState(false);
+  type SearchResult = {
+    id: string;
+    email: string | null;
+    status: string;
+    createdAt: string;
+    displayName: string | null;
+    username: string | null;
+    isProtectedAdmin: boolean;
+  };
+  type PreviewRecord = {
+    recordType: string;
+    occurredAt: string;
+    record: unknown;
+  };
+  type Preview = {
+    account: {
+      id: string;
+      email: string | null;
+      status: string;
+      email_verified_at: string | null;
+      last_login_at: string | null;
+      created_at: string;
+      updated_at: string;
+    };
+    profile: Record<string, unknown> | null;
+    notificationPreferences: Record<string, unknown> | null;
+    isProtectedAdmin: boolean;
+    anonymousRosaryContribution: number;
+    sections: Record<'account' | 'community' | 'progress' | 'prayer', number>;
+    records: PreviewRecord[];
+    recordCount: number;
+  };
+  const sections = [
+    { value: 'account', label: 'Account' },
+    { value: 'community', label: 'Community' },
+    { value: 'progress', label: 'Progress' },
+    { value: 'prayer', label: 'Prayer' },
+  ] as const;
+  type Section = (typeof sections)[number]['value'];
+  const [query, setQuery] = useState('');
+  const [results, setResults] = useState<SearchResult[]>([]);
+  const [searching, setSearching] = useState(false);
+  const [searchError, setSearchError] = useState('');
+  const [selected, setSelected] = useState<SearchResult | null>(null);
+  const [section, setSection] = useState<Section>('account');
+  const [offset, setOffset] = useState(0);
+  const [preview, setPreview] = useState<Preview | null>(null);
+  const [previewMeta, setPreviewMeta] = useState<Meta>({});
+  const [loadingPreview, setLoadingPreview] = useState(false);
+  const [previewError, setPreviewError] = useState('');
   const [confirmation, setConfirmation] = useState('');
   const [state, setState] = useState<
     'idle' | 'submitting' | 'success' | 'error'
   >('idle');
   const [error, setError] = useState('');
+
+  async function search() {
+    const trimmed = query.trim();
+    if (trimmed.length < 2) {
+      setSearchError(
+        'Enter at least two characters of an email address or an exact UUID.',
+      );
+      return;
+    }
+    setSearching(true);
+    setSearchError('');
+    try {
+      const response = await adminFetch<SearchResult[]>(
+        token,
+        `/api/v1/admin/users?q=${encodeURIComponent(trimmed)}`,
+      );
+      setResults(response.data ?? []);
+    } catch (cause) {
+      setSearchError(
+        cause instanceof Error
+          ? cause.message
+          : 'Unable to search user accounts.',
+      );
+    } finally {
+      setSearching(false);
+    }
+  }
+
+  const loadPreview = useCallback(
+    async (target: SearchResult, nextSection: Section, nextOffset: number) => {
+      setLoadingPreview(true);
+      setPreviewError('');
+      try {
+        const response = await adminFetch<Preview>(
+          token,
+          `/api/v1/admin/users/${target.id}/deletion-preview?section=${nextSection}&limit=25&offset=${nextOffset}`,
+        );
+        setPreview(response.data ?? null);
+        setPreviewMeta(response.meta ?? {});
+      } catch (cause) {
+        setPreviewError(
+          cause instanceof Error
+            ? cause.message
+            : 'Unable to load the account deletion preview.',
+        );
+      } finally {
+        setLoadingPreview(false);
+      }
+    },
+    [token],
+  );
+
+  useEffect(() => {
+    if (selected) void loadPreview(selected, section, offset);
+  }, [loadPreview, offset, section, selected]);
+
+  function selectUser(user: SearchResult) {
+    setSelected(user);
+    setSection('account');
+    setOffset(0);
+    setPreview(null);
+    setPreviewError('');
+    setConfirmation('');
+    setState('idle');
+    setError('');
+  }
+
+  function closePreview() {
+    setSelected(null);
+    setPreview(null);
+    setConfirmation('');
+    setPreviewError('');
+    setState('idle');
+    setError('');
+  }
+
   async function remove() {
+    if (!selected) return;
     setState('submitting');
     try {
-      await adminFetch(token, `/api/v1/admin/users/${userId}`, {
+      await adminFetch(token, `/api/v1/admin/users/${selected.id}`, {
         method: 'DELETE',
       });
       setState('success');
-      setConfirming(false);
+      setSelected(null);
+      setPreview(null);
       setConfirmation('');
-      setUserId('');
+      setResults((current) =>
+        current.filter((user) => user.id !== selected.id),
+      );
     } catch (cause) {
       setState('error');
       setError(
@@ -1284,52 +1440,241 @@ function UserDeletionPanel({
           </Alert>
         )}
         {state === 'error' && <Alert severity="error">{error}</Alert>}
-        <TextField
-          label="User UUID"
-          required
-          value={userId}
-          onChange={(event) => {
-            setUserId(event.target.value);
-            setState('idle');
-          }}
-          helperText="Paste the exact user UUID. There is no user lookup in this tool."
-        />
-        <Button
-          color="error"
-          variant="contained"
-          disabled={!userId}
-          onClick={() => setConfirming(true)}
-        >
-          Delete account
-        </Button>
-        {confirming && (
-          <Dialog open onClose={() => setConfirming(false)}>
-            <DialogTitle>Confirm permanent deletion</DialogTitle>
-            <DialogContent>
-              <Stack spacing={2} pt={1}>
-                <Typography>
-                  To permanently delete user{' '}
-                  <Box component="code">{userId}</Box>, type{' '}
-                  <Box component="strong">DELETE</Box>.
-                </Typography>
-                <TextField
-                  autoFocus
-                  label="Confirmation"
-                  value={confirmation}
-                  onChange={(event) => setConfirmation(event.target.value)}
-                />
-              </Stack>
+        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
+          <TextField
+            fullWidth
+            label="Search by email or UUID"
+            value={query}
+            onChange={(event) => {
+              setQuery(event.target.value);
+              setSearchError('');
+            }}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') void search();
+            }}
+            helperText="Email matches may contain the entered text. UUIDs must match exactly."
+          />
+          <Button
+            variant="contained"
+            disabled={searching}
+            onClick={() => void search()}
+          >
+            {searching ? 'Searching…' : 'Search'}
+          </Button>
+        </Stack>
+        {searchError && <Alert severity="error">{searchError}</Alert>}
+        {results.length > 0 && (
+          <Stack spacing={1}>
+            {results.map((user) => (
+              <Card key={user.id} variant="outlined">
+                <CardContent>
+                  <Stack
+                    direction={{ xs: 'column', md: 'row' }}
+                    justifyContent="space-between"
+                    alignItems={{ xs: 'flex-start', md: 'center' }}
+                    spacing={1}
+                  >
+                    <Box>
+                      <Typography fontWeight={700}>
+                        {user.displayName ||
+                          user.username ||
+                          user.email ||
+                          'Unnamed account'}
+                      </Typography>
+                      <Typography variant="body2">
+                        {user.email || 'No email address'}
+                      </Typography>
+                      <Typography variant="caption" component="div">
+                        {user.id} · Created {formatDate(user.createdAt)} ·{' '}
+                        {user.status}
+                        {user.isProtectedAdmin
+                          ? ' · Administrator account'
+                          : ''}
+                      </Typography>
+                    </Box>
+                    <Button onClick={() => selectUser(user)}>
+                      Review account
+                    </Button>
+                  </Stack>
+                </CardContent>
+              </Card>
+            ))}
+          </Stack>
+        )}
+        {selected && (
+          <Dialog
+            open
+            maxWidth="lg"
+            fullWidth
+            onClose={state === 'submitting' ? undefined : closePreview}
+          >
+            <DialogTitle>Review account before permanent deletion</DialogTitle>
+            <DialogContent dividers>
+              {loadingPreview && !preview ? (
+                <Stack alignItems="center" py={5}>
+                  <CircularProgress aria-label="Loading account review" />
+                </Stack>
+              ) : previewError ? (
+                <Alert severity="error">{previewError}</Alert>
+              ) : preview ? (
+                <Stack spacing={2}>
+                  {preview.isProtectedAdmin && (
+                    <Alert severity="warning">
+                      This is an administrator account. It can be reviewed, but
+                      it cannot be deleted from this tool.
+                    </Alert>
+                  )}
+                  <Box>
+                    <Typography variant="h6">
+                      {(preview.profile?.display_name as string) ||
+                        (preview.profile?.username as string) ||
+                        preview.account.email ||
+                        'Unnamed account'}
+                    </Typography>
+                    <Typography variant="body2">
+                      {preview.account.email || 'No email address'} ·{' '}
+                      {preview.account.id}
+                    </Typography>
+                    <Typography variant="body2">
+                      Created {formatDate(preview.account.created_at)} · Last
+                      login {formatDate(preview.account.last_login_at)} · Email
+                      verified {formatDate(preview.account.email_verified_at)}
+                    </Typography>
+                    <Typography variant="body2">
+                      Qualifying Rosaries retained anonymously:{' '}
+                      {preview.anonymousRosaryContribution}
+                    </Typography>
+                  </Box>
+                  <Tabs
+                    value={section}
+                    variant="scrollable"
+                    onChange={(_, value: Section) => {
+                      setSection(value);
+                      setOffset(0);
+                    }}
+                  >
+                    {sections.map((item) => (
+                      <Tab
+                        key={item.value}
+                        value={item.value}
+                        label={`${item.label} (${preview.sections[item.value] ?? 0})`}
+                      />
+                    ))}
+                  </Tabs>
+                  {section === 'account' ? (
+                    <Stack spacing={2}>
+                      <Box>
+                        <Typography fontWeight={700}>Profile</Typography>
+                        <Box
+                          component="pre"
+                          sx={{
+                            whiteSpace: 'pre-wrap',
+                            overflowWrap: 'anywhere',
+                            m: 0,
+                          }}
+                        >
+                          {JSON.stringify(preview.profile, null, 2)}
+                        </Box>
+                      </Box>
+                      <Box>
+                        <Typography fontWeight={700}>
+                          Notification preferences
+                        </Typography>
+                        <Box
+                          component="pre"
+                          sx={{
+                            whiteSpace: 'pre-wrap',
+                            overflowWrap: 'anywhere',
+                            m: 0,
+                          }}
+                        >
+                          {JSON.stringify(
+                            preview.notificationPreferences,
+                            null,
+                            2,
+                          )}
+                        </Box>
+                      </Box>
+                    </Stack>
+                  ) : (
+                    <Stack spacing={1}>
+                      {preview.records.length === 0 ? (
+                        <Alert severity="info">No records in this group.</Alert>
+                      ) : (
+                        preview.records.map((item, index) => (
+                          <Card
+                            variant="outlined"
+                            key={`${item.recordType}-${item.occurredAt}-${index}`}
+                          >
+                            <CardContent>
+                              <Typography fontWeight={700}>
+                                {item.recordType}
+                              </Typography>
+                              <Typography variant="caption">
+                                {formatDate(item.occurredAt)}
+                              </Typography>
+                              <Box
+                                component="pre"
+                                sx={{
+                                  whiteSpace: 'pre-wrap',
+                                  overflowWrap: 'anywhere',
+                                  m: 1,
+                                }}
+                              >
+                                {JSON.stringify(item.record, null, 2)}
+                              </Box>
+                            </CardContent>
+                          </Card>
+                        ))
+                      )}
+                      <Pagination
+                        offset={offset}
+                        hasMore={Boolean(previewMeta.hasMore)}
+                        onPrevious={() =>
+                          setOffset((current) => Math.max(0, current - 25))
+                        }
+                        onNext={() => setOffset((current) => current + 25)}
+                      />
+                    </Stack>
+                  )}
+                  {!preview.isProtectedAdmin && (
+                    <>
+                      <Divider />
+                      <Alert severity="error">
+                        This removes the Auth identity and linked application
+                        data. It cannot be undone.
+                      </Alert>
+                      <TextField
+                        label="Confirmation"
+                        value={confirmation}
+                        onChange={(event) =>
+                          setConfirmation(event.target.value)
+                        }
+                        helperText={`Type DELETE ${preview.account.id} to enable permanent deletion.`}
+                      />
+                    </>
+                  )}
+                </Stack>
+              ) : null}
             </DialogContent>
             <DialogActions>
-              <Button onClick={() => setConfirming(false)}>Cancel</Button>
-              <Button
-                color="error"
-                variant="contained"
-                disabled={confirmation !== 'DELETE' || state === 'submitting'}
-                onClick={() => void remove()}
-              >
-                {state === 'submitting' ? 'Deleting…' : 'Permanently delete'}
+              <Button disabled={state === 'submitting'} onClick={closePreview}>
+                Cancel
               </Button>
+              {!preview?.isProtectedAdmin && (
+                <Button
+                  color="error"
+                  variant="contained"
+                  disabled={
+                    !preview ||
+                    confirmation !== `DELETE ${preview.account.id}` ||
+                    state === 'submitting'
+                  }
+                  onClick={() => void remove()}
+                >
+                  {state === 'submitting' ? 'Deleting…' : 'Permanently delete'}
+                </Button>
+              )}
             </DialogActions>
           </Dialog>
         )}
@@ -1347,85 +1692,60 @@ export default function AdminManagementCards({
   const searchParams = useSearchParams();
   const [active, setActive] = useState<
     | 'analytics'
+    | 'email'
     | 'contacts'
     | 'prayers'
     | 'examination'
     | 'churches'
     | 'deletion'
-    | null
-  >(null);
+  >('analytics');
   const requestedPanel = searchParams.get('panel');
 
   useEffect(() => {
     if (
+      requestedPanel === 'analytics' ||
+      requestedPanel === 'email' ||
       requestedPanel === 'contacts' ||
       requestedPanel === 'prayers' ||
-      requestedPanel === 'churches'
+      requestedPanel === 'examination' ||
+      requestedPanel === 'churches' ||
+      requestedPanel === 'deletion'
     ) {
       setActive(requestedPanel);
     }
   }, [requestedPanel]);
 
   function closeActivePanel() {
-    setActive(null);
-    if (requestedPanel) router.replace('/dashboard/admin');
+    setActive('analytics');
+    if (requestedPanel) router.replace('/dashboard?tab=admin');
   }
 
   return (
     <>
-      <Box
-        display="grid"
-        gridTemplateColumns="repeat(auto-fit, minmax(260px, 1fr))"
-        gap={3}
-        mt={3}
+      <Tabs
+        aria-label="Admin Center sections"
+        onChange={(_event, value) => setActive(value)}
+        sx={{ mt: 3 }}
+        value={active}
+        variant="scrollable"
+        allowScrollButtonsMobile
       >
-        <ManagementCard
-          icon={<AnalyticsOutlinedIcon fontSize="large" />}
-          title="App Analytics"
-          description="Review aggregate growth, engagement, retention, and Rosary practice metrics."
-          action="View analytics"
-          onClick={() => setActive('analytics')}
-        />
-        <ManagementCard
-          icon={<ContactMailOutlinedIcon fontSize="large" />}
-          title="Contact Requests"
-          description="Search and read support, feedback, and partnership inquiries."
-          action="Open inbox"
-          onClick={() => setActive('contacts')}
-        />
-        <ManagementCard
-          icon={<FavoriteBorderOutlinedIcon fontSize="large" />}
-          title="Prayer Intentions"
-          description="Review community prayer requests and approve or reject pending submissions."
-          action="Review intentions"
-          onClick={() => setActive('prayers')}
-        />
-        <ManagementCard
-          icon={<FactCheckOutlinedIcon fontSize="large" />}
-          title="Examination Content"
-          description="Create, edit, activate, and remove examination-of-conscience questions."
-          action="Manage questions"
-          onClick={() => setActive('examination')}
-        />
-        <ManagementCard
-          icon={<ChurchOutlinedIcon fontSize="large" />}
-          title="Church Change Requests"
-          description="Review submitted church and service-schedule changes."
-          action="Review changes"
-          onClick={() => setActive('churches')}
-        />
-        <ManagementCard
-          icon={<DeleteForeverOutlinedIcon fontSize="large" />}
-          title="User Account Deletion"
-          description="Permanently remove a specified user account and associated application data."
-          action="Delete user"
-          destructive
-          onClick={() => setActive('deletion')}
-        />
-      </Box>
+        <Tab label="Analytics" value="analytics" />
+        <Tab label="Email Center" value="email" />
+        <Tab label="Contact Requests" value="contacts" />
+        <Tab label="Prayer Intentions" value="prayers" />
+        <Tab label="Examination Content" value="examination" />
+        <Tab label="Church Changes" value="churches" />
+        <Tab label="User Deletion" value="deletion" />
+      </Tabs>
       {active === 'analytics' && (
         <Panel title="App Analytics" onClose={closeActivePanel}>
           <AdminAppMetrics accessToken={accessToken} />
+        </Panel>
+      )}
+      {active === 'email' && (
+        <Panel title="Email Center" onClose={closeActivePanel}>
+          <EmailCenter token={accessToken} />
         </Panel>
       )}
       {active === 'contacts' && (

@@ -74,6 +74,12 @@ export function throwDatabaseError(
         throw ApiError.notFound('The activity definition was not found.');
       case 'USER_PROFILE_NOT_FOUND':
         throw ApiError.notFound('The current user profile was not found.');
+      case 'USER_ACCOUNT_NOT_FOUND':
+        throw ApiError.notFound('The user account was not found.');
+      case 'ADMIN_ACCOUNT_PROTECTED':
+        throw ApiError.forbidden(
+          'Administrator accounts cannot be deleted here.',
+        );
       case 'CHALLENGE_NOT_COMPLETED':
         throw ApiError.conflict(
           'The challenge must be completed before its reward can be claimed.',
@@ -113,6 +119,8 @@ export function throwDatabaseError(
       case 'INVALID_PRAYER_INTENTION_DECISION':
       case 'INVALID_FRIEND_USERNAME':
       case 'INVALID_USER_SEARCH_QUERY':
+      case 'INVALID_ADMIN_USER_SEARCH_QUERY':
+      case 'INVALID_ADMIN_USER_PREVIEW_SECTION':
       case 'CANNOT_FRIEND_SELF':
       case 'INVALID_FRIEND_REQUEST_DECISION':
       case 'INVALID_FRIEND_REQUEST_DIRECTION':
