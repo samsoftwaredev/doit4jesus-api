@@ -311,8 +311,8 @@ paths:
       summary: Get actionable administrator queue notification summary
       description: >-
         Returns exact counts and up to three newest previews for open contact
-        requests, pending prayer intentions, and pending church change requests.
-        Used by the administrator queue notification bell.
+        requests, pending prayer intentions, pending events, and pending church
+        change requests. Used by the administrator queue notification bell.
       responses:
         '200':
           description: Administrator queue summary
@@ -487,6 +487,156 @@ paths:
         '403': { description: Administrator role required }
         '404': { description: Prayer intention not found }
         '409': { description: Prayer intention was already reviewed }
+        '422': { $ref: '#/components/responses/ValidationError' }
+  /api/v1/events:
+    get:
+      summary: List active, unexpired events
+      parameters:
+        - { $ref: '#/components/parameters/Limit' }
+        - { $ref: '#/components/parameters/Offset' }
+      responses:
+        '200':
+          description: Active event page
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/EventListResponse' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+    post:
+      summary: Submit an event for administrator approval
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateEvent' }
+      responses:
+        '201':
+          description: Pending event created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/EventResponse' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+  /api/v1/events/{eventId}:
+    get:
+      summary: Get an active event and record one unique user view
+      description: A user is counted at most once in an event's view total.
+      parameters:
+        - in: path
+          name: eventId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Active event
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/EventResponse' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { description: No active unexpired event matches the ID }
+        '422': { $ref: '#/components/responses/ValidationError' }
+  /api/v1/events/{eventId}/attendance:
+    post:
+      summary: RSVP to an active, not-yet-ended event
+      parameters:
+        - in: path
+          name: eventId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '201':
+          description: RSVP recorded or already present
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/EventRsvpResponse' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { description: Event is unavailable for RSVP }
+        '422': { $ref: '#/components/responses/ValidationError' }
+    delete:
+      summary: Cancel the current user's RSVP
+      parameters:
+        - in: path
+          name: eventId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '204': { description: RSVP cancelled or was not present }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+  /api/v1/me/events:
+    get:
+      summary: List the current user's event submissions
+      parameters:
+        - in: query
+          name: status
+          schema: { type: string, enum: [pending, active, inactive, rejected, all], default: all }
+        - { $ref: '#/components/parameters/Limit' }
+        - { $ref: '#/components/parameters/Offset' }
+      responses:
+        '200':
+          description: Current-user event page
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/EventListResponse' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+  /api/v1/admin/events:
+    get:
+      summary: List events for administrator moderation
+      parameters:
+        - in: query
+          name: status
+          schema: { type: string, enum: [pending, active, inactive, rejected, all], default: pending }
+        - { $ref: '#/components/parameters/Limit' }
+        - { $ref: '#/components/parameters/Offset' }
+      responses:
+        '200':
+          description: Administrator event page
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/EventListResponse' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { description: Administrator role required }
+        '422': { $ref: '#/components/responses/ValidationError' }
+    post:
+      summary: Create an immediately active administrator event
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateEvent' }
+      responses:
+        '201':
+          description: Active event created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/EventResponse' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { description: Administrator role required }
+        '422': { $ref: '#/components/responses/ValidationError' }
+  /api/v1/admin/events/{eventId}:
+    patch:
+      summary: Approve, reject, deactivate, or reactivate an event
+      parameters:
+        - in: path
+          name: eventId
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ReviewEvent' }
+      responses:
+        '200':
+          description: Event status changed
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/EventReviewResponse' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { description: Administrator role required }
+        '404': { description: Event not found or unavailable }
+        '409': { description: Invalid status transition }
         '422': { $ref: '#/components/responses/ValidationError' }
   /api/v1/examination-of-conscience:
     get:
@@ -2440,6 +2590,154 @@ components:
     PrayerIntentionSymbol:
       type: string
       enum: [candle, cross, dove, olive_branch]
+    EventStatus:
+      type: string
+      enum: [pending, active, inactive, rejected]
+    EventAudience:
+      type: string
+      enum: [all, kids, youth, men, women, single, married]
+    EventLocation:
+      type: object
+      additionalProperties: false
+      required: [name, addressLine1, city, countryCode]
+      properties:
+        name: { type: string, maxLength: 160 }
+        addressLine1: { type: string, maxLength: 200 }
+        addressLine2: { type: [string, 'null'], maxLength: 200 }
+        city: { type: string, maxLength: 120, description: Event-location field; not a profile field. }
+        regionName: { type: [string, 'null'], maxLength: 120 }
+        postalCode: { type: [string, 'null'], maxLength: 32 }
+        countryCode: { type: string, minLength: 2, maxLength: 2, pattern: '^[A-Z]{2}$' }
+    CreateEvent:
+      oneOf:
+        - type: object
+          additionalProperties: false
+          required: [title, description, eventType, onlineUrl, timezone, startsAt, endsAt, lifespanDays, audiences]
+          properties:
+            title: { type: string, minLength: 1, maxLength: 160 }
+            description: { type: string, minLength: 1, maxLength: 10000, description: Markdown source text. }
+            imageUrl: { type: [string, 'null'], format: uri, maxLength: 2000 }
+            eventUrl: { type: [string, 'null'], format: uri, maxLength: 2000 }
+            eventType: { const: online }
+            onlineUrl: { type: string, format: uri, maxLength: 2000 }
+            timezone: { type: string, example: America/Chicago }
+            startsAt: { type: string, format: date-time }
+            endsAt: { type: string, format: date-time }
+            lifespanDays: { type: integer, minimum: 1, maximum: 365 }
+            audiences:
+              type: array
+              minItems: 1
+              maxItems: 3
+              uniqueItems: true
+              items: { $ref: '#/components/schemas/EventAudience' }
+        - type: object
+          additionalProperties: false
+          required: [title, description, eventType, locationName, addressLine1, city, countryCode, timezone, startsAt, endsAt, lifespanDays, audiences]
+          properties:
+            title: { type: string, minLength: 1, maxLength: 160 }
+            description: { type: string, minLength: 1, maxLength: 10000, description: Markdown source text. }
+            imageUrl: { type: [string, 'null'], format: uri, maxLength: 2000 }
+            eventUrl: { type: [string, 'null'], format: uri, maxLength: 2000 }
+            eventType: { const: physical }
+            locationName: { type: string, minLength: 1, maxLength: 160 }
+            addressLine1: { type: string, minLength: 1, maxLength: 200 }
+            addressLine2: { type: [string, 'null'], maxLength: 200 }
+            city: { type: string, minLength: 1, maxLength: 120 }
+            regionName: { type: [string, 'null'], maxLength: 120 }
+            postalCode: { type: [string, 'null'], maxLength: 32 }
+            countryCode: { type: string, minLength: 2, maxLength: 2, pattern: '^[A-Z]{2}$' }
+            timezone: { type: string, example: America/Chicago }
+            startsAt: { type: string, format: date-time }
+            endsAt: { type: string, format: date-time }
+            lifespanDays: { type: integer, minimum: 1, maximum: 365 }
+            audiences:
+              type: array
+              minItems: 1
+              maxItems: 3
+              uniqueItems: true
+              items: { $ref: '#/components/schemas/EventAudience' }
+    Event:
+      type: object
+      additionalProperties: false
+      required: [id, title, description, imageUrl, eventUrl, eventType, onlineUrl, location, timezone, startsAt, endsAt, lifespanDays, audiences, approvedAt, expiresAt, createdAt, attendeeCount, viewCount]
+      properties:
+        id: { type: string, format: uuid }
+        title: { type: string, maxLength: 160 }
+        description: { type: string, maxLength: 10000, description: Markdown source text. }
+        imageUrl: { type: [string, 'null'], format: uri }
+        eventUrl: { type: [string, 'null'], format: uri }
+        eventType: { type: string, enum: [online, physical] }
+        onlineUrl: { type: [string, 'null'], format: uri }
+        location:
+          anyOf:
+            - { $ref: '#/components/schemas/EventLocation' }
+            - { type: 'null' }
+        timezone: { type: string }
+        startsAt: { type: string, format: date-time }
+        endsAt: { type: string, format: date-time }
+        lifespanDays: { type: integer, minimum: 1, maximum: 365 }
+        audiences:
+          type: array
+          items: { $ref: '#/components/schemas/EventAudience' }
+        approvedAt: { type: [string, 'null'], format: date-time }
+        expiresAt: { type: [string, 'null'], format: date-time }
+        createdAt: { type: string, format: date-time }
+        attendeeCount: { type: integer, minimum: 0 }
+        viewCount: { type: integer, minimum: 0 }
+        status: { $ref: '#/components/schemas/EventStatus' }
+        creatorId: { type: [string, 'null'], format: uuid }
+        reviewedBy: { type: [string, 'null'], format: uuid }
+        reviewedAt: { type: [string, 'null'], format: date-time }
+    EventResponse:
+      type: object
+      additionalProperties: false
+      required: [data]
+      properties:
+        data: { $ref: '#/components/schemas/Event' }
+    EventListResponse:
+      type: object
+      additionalProperties: false
+      required: [data, meta]
+      properties:
+        data:
+          type: array
+          items: { $ref: '#/components/schemas/Event' }
+        meta: { $ref: '#/components/schemas/OffsetPageMeta' }
+    EventRsvp:
+      type: object
+      additionalProperties: false
+      required: [eventId, rsvpCreated, attendeeCount]
+      properties:
+        eventId: { type: string, format: uuid }
+        rsvpCreated: { type: boolean }
+        attendeeCount: { type: integer, minimum: 0 }
+    EventRsvpResponse:
+      type: object
+      additionalProperties: false
+      required: [data]
+      properties:
+        data: { $ref: '#/components/schemas/EventRsvp' }
+    ReviewEvent:
+      type: object
+      additionalProperties: false
+      required: [decision]
+      properties:
+        decision: { type: string, enum: [active, inactive, rejected] }
+    EventReview:
+      type: object
+      additionalProperties: false
+      required: [id, status, reviewedAt, expiresAt]
+      properties:
+        id: { type: string, format: uuid }
+        status: { $ref: '#/components/schemas/EventStatus' }
+        reviewedAt: { type: string, format: date-time }
+        expiresAt: { type: string, format: date-time }
+    EventReviewResponse:
+      type: object
+      additionalProperties: false
+      required: [data]
+      properties:
+        data: { $ref: '#/components/schemas/EventReview' }
     CreatePrayerIntention:
       type: object
       additionalProperties: false
@@ -2626,7 +2924,7 @@ components:
         data:
           type: object
           additionalProperties: false
-          required: [total, contacts, prayerIntentions, churchChangeRequests]
+          required: [total, contacts, prayerIntentions, churchChangeRequests, events]
           properties:
             total: { type: integer, minimum: 0 }
             contacts:
@@ -2635,6 +2933,8 @@ components:
               $ref: '#/components/schemas/AdminPrayerIntentionQueueSummary'
             churchChangeRequests:
               $ref: '#/components/schemas/AdminChurchChangeQueueSummary'
+            events:
+              $ref: '#/components/schemas/AdminEventQueueSummary'
     AdminContactQueueSummary:
       type: object
       additionalProperties: false
@@ -2690,6 +2990,24 @@ components:
                 anyOf:
                   - { type: string, format: uuid }
                   - { type: 'null' }
+              createdAt: { type: string, format: date-time }
+    AdminEventQueueSummary:
+      type: object
+      additionalProperties: false
+      required: [count, items]
+      properties:
+        count: { type: integer, minimum: 0 }
+        items:
+          type: array
+          maxItems: 3
+          items:
+            type: object
+            additionalProperties: false
+            required: [id, title, startsAt, createdAt]
+            properties:
+              id: { type: string, format: uuid }
+              title: { type: string, maxLength: 160 }
+              startsAt: { type: string, format: date-time }
               createdAt: { type: string, format: date-time }
     ReviewPrayerIntention:
       type: object

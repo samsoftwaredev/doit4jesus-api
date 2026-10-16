@@ -25,6 +25,7 @@ import { type ReactNode, useCallback, useEffect, useState } from 'react';
 import { contactSubjectValues } from '@/lib/schemas/contact';
 
 import AdminAppMetrics from './AdminAppMetrics';
+import AdminEventsPanel from './AdminEventsPanel';
 import EmailCenter from './EmailCenter';
 
 type Meta = { hasMore?: boolean; nextOffset?: number | null };
@@ -1694,6 +1695,7 @@ export default function AdminManagementCards({
     | 'analytics'
     | 'email'
     | 'contacts'
+    | 'events'
     | 'prayers'
     | 'examination'
     | 'churches'
@@ -1706,6 +1708,7 @@ export default function AdminManagementCards({
       requestedPanel === 'analytics' ||
       requestedPanel === 'email' ||
       requestedPanel === 'contacts' ||
+      requestedPanel === 'events' ||
       requestedPanel === 'prayers' ||
       requestedPanel === 'examination' ||
       requestedPanel === 'churches' ||
@@ -1733,6 +1736,7 @@ export default function AdminManagementCards({
         <Tab label="Analytics" value="analytics" />
         <Tab label="Email Center" value="email" />
         <Tab label="Contact Requests" value="contacts" />
+        <Tab label="Events" value="events" />
         <Tab label="Prayer Intentions" value="prayers" />
         <Tab label="Examination Content" value="examination" />
         <Tab label="Church Changes" value="churches" />
@@ -1750,6 +1754,9 @@ export default function AdminManagementCards({
       )}
       {active === 'contacts' && (
         <ContactRequestsPanel token={accessToken} onClose={closeActivePanel} />
+      )}
+      {active === 'events' && (
+        <AdminEventsPanel token={accessToken} onClose={closeActivePanel} />
       )}
       {active === 'prayers' && (
         <PrayerIntentionsPanel token={accessToken} onClose={closeActivePanel} />

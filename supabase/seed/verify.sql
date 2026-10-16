@@ -10,16 +10,19 @@ begin
     from information_schema.tables
     where table_type = 'BASE TABLE'
       and table_schema in ('app', 'competition', 'prayer', 'platform')
-      -- Email-center tables capture administrator activity and provider events.
-      -- A clean development database must not invent campaigns, recipients, or
-      -- delivery history solely to satisfy the catalog-data seed check.
+      -- Email-center and event-engagement tables capture operational activity.
+      -- A clean development database must not invent campaigns, attendance, or
+      -- view history solely to satisfy the catalog-data seed check.
       and (table_schema, table_name) not in (
         ('app', 'email_campaigns'),
         ('app', 'email_sends'),
         ('app', 'email_suppressions'),
         ('app', 'email_test_recipients'),
         ('app', 'email_test_runs'),
-        ('app', 'email_webhook_events')
+        ('app', 'email_webhook_events'),
+        ('app', 'events'),
+        ('app', 'event_attendees'),
+        ('app', 'event_views')
       )
     order by table_schema, table_name
   loop

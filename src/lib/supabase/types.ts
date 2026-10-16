@@ -507,6 +507,89 @@ export type Database = {
         Update: never;
         Relationships: [];
       };
+      events: {
+        Row: {
+          id: string;
+          creator_id: string;
+          title: string;
+          description: string;
+          image_url: string | null;
+          event_url: string | null;
+          event_type: 'online' | 'physical';
+          online_url: string | null;
+          location_name: string | null;
+          address_line_1: string | null;
+          address_line_2: string | null;
+          city: string | null;
+          region_name: string | null;
+          postal_code: string | null;
+          country_code: string | null;
+          timezone: string;
+          starts_at: string;
+          ends_at: string;
+          lifespan_days: number;
+          audiences: (
+            | 'all'
+            | 'kids'
+            | 'youth'
+            | 'men'
+            | 'women'
+            | 'single'
+            | 'married'
+          )[];
+          status: 'pending' | 'active' | 'inactive' | 'rejected';
+          reviewed_by: string | null;
+          reviewed_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          creator_id: string;
+          title: string;
+          description: string;
+          image_url?: string | null;
+          event_url?: string | null;
+          event_type: 'online' | 'physical';
+          online_url?: string | null;
+          location_name?: string | null;
+          address_line_1?: string | null;
+          address_line_2?: string | null;
+          city?: string | null;
+          region_name?: string | null;
+          postal_code?: string | null;
+          country_code?: string | null;
+          timezone: string;
+          starts_at: string;
+          ends_at: string;
+          lifespan_days: number;
+          audiences: (
+            | 'all'
+            | 'kids'
+            | 'youth'
+            | 'men'
+            | 'women'
+            | 'single'
+            | 'married'
+          )[];
+          status?: 'pending' | 'active' | 'inactive' | 'rejected';
+          reviewed_by?: string | null;
+          reviewed_at?: string | null;
+        };
+        Update: never;
+        Relationships: [];
+      };
+      event_attendees: {
+        Row: { event_id: string; user_id: string; created_at: string };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      event_views: {
+        Row: { event_id: string; user_id: string; created_at: string };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
       friend_requests: {
         Row: {
           id: string;
@@ -535,6 +618,114 @@ export type Database = {
       };
     };
     Views: {
+      admin_event_summaries: {
+        Row: {
+          id: string;
+          creator_id: string;
+          title: string;
+          description: string;
+          image_url: string | null;
+          event_url: string | null;
+          event_type: 'online' | 'physical';
+          online_url: string | null;
+          location_name: string | null;
+          address_line_1: string | null;
+          address_line_2: string | null;
+          city: string | null;
+          region_name: string | null;
+          postal_code: string | null;
+          country_code: string | null;
+          timezone: string;
+          starts_at: string;
+          ends_at: string;
+          lifespan_days: number;
+          audiences: (
+            | 'all'
+            | 'kids'
+            | 'youth'
+            | 'men'
+            | 'women'
+            | 'single'
+            | 'married'
+          )[];
+          status: 'pending' | 'active' | 'inactive' | 'rejected';
+          reviewed_by: string | null;
+          reviewed_at: string | null;
+          created_at: string;
+          expires_at: string | null;
+          attendee_count: number;
+          view_count: number;
+        };
+        Relationships: [];
+      };
+      event_cards: {
+        Row: {
+          id: string;
+          title: string;
+          description: string;
+          image_url: string | null;
+          event_url: string | null;
+          event_type: 'online' | 'physical';
+          online_url: string | null;
+          location_name: string | null;
+          address_line_1: string | null;
+          address_line_2: string | null;
+          city: string | null;
+          region_name: string | null;
+          postal_code: string | null;
+          country_code: string | null;
+          timezone: string;
+          starts_at: string;
+          ends_at: string;
+          lifespan_days: number;
+          audiences: (
+            | 'all'
+            | 'kids'
+            | 'youth'
+            | 'men'
+            | 'women'
+            | 'single'
+            | 'married'
+          )[];
+          approved_at: string;
+          expires_at: string;
+          created_at: string;
+          attendee_count: number;
+          view_count: number;
+        };
+        Relationships: [];
+      };
+      my_event_summaries: {
+        Row: {
+          id: string;
+          title: string;
+          description: string;
+          image_url: string | null;
+          event_url: string | null;
+          event_type: 'online' | 'physical';
+          online_url: string | null;
+          location_name: string | null;
+          address_line_1: string | null;
+          address_line_2: string | null;
+          city: string | null;
+          region_name: string | null;
+          postal_code: string | null;
+          country_code: string | null;
+          timezone: string;
+          starts_at: string;
+          ends_at: string;
+          lifespan_days: number;
+          audiences: ('all' | 'youth' | 'kids')[];
+          status: 'pending' | 'active' | 'inactive' | 'rejected';
+          reviewed_by: string | null;
+          reviewed_at: string | null;
+          created_at: string;
+          expires_at: string | null;
+          attendee_count: number;
+          view_count: number;
+        };
+        Relationships: [];
+      };
       leaderboard_profiles: {
         Row: {
           user_id: string;
@@ -1331,6 +1522,22 @@ export type Database = {
       review_prayer_intention: {
         Args: { p_intention_id: string; p_decision: string };
         Returns: Json;
+      };
+      review_event: {
+        Args: { p_event_id: string; p_decision: string };
+        Returns: Json;
+      };
+      record_event_view: {
+        Args: { p_event_id: string };
+        Returns: Json;
+      };
+      rsvp_to_event: {
+        Args: { p_event_id: string };
+        Returns: Json;
+      };
+      cancel_event_rsvp: {
+        Args: { p_event_id: string };
+        Returns: undefined;
       };
       record_prayer_intention_prayer: {
         Args: { p_intention_id: string };

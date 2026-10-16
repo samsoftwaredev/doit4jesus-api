@@ -48,9 +48,17 @@ export function throwDatabaseError(
         throw ApiError.notFound('The prayer intention was not found.');
       case 'PRAYER_INTENTION_NOT_AVAILABLE':
         throw ApiError.notFound('The prayer intention is not available.');
+      case 'EVENT_NOT_FOUND':
+      case 'EVENT_NOT_AVAILABLE':
+      case 'EVENT_NOT_AVAILABLE_FOR_RSVP':
+        throw ApiError.notFound('The event is not available.');
       case 'PRAYER_INTENTION_NOT_PENDING':
         throw ApiError.conflict(
           'The prayer intention has already been reviewed.',
+        );
+      case 'INVALID_EVENT_STATUS_TRANSITION':
+        throw ApiError.conflict(
+          'The event cannot make that status transition.',
         );
       case 'FRIEND_USERNAME_NOT_FOUND':
       case 'FRIEND_REQUEST_NOT_FOUND':
@@ -117,6 +125,7 @@ export function throwDatabaseError(
       case 'INVALID_CHURCH_CHANGE_DECISION':
       case 'INVALID_CHURCH_SERVICE_TIMES':
       case 'INVALID_PRAYER_INTENTION_DECISION':
+      case 'INVALID_EVENT_DECISION':
       case 'INVALID_FRIEND_USERNAME':
       case 'INVALID_USER_SEARCH_QUERY':
       case 'INVALID_ADMIN_USER_SEARCH_QUERY':

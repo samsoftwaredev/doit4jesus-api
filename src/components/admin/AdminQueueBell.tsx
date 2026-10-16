@@ -27,12 +27,19 @@ type ChurchChangePreview = {
   churchId: string | null;
   createdAt: string;
 };
+type EventPreview = {
+  id: string;
+  title: string;
+  startsAt: string;
+  createdAt: string;
+};
 type Queue<T> = { count: number; items: T[] };
 type Summary = {
   total: number;
   contacts: Queue<ContactPreview>;
   prayerIntentions: Queue<PrayerIntentionPreview>;
   churchChangeRequests: Queue<ChurchChangePreview>;
+  events: Queue<EventPreview>;
 };
 type SummaryResponse = {
   data?: Summary;
@@ -55,7 +62,7 @@ function QueueSection<T>({
 }: {
   title: string;
   queue: Queue<T>;
-  panel: 'contacts' | 'prayers' | 'churches';
+  panel: 'contacts' | 'events' | 'prayers' | 'churches';
   itemLabel: (item: T) => string;
   onNavigate: () => void;
 }) {
@@ -183,6 +190,11 @@ export default function AdminQueueBell() {
         { event: '*', schema: 'app', table: 'church_change_requests' },
         scheduleRefresh,
       )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'app', table: 'events' },
+        scheduleRefresh,
+      )
       .subscribe();
 
     function scheduleRefresh() {
@@ -234,6 +246,16 @@ export default function AdminQueueBell() {
           panel="contacts"
           queue={summary.contacts}
           title="Contact Requests"
+        />
+        <Divider />
+        <QueueSection
+          itemLabel={(item) =>
+            `${item.title} · starts ${formatDate(item.startsAt)}`
+          }
+          onNavigate={closeMenu}
+          panel="events"
+          queue={summary.events}
+          title="Events"
         />
         <Divider />
         <QueueSection
