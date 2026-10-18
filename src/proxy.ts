@@ -1,14 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+import { updateSession } from '@/lib/supabase/proxy';
+
 const LOCALHOST_ORIGIN = /^http:\/\/localhost(:\d+)?$/;
 const ALLOWED_HEADERS = 'Content-Type, Authorization, Idempotency-Key';
 
-export function proxy(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const origin = request.headers.get('origin') ?? '';
   const isLocalhostOrigin = LOCALHOST_ORIGIN.test(origin);
+  const isApiRequest = request.nextUrl.pathname.startsWith('/api/');
 
   // Handle preflight requests
-  if (request.method === 'OPTIONS') {
+  if (isApiRequest && request.method === 'OPTIONS') {
     const response = new NextResponse(null, { status: 204 });
     if (isLocalhostOrigin) {
       response.headers.set('Access-Control-Allow-Origin', origin);
@@ -23,9 +26,9 @@ export function proxy(request: NextRequest) {
     return response;
   }
 
-  const response = NextResponse.next();
+  const response = await updateSession(request);
 
-  if (isLocalhostOrigin) {
+  if (isApiRequest && isLocalhostOrigin) {
     response.headers.set('Access-Control-Allow-Origin', origin);
     response.headers.set('Vary', 'Origin');
     response.headers.set(
@@ -39,5 +42,7 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: '/api/:path*',
+  matcher: [
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+  ],
 };
