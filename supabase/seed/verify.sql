@@ -106,6 +106,18 @@ $$;
 
 do $$
 begin
+  if position(
+    'legacy_balance' in pg_get_functiondef(
+      'competition.refresh_leaderboard_period(uuid)'::regprocedure
+    )
+  ) = 0 then
+    raise exception 'Legacy XP balances are not excluded from period leaderboards';
+  end if;
+end
+$$;
+
+do $$
+begin
   if exists (
     select 1
     from competition.leaderboard_periods
