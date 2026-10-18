@@ -3,17 +3,25 @@ import { NextRequest, NextResponse } from 'next/server';
 import { updateSession } from '@/lib/supabase/proxy';
 
 const LOCALHOST_ORIGIN = /^http:\/\/localhost(:\d+)?$/;
+const ALLOWED_ORIGINS = new Set([
+  'https://app.doitforjesus.com',
+  'https://doitforjesus.com',
+]);
 const ALLOWED_HEADERS = 'Content-Type, Authorization, Idempotency-Key';
+
+function isAllowedOrigin(origin: string) {
+  return ALLOWED_ORIGINS.has(origin) || LOCALHOST_ORIGIN.test(origin);
+}
 
 export async function proxy(request: NextRequest) {
   const origin = request.headers.get('origin') ?? '';
-  const isLocalhostOrigin = LOCALHOST_ORIGIN.test(origin);
+  const allowOrigin = isAllowedOrigin(origin);
   const isApiRequest = request.nextUrl.pathname.startsWith('/api/');
 
   // Handle preflight requests
   if (isApiRequest && request.method === 'OPTIONS') {
     const response = new NextResponse(null, { status: 204 });
-    if (isLocalhostOrigin) {
+    if (allowOrigin) {
       response.headers.set('Access-Control-Allow-Origin', origin);
       response.headers.set('Vary', 'Origin');
     }
@@ -28,7 +36,7 @@ export async function proxy(request: NextRequest) {
 
   const response = await updateSession(request);
 
-  if (isApiRequest && isLocalhostOrigin) {
+  if (isApiRequest && allowOrigin) {
     response.headers.set('Access-Control-Allow-Origin', origin);
     response.headers.set('Vary', 'Origin');
     response.headers.set(

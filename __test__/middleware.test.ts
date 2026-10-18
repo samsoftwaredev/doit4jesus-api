@@ -42,6 +42,26 @@ describe('API CORS proxy', () => {
     expect(mockedUpdateSession).not.toHaveBeenCalled();
   });
 
+  it('allows production app preflight requests', async () => {
+    const request = new NextRequest('https://api.doitforjesus.com/api/v1/me', {
+      method: 'OPTIONS',
+      headers: {
+        origin: 'https://app.doitforjesus.com',
+        'access-control-request-method': 'GET',
+        'access-control-request-headers': 'authorization, content-type',
+      },
+    });
+
+    const response = await proxy(request);
+
+    expect(response.status).toBe(204);
+    expect(response.headers.get('Access-Control-Allow-Origin')).toBe(
+      'https://app.doitforjesus.com',
+    );
+    expect(response.headers.get('Vary')).toBe('Origin');
+    expect(mockedUpdateSession).not.toHaveBeenCalled();
+  });
+
   it('refreshes the cookie session for regular requests', async () => {
     const refreshedResponse = new Response(null, {
       headers: { 'x-session-refreshed': 'true' },
@@ -74,5 +94,33 @@ describe('API CORS proxy', () => {
     expect(response.headers.get('Access-Control-Allow-Headers')).toContain(
       'Idempotency-Key',
     );
+  });
+
+  it('adds production app CORS headers to regular API responses', async () => {
+    const refreshedResponse = new Response(null, {
+      headers: { 'x-session-refreshed': 'true' },
+    });
+    mockedUpdateSession.mockResolvedValue(refreshedResponse as never);
+    const request = new NextRequest('https://api.doitforjesus.com/api/v1/me', {
+      headers: { origin: 'https://app.doitforjesus.com' },
+    });
+
+    const response = await proxy(request);
+
+    expect(response.headers.get('Access-Control-Allow-Origin')).toBe(
+      'https://app.doitforjesus.com',
+    );
+    expect(response.headers.get('Vary')).toBe('Origin');
+  });
+
+  it('does not add CORS headers for unapproved origins', async () => {
+    mockedUpdateSession.mockResolvedValue(new Response(null) as never);
+    const request = new NextRequest('https://api.doitforjesus.com/api/v1/me', {
+      headers: { origin: 'https://malicious.example' },
+    });
+
+    const response = await proxy(request);
+
+    expect(response.headers.get('Access-Control-Allow-Origin')).toBeNull();
   });
 });
