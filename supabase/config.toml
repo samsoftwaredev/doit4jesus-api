@@ -70,8 +70,6 @@ enabled = true
 # Supports glob patterns relative to supabase directory: "./seeds/*.sql"
 sql_paths = [
   "./seed.sql",
-  "./seed/examination-of-conscience.sql",
-  "./seed/catalog-translations.sql",
   "./seed/verify.sql",
 ]
 

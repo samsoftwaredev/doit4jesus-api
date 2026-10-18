@@ -24,13 +24,38 @@ The first migration refuses to continue when legacy `app.users` IDs do not exist
 
 ### 1. Create and seed the Supabase database
 
-Apply the supplied baseline schema first, including level definitions and activity/point-rule seeds. Then apply:
+For a clean local catalog-only database, apply every migration and the safe
+default seed path:
 
 ```bash
-supabase db push
+supabase db reset --local
 ```
 
-The migrations in this repository assume the baseline tables already exist.
+The default seed contains no Auth users, credentials, churches, or operational
+examples. To opt into the four known-password development accounts and their
+dependent sample workflows, use the explicitly local command instead:
+
+```bash
+npm run db:reset:local-fixtures
+```
+
+That command destroys and recreates only the local Supabase database. Never run
+`supabase/seed/local-fixtures.sql` against a hosted database.
+
+For a linked hosted project, deploy catalog data through migrations only. Do not
+use `--include-seed`:
+
+```bash
+supabase db push --linked --dry-run
+npm run db:audit:development-accounts -- --database-url=postgresql://...
+supabase db push --linked
+```
+
+The production sequence is: review the dry run, run the read-only fixture-account
+audit, stop if it finds any known development UUID or email, confirm a recoverable
+backup, obtain explicit production approval, and only then run the final push.
+The audit and catalog migration never delete accounts. Any hosted deletion needs
+a separate backup-first plan and approval.
 
 ### 2. Expose only the required schemas
 
