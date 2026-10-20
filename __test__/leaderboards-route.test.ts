@@ -7,7 +7,8 @@ jest.mock('../src/lib/auth/require-user', () => ({
 
 jest.mock('../src/lib/api/response', () => ({
   errorResponse: jest.fn(),
-  ok: (data: unknown, _init: unknown, meta?: unknown) => ({
+  ok: (data: unknown, init: ResponseInit, meta?: unknown) => ({
+    headers: new Headers(init.headers),
     json: async () => (meta ? { data, meta } : { data }),
   }),
 }));
@@ -15,17 +16,17 @@ jest.mock('../src/lib/api/response', () => ({
 const mockedRequireUser = jest.mocked(requireUser);
 
 describe('GET /api/v1/leaderboards', () => {
-  it('returns the current user entry when it is outside the requested page', async () => {
+  it('returns the lifetime current-user entry when it is outside the requested page', async () => {
     const currentUserId = '11111111-1111-4111-8111-111111111111';
     const otherUserId = '22222222-2222-4222-8222-222222222222';
     const saintAvatarId = '44444444-4444-4444-8444-444444444444';
     const period = {
       id: '33333333-3333-4333-8333-333333333333',
-      period_type: 'weekly',
-      code: '2026-W33',
-      name: 'Week 33',
-      starts_at: '2026-08-10T00:00:00.000Z',
-      ends_at: '2026-08-17T00:00:00.000Z',
+      period_type: 'lifetime',
+      code: 'lifetime',
+      name: 'Lifetime',
+      starts_at: '2024-01-15T00:00:00.000Z',
+      ends_at: '2026-10-19T15:00:00.000Z',
       status: 'active',
       finalized_at: null,
       created_at: '2026-08-10T00:00:00.000Z',
@@ -123,10 +124,11 @@ describe('GET /api/v1/leaderboards', () => {
     } as never);
 
     const response = await GET({
-      url: 'http://localhost:3000/api/v1/leaderboards?limit=1&offset=0',
+      url: 'http://localhost:3000/api/v1/leaderboards?periodType=lifetime&limit=1&offset=0',
     } as Request);
     const body = await response.json();
 
+    expect(response.headers.get('Cache-Control')).toBe('no-store');
     expect(body).toMatchObject({
       data: {
         period,
@@ -172,11 +174,11 @@ describe('GET /api/v1/leaderboards', () => {
       currentUserId,
     ]);
     expect(periodQuery.eq).toHaveBeenCalledWith('status', 'active');
-    expect(periodQuery.lte).toHaveBeenCalledWith(
-      'starts_at',
-      expect.any(String),
-    );
-    expect(periodQuery.gt).toHaveBeenCalledWith('ends_at', expect.any(String));
+    expect(periodQuery.lte).not.toHaveBeenCalled();
+    expect(periodQuery.gt).not.toHaveBeenCalled();
+    expect(periodQuery.order).toHaveBeenCalledWith('ends_at', {
+      ascending: false,
+    });
     expect(pageEntriesQuery.gt).toHaveBeenCalledWith('rosaries_count', 0);
     expect(currentUserEntryQuery.gt).toHaveBeenCalledWith('rosaries_count', 0);
     expect(pageEntriesQuery.order).toHaveBeenNthCalledWith(1, 'rank', {

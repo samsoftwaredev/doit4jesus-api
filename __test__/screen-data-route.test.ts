@@ -110,8 +110,14 @@ describe('GET /api/v1/screen-data', () => {
     );
     expect(mockedLoaders.loadLeaderboard).toHaveBeenCalledWith(
       context,
-      'yearly',
+      'lifetime',
       10,
+    );
+    expect((await response.json()).data.sections).toHaveProperty(
+      'lifetimeGlobalLeaderboard',
+    );
+    expect((await response.json()).data.sections).not.toHaveProperty(
+      'yearlyGlobalLeaderboard',
     );
   });
 

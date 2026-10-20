@@ -24,11 +24,15 @@ export async function GET(request: Request) {
 
     periodQuery = query.periodCode
       ? periodQuery.eq('code', query.periodCode)
-      : periodQuery
-          .eq('status', 'active')
-          .lte('starts_at', now)
-          .gt('ends_at', now)
-          .order('starts_at', { ascending: false });
+      : query.periodType === 'lifetime'
+        ? periodQuery
+            .eq('status', 'active')
+            .order('ends_at', { ascending: false })
+        : periodQuery
+            .eq('status', 'active')
+            .lte('starts_at', now)
+            .gt('ends_at', now)
+            .order('starts_at', { ascending: false });
 
     const { data: periods, error: periodError } = await periodQuery.limit(1);
     throwDatabaseError(periodError, 'Unable to load the leaderboard period.');
@@ -121,7 +125,7 @@ export async function GET(request: Request) {
           ? toResponseEntry(currentUserEntry)
           : null,
       },
-      {},
+      { headers: { 'Cache-Control': 'no-store' } },
       {
         total: entriesResponse.count ?? 0,
         limit: query.limit,

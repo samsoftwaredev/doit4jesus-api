@@ -89,8 +89,8 @@ export async function GET(request: Request) {
               rosaryStreak: () => loadRosaryStreak(context),
               weeklyGlobalLeaderboard: () =>
                 loadLeaderboard(context, 'weekly', 3),
-              yearlyGlobalLeaderboard: () =>
-                loadLeaderboard(context, 'yearly', 10),
+              lifetimeGlobalLeaderboard: () =>
+                loadLeaderboard(context, 'lifetime', 10),
             }
           : {
               friends: () => loadFriends(context),

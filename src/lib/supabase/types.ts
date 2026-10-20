@@ -932,7 +932,7 @@ export type Database = {
       leaderboard_periods: {
         Row: {
           id: string;
-          period_type: 'weekly' | 'yearly';
+          period_type: 'weekly' | 'yearly' | 'lifetime';
           code: string;
           name: string;
           starts_at: string;

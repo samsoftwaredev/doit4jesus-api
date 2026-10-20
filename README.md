@@ -196,11 +196,12 @@ Never send the service-role key to a browser or native application.
 | GET              | `/api/v1/notifications`                      | Notification inbox                                      |
 | PATCH            | `/api/v1/notifications/:notificationId/read` | Mark notification read                                  |
 
-Leaderboard APIs support weekly and yearly periods. Global rankings use only
-the quantity of self-reported or verified Rosaries in the period; users with no
-qualifying Rosaries are omitted. Country and friends rankings continue to use
-period points. PostgreSQL refreshes the projections every five minutes, and an
-explicit `periodCode` can retrieve a finalized historical period.
+Global Rosary leaderboards support weekly and lifetime periods. Lifetime totals
+include every self-reported or verified Rosary activity through the latest
+refresh, including individually imported legacy Rosaries; users with no
+qualifying Rosaries are omitted. Country and friends leaderboards retain weekly
+and yearly point periods. PostgreSQL refreshes the projections every five
+minutes, and an explicit `periodCode` can retrieve a historical weekly period.
 
 ## Record an activity
 

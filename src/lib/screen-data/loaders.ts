@@ -451,20 +451,26 @@ export async function loadBadges(context: Context) {
 
 export async function loadLeaderboard(
   context: Context,
-  periodType: 'weekly' | 'yearly',
+  periodType: 'weekly' | 'lifetime',
   limit: number,
 ) {
   const now = new Date().toISOString();
-  const { data: periods, error: periodError } = await context.supabase
+  let periodQuery = context.supabase
     .schema('competition')
     .from('leaderboard_periods')
     .select('*')
     .eq('period_type', periodType)
-    .eq('status', 'active')
-    .lte('starts_at', now)
-    .gt('ends_at', now)
-    .order('starts_at', { ascending: false })
-    .limit(1);
+    .eq('status', 'active');
+
+  periodQuery =
+    periodType === 'lifetime'
+      ? periodQuery.order('ends_at', { ascending: false })
+      : periodQuery
+          .lte('starts_at', now)
+          .gt('ends_at', now)
+          .order('starts_at', { ascending: false });
+
+  const { data: periods, error: periodError } = await periodQuery.limit(1);
   throwDatabaseError(periodError, 'Unable to load the leaderboard period.');
   const period = periods?.[0];
   if (!period)

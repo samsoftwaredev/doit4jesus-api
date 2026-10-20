@@ -63,7 +63,7 @@ begin
   if exists (
     select 1
     from competition.leaderboard_periods
-    where period_type not in ('weekly', 'yearly')
+    where period_type not in ('weekly', 'yearly', 'lifetime')
   ) then
     raise exception 'Unsupported local-fixture leaderboard periods are present';
   end if;
@@ -88,6 +88,57 @@ begin
       and ends_at > now()
   ) then
     raise exception 'The local fixture current yearly leaderboard period is missing';
+  end if;
+
+  if not exists (
+    select 1
+    from competition.leaderboard_periods
+    where period_type = 'lifetime'
+      and code = 'lifetime'
+      and status = 'active'
+  ) then
+    raise exception 'The local fixture lifetime leaderboard period is missing';
+  end if;
+
+  if exists (
+    with lifetime_period as (
+      select id, ends_at
+      from competition.leaderboard_periods
+      where period_type = 'lifetime'
+        and code = 'lifetime'
+    ), totals as (
+      select
+        activity.user_id,
+        sum(activity.quantity)::integer as rosaries_count
+      from competition.spiritual_activities activity
+      cross join lifetime_period period
+      where activity.occurred_at <= period.ends_at
+        and activity.activity_code = 'ROSARY'
+        and activity.verification_status in ('self_reported', 'verified')
+      group by activity.user_id
+      having sum(activity.quantity) > 0
+    ), expected as (
+      select
+        totals.user_id,
+        totals.rosaries_count,
+        rank() over (order by totals.rosaries_count desc)::integer as rank
+      from totals
+    ), actual as (
+      select entry.user_id, entry.rosaries_count, entry.rank
+      from competition.leaderboard_entries entry
+      join lifetime_period period on period.id = entry.period_id
+      where entry.scope_type = 'global'
+        and entry.scope_reference = 'global'
+    )
+    select 1
+    from expected
+    full join actual using (user_id)
+    where expected.user_id is null
+      or actual.user_id is null
+      or expected.rosaries_count <> actual.rosaries_count
+      or expected.rank <> actual.rank
+  ) then
+    raise exception 'The local fixture lifetime Rosary projection is incorrect';
   end if;
 end
 $$;

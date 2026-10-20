@@ -82,5 +82,23 @@ begin
   ) = 0 then
     raise exception 'Global leaderboards are not ranked by Rosary quantity';
   end if;
+
+  if position(
+    'activity.occurred_at <= v_period.ends_at' in leaderboard_function
+  ) = 0 or position(
+    'v_period.period_type = ''lifetime''' in leaderboard_function
+  ) = 0 then
+    raise exception 'Lifetime leaderboards do not include all qualifying Rosaries through the refresh cutoff';
+  end if;
+
+  if (
+    select count(*)
+    from competition.leaderboard_periods period_record
+    where period_record.period_type = 'lifetime'
+      and period_record.code = 'lifetime'
+      and period_record.status = 'active'
+  ) <> 1 then
+    raise exception 'Exactly one active lifetime leaderboard period is required';
+  end if;
 end
 $$;
