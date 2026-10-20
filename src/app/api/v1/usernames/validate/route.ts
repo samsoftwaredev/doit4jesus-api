@@ -1,10 +1,8 @@
-import { throwDatabaseError } from '@/lib/api/database';
-import { ApiError } from '@/lib/api/errors';
 import { errorResponse, ok } from '@/lib/api/response';
 import { requireUser } from '@/lib/auth/require-user';
 import { usernameValidationQuerySchema } from '@/lib/schemas/username';
+import { getAvailableUsernameSuggestions } from '@/lib/usernames/available-suggestions';
 import { evaluateUsername } from '@/lib/usernames/moderation';
-import { generateUsernameCandidates } from '@/lib/usernames/suggestions';
 
 export const dynamic = 'force-dynamic';
 
@@ -16,32 +14,13 @@ export async function GET(request: Request) {
     );
     const username = query.username.trim();
     const moderation = evaluateUsername(username);
-    const generated = generateUsernameCandidates();
-    const candidates = moderation.valid ? [username, ...generated] : generated;
-
-    const { data, error } = await supabase
-      .schema('api')
-      .rpc('check_username_availability', { p_usernames: candidates });
-
-    throwDatabaseError(error, 'Unable to validate the username.');
-
-    const availability = new Map(
-      (data ?? []).map((entry) => [
-        entry.username.toLowerCase(),
-        entry.is_available,
-      ]),
+    const { availability, suggestions } = await getAvailableUsernameSuggestions(
+      supabase,
+      {
+        username: moderation.valid ? username : undefined,
+        databaseErrorMessage: 'Unable to validate the username.',
+      },
     );
-    const suggestions = generated
-      .filter((candidate) => availability.get(candidate.toLowerCase()))
-      .slice(0, 5);
-
-    if (suggestions.length < 5) {
-      throw new ApiError(
-        500,
-        'USERNAME_SUGGESTIONS_UNAVAILABLE',
-        'Unable to generate enough available username suggestions.',
-      );
-    }
 
     const available =
       moderation.valid && availability.get(username.toLowerCase()) === true;

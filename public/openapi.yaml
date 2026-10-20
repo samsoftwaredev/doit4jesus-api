@@ -1628,6 +1628,25 @@ paths:
         '401': { $ref: '#/components/responses/Unauthorized' }
         '409': { description: Username conflict }
         '422': { $ref: '#/components/responses/ValidationError' }
+  /api/v1/usernames/random:
+    get:
+      summary: Generate five available usernames
+      description: >-
+        Returns five unique, time-seeded Christian and saint-themed usernames
+        that pass the username format and prohibited-term rules and are not
+        assigned to another user at the time of the request. The usernames are
+        suggestions only; this endpoint does not reserve or assign them.
+      responses:
+        '200':
+          description: Five currently available username suggestions
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/RandomUsernameSuggestionsResponse' }
+              example:
+                data:
+                  usernames: [faithful_clare1842, monica_dove7391, hopeful_pilgrim2318, dominic_witness4430, joyful_rosary8724]
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '500': { description: Five available username suggestions could not be generated }
   /api/v1/usernames/validate:
     get:
       summary: Validate a username and get available suggestions
@@ -3322,6 +3341,26 @@ components:
       required: [data]
       properties:
         data: { $ref: '#/components/schemas/UsernameValidation' }
+    RandomUsernameSuggestionsResponse:
+      type: object
+      additionalProperties: false
+      required: [data]
+      properties:
+        data:
+          type: object
+          additionalProperties: false
+          required: [usernames]
+          properties:
+            usernames:
+              type: array
+              minItems: 5
+              maxItems: 5
+              uniqueItems: true
+              items:
+                type: string
+                minLength: 3
+                maxLength: 30
+                pattern: '^[a-zA-Z0-9_]+$'
     StartEncounter:
       type: object
       additionalProperties: false

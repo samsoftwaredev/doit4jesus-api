@@ -1324,8 +1324,35 @@
     },
     {
       "name": "Profile (me)",
-      "description": "Validate usernames, then read and update the authenticated user's profile.",
+      "description": "Generate or validate usernames, then read and update the authenticated user's profile.",
       "item": [
+        {
+          "name": "Generate available usernames",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/usernames/random",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "usernames", "random"]
+            },
+            "description": "Returns five unique Christian and saint-themed usernames that pass format and prohibited-term rules and are currently available. Suggestions are not reserved or assigned."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json" },
+                { "key": "Cache-Control", "value": "no-store" }
+              ],
+              "cookie": [],
+              "body": "{\n  \"data\": {\n    \"usernames\": [\n      \"faithful_clare1842\",\n      \"monica_dove7391\",\n      \"hopeful_pilgrim2318\",\n      \"dominic_witness4430\",\n      \"joyful_rosary8724\"\n    ]\n  }\n}"
+            }
+          ]
+        },
         {
           "name": "Validate username and get suggestions",
           "request": {

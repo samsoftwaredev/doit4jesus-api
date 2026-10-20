@@ -180,6 +180,7 @@ Never send the service-role key to a browser or native application.
 | GET              | `/api/v1/screen-data`                        | Initial data for one Home, Prayer, or Community screen  |
 | GET/PATCH        | `/api/v1/me/notification-preferences`        | Onboarding reminder preferences                         |
 | POST             | `/api/v1/me/onboarding/complete`             | Transactional profile setup; reminders default off      |
+| GET              | `/api/v1/usernames/random`                   | Five valid, currently available username suggestions    |
 | GET              | `/api/v1/usernames/validate`                 | Username rules, availability, and suggestions           |
 | GET              | `/api/v1/progress`                           | XP and current/next level                               |
 | GET              | `/api/v1/levels`                             | Level definitions                                       |
