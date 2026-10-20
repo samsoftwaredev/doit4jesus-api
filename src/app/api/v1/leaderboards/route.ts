@@ -2,6 +2,7 @@ import { throwDatabaseError } from '@/lib/api/database';
 import { ApiError } from '@/lib/api/errors';
 import { errorResponse, ok } from '@/lib/api/response';
 import { requireUser } from '@/lib/auth/require-user';
+import { toLeaderboardResponseEntry } from '@/lib/leaderboards/response';
 import { leaderboardQuerySchema } from '@/lib/schemas/leaderboard';
 
 export const dynamic = 'force-dynamic';
@@ -35,26 +36,38 @@ export async function GET(request: Request) {
     if (!period)
       throw ApiError.notFound('No leaderboard period matches the request.');
 
-    const [entriesResponse, currentUserEntryResponse] = await Promise.all([
-      supabase
-        .schema('competition')
-        .from('leaderboard_entries')
-        .select('*', { count: 'exact' })
-        .eq('period_id', period.id)
-        .eq('scope_type', query.scopeType)
-        .eq('scope_reference', query.scopeReference)
+    let entriesQuery = supabase
+      .schema('competition')
+      .from('leaderboard_entries')
+      .select('*', { count: 'exact' })
+      .eq('period_id', period.id)
+      .eq('scope_type', query.scopeType)
+      .eq('scope_reference', query.scopeReference);
+    let currentUserEntryQuery = supabase
+      .schema('competition')
+      .from('leaderboard_entries')
+      .select('*')
+      .eq('period_id', period.id)
+      .eq('scope_type', query.scopeType)
+      .eq('scope_reference', query.scopeReference)
+      .eq('user_id', userId);
+
+    if (query.scopeType === 'global') {
+      entriesQuery = entriesQuery
+        .gt('rosaries_count', 0)
         .order('rank', { ascending: true, nullsFirst: false })
-        .order('points', { ascending: false })
-        .range(query.offset, query.offset + query.limit - 1),
-      supabase
-        .schema('competition')
-        .from('leaderboard_entries')
-        .select('*')
-        .eq('period_id', period.id)
-        .eq('scope_type', query.scopeType)
-        .eq('scope_reference', query.scopeReference)
-        .eq('user_id', userId)
-        .maybeSingle(),
+        .order('rosaries_count', { ascending: false })
+        .order('user_id', { ascending: true });
+      currentUserEntryQuery = currentUserEntryQuery.gt('rosaries_count', 0);
+    } else {
+      entriesQuery = entriesQuery
+        .order('rank', { ascending: true, nullsFirst: false })
+        .order('points', { ascending: false });
+    }
+
+    const [entriesResponse, currentUserEntryResponse] = await Promise.all([
+      entriesQuery.range(query.offset, query.offset + query.limit - 1),
+      currentUserEntryQuery.maybeSingle(),
     ]);
 
     throwDatabaseError(
@@ -92,19 +105,12 @@ export async function GET(request: Request) {
     const toResponseEntry = (entry: (typeof rows)[number]) => {
       const profile = profileMap.get(entry.user_id);
 
-      return {
-        ...entry,
-        isCurrentUser: entry.user_id === userId,
-        profile: {
-          user_id: profile?.user_id ?? entry.user_id,
-          display_name: profile?.display_name ?? 'Private Player',
-          username: profile?.username ?? null,
-          avatar_url: profile?.avatar_url ?? null,
-          title: profile?.title ?? null,
-          countryCode: profile?.country_code ?? null,
-          saintAvatarId: profile?.saint_avatar_id ?? null,
-        },
-      };
+      return toLeaderboardResponseEntry(
+        entry,
+        profile,
+        userId,
+        query.scopeType === 'global',
+      );
     };
 
     return ok(

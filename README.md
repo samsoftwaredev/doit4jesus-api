@@ -191,15 +191,16 @@ Never send the service-role key to a browser or native application.
 | GET              | `/api/v1/challenges`                         | Challenge assignments                                   |
 | POST             | `/api/v1/challenges/:assignmentId/claim`     | Claim completed challenge reward                        |
 | GET              | `/api/v1/badges`                             | Badge catalog, earned badges, and progress              |
-| GET              | `/api/v1/leaderboards`                       | Period/scope leaderboard                                |
+| GET              | `/api/v1/leaderboards`                       | Global Rosary and country points leaderboards           |
 | GET              | `/api/v1/prayer-map`                         | Aggregated privacy-filtered markers                     |
 | GET              | `/api/v1/notifications`                      | Notification inbox                                      |
 | PATCH            | `/api/v1/notifications/:notificationId/read` | Mark notification read                                  |
 
-Leaderboard APIs support weekly and yearly periods. PostgreSQL refreshes the
-global and country projections every five minutes from the point ledger and
-qualifying activities; explicit `periodCode` values can retrieve finalized
-historical periods.
+Leaderboard APIs support weekly and yearly periods. Global rankings use only
+the quantity of self-reported or verified Rosaries in the period; users with no
+qualifying Rosaries are omitted. Country and friends rankings continue to use
+period points. PostgreSQL refreshes the projections every five minutes, and an
+explicit `periodCode` can retrieve a finalized historical period.
 
 ## Record an activity
 

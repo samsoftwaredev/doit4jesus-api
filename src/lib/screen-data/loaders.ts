@@ -10,6 +10,7 @@ import {
   selectRandomExaminationQuestion,
 } from '@/lib/examination-of-conscience/daily-question';
 import { toExaminationQuestion } from '@/lib/examination-of-conscience/question';
+import { toLeaderboardResponseEntry } from '@/lib/leaderboards/response';
 import { loadDailyScriptureCompletion } from '@/lib/liturgy/completion';
 import { loadCurrentProfile } from '@/lib/profiles/current-profile';
 import type { ScreenDataQuery } from '@/lib/schemas/screen-data';
@@ -476,8 +477,10 @@ export async function loadLeaderboard(
       .eq('period_id', period.id)
       .eq('scope_type', 'global')
       .eq('scope_reference', 'global')
+      .gt('rosaries_count', 0)
       .order('rank', { ascending: true, nullsFirst: false })
-      .order('points', { ascending: false })
+      .order('rosaries_count', { ascending: false })
+      .order('user_id', { ascending: true })
       .range(0, limit - 1),
     context.supabase
       .schema('competition')
@@ -487,6 +490,7 @@ export async function loadLeaderboard(
       .eq('scope_type', 'global')
       .eq('scope_reference', 'global')
       .eq('user_id', context.userId)
+      .gt('rosaries_count', 0)
       .maybeSingle(),
   ]);
   throwDatabaseError(
@@ -520,19 +524,7 @@ export async function loadLeaderboard(
   );
   const toEntry = (entry: (typeof rows)[number]) => {
     const profile = profileMap.get(entry.user_id);
-    return {
-      ...entry,
-      isCurrentUser: entry.user_id === context.userId,
-      profile: {
-        user_id: profile?.user_id ?? entry.user_id,
-        display_name: profile?.display_name ?? 'Private Player',
-        username: profile?.username ?? null,
-        avatar_url: profile?.avatar_url ?? null,
-        title: profile?.title ?? null,
-        countryCode: profile?.country_code ?? null,
-        saintAvatarId: profile?.saint_avatar_id ?? null,
-      },
-    };
+    return toLeaderboardResponseEntry(entry, profile, context.userId, true);
   };
   return payload(
     {

@@ -63,6 +63,7 @@ describe('GET /api/v1/leaderboards', () => {
     const pageEntriesQuery: Record<string, jest.Mock> = {};
     pageEntriesQuery.select = jest.fn().mockReturnValue(pageEntriesQuery);
     pageEntriesQuery.eq = jest.fn().mockReturnValue(pageEntriesQuery);
+    pageEntriesQuery.gt = jest.fn().mockReturnValue(pageEntriesQuery);
     pageEntriesQuery.order = jest.fn().mockReturnValue(pageEntriesQuery);
     pageEntriesQuery.range = jest
       .fn()
@@ -73,6 +74,7 @@ describe('GET /api/v1/leaderboards', () => {
       .fn()
       .mockReturnValue(currentUserEntryQuery);
     currentUserEntryQuery.eq = jest.fn().mockReturnValue(currentUserEntryQuery);
+    currentUserEntryQuery.gt = jest.fn().mockReturnValue(currentUserEntryQuery);
     currentUserEntryQuery.maybeSingle = jest
       .fn()
       .mockResolvedValue({ data: currentUserEntry, error: null });
@@ -130,7 +132,13 @@ describe('GET /api/v1/leaderboards', () => {
         period,
         entries: [
           {
-            ...pageEntry,
+            period_id: pageEntry.period_id,
+            user_id: pageEntry.user_id,
+            scope_type: pageEntry.scope_type,
+            scope_reference: pageEntry.scope_reference,
+            rank: pageEntry.rank,
+            rosaries_count: pageEntry.rosaries_count,
+            updated_at: pageEntry.updated_at,
             isCurrentUser: false,
             profile: {
               user_id: otherUserId,
@@ -141,7 +149,13 @@ describe('GET /api/v1/leaderboards', () => {
           },
         ],
         currentUserEntry: {
-          ...currentUserEntry,
+          period_id: currentUserEntry.period_id,
+          user_id: currentUserEntry.user_id,
+          scope_type: currentUserEntry.scope_type,
+          scope_reference: currentUserEntry.scope_reference,
+          rank: currentUserEntry.rank,
+          rosaries_count: currentUserEntry.rosaries_count,
+          updated_at: currentUserEntry.updated_at,
           isCurrentUser: true,
           profile: {
             user_id: currentUserId,
@@ -163,5 +177,22 @@ describe('GET /api/v1/leaderboards', () => {
       expect.any(String),
     );
     expect(periodQuery.gt).toHaveBeenCalledWith('ends_at', expect.any(String));
+    expect(pageEntriesQuery.gt).toHaveBeenCalledWith('rosaries_count', 0);
+    expect(currentUserEntryQuery.gt).toHaveBeenCalledWith('rosaries_count', 0);
+    expect(pageEntriesQuery.order).toHaveBeenNthCalledWith(1, 'rank', {
+      ascending: true,
+      nullsFirst: false,
+    });
+    expect(pageEntriesQuery.order).toHaveBeenNthCalledWith(
+      2,
+      'rosaries_count',
+      { ascending: false },
+    );
+    expect(pageEntriesQuery.order).toHaveBeenNthCalledWith(3, 'user_id', {
+      ascending: true,
+    });
+    expect(body.data.entries[0]).not.toHaveProperty('points');
+    expect(body.data.entries[0]).not.toHaveProperty('scripture_readings_count');
+    expect(body.data.entries[0]).not.toHaveProperty('prayers_count');
   });
 });

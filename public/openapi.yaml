@@ -1345,10 +1345,10 @@ paths:
     get:
       summary: Get the current user's friends-only leaderboard
       description: >-
-        Uses the same period points as the global leaderboard, but calculates
-        rank across the current user and their confirmed friends only. Each
-        nested friend profile includes its nullable countryCode and
-        saintAvatarId.
+        Ranks the current user and their confirmed friends by period points.
+        This remains point-based even though the global leaderboard is ranked
+        by qualifying Rosary quantity. Each nested friend profile includes its
+        nullable countryCode and saintAvatarId.
       parameters:
         - in: query
           name: periodType
@@ -2229,7 +2229,14 @@ paths:
         '422': { $ref: '#/components/responses/ValidationError' }
   /api/v1/leaderboards:
     get:
-      summary: Get leaderboard entries
+      summary: Get global Rosary or country point leaderboard entries
+      description: >-
+        Global weekly and yearly leaderboards rank only the quantity of
+        self-reported or verified Rosaries recorded during the period. Users
+        with no qualifying Rosaries are omitted, ties share a rank, and points
+        are neither returned nor used as a tie-breaker. Country leaderboards
+        remain ranked by period points and retain their point and activity
+        count fields. Current projections refresh every five minutes.
       parameters:
         - in: query
           name: periodType
@@ -2257,7 +2264,7 @@ paths:
           schema: { type: integer, minimum: 0, default: 0 }
       responses:
         '200':
-          description: Ranked entries
+          description: Rosary-ranked global entries or point-ranked country entries
           content:
             application/json:
               schema: { $ref: '#/components/schemas/LeaderboardResponse' }
@@ -2269,11 +2276,8 @@ paths:
                       user_id: 11111111-1111-4111-8111-111111111111
                       scope_type: global
                       scope_reference: global
-                      points: 240
                       rank: 1
                       rosaries_count: 3
-                      scripture_readings_count: 4
-                      prayers_count: 9
                       updated_at: '2026-08-17T10:00:00Z'
                       isCurrentUser: false
                       profile: { user_id: 11111111-1111-4111-8111-111111111111, display_name: Maria Santos, username: mariasantos, avatar_url: 'https://example.com/avatars/mariasantos.png', title: Prayer Champion, countryCode: MX, saintAvatarId: a1000000-0000-4000-8000-000000000002 }
@@ -4058,7 +4062,33 @@ components:
           anyOf:
             - { type: string, format: uuid }
             - { type: 'null' }
-    GlobalLeaderboardEntry:
+    RosaryGlobalLeaderboardEntry:
+      type: object
+      additionalProperties: false
+      required:
+        - period_id
+        - user_id
+        - scope_type
+        - scope_reference
+        - rank
+        - rosaries_count
+        - updated_at
+        - isCurrentUser
+        - profile
+      properties:
+        period_id: { type: string, format: uuid }
+        user_id: { type: string, format: uuid }
+        scope_type: { type: string, enum: [global] }
+        scope_reference: { type: string, enum: [global] }
+        rank:
+          anyOf:
+            - { type: integer, minimum: 1 }
+            - { type: 'null' }
+        rosaries_count: { type: integer, minimum: 1 }
+        updated_at: { type: string, format: date-time }
+        isCurrentUser: { type: boolean }
+        profile: { $ref: '#/components/schemas/GlobalLeaderboardProfile' }
+    CountryLeaderboardEntry:
       type: object
       additionalProperties: false
       required:
@@ -4077,7 +4107,7 @@ components:
       properties:
         period_id: { type: string, format: uuid }
         user_id: { type: string, format: uuid }
-        scope_type: { type: string, enum: [global, country] }
+        scope_type: { type: string, enum: [country] }
         scope_reference: { type: string }
         points: { type: integer, format: int64, minimum: 0 }
         rank:
@@ -4106,14 +4136,19 @@ components:
         period: { $ref: '#/components/schemas/GlobalLeaderboardPeriod' }
         entries:
           type: array
-          items: { $ref: '#/components/schemas/GlobalLeaderboardEntry' }
+          items:
+            oneOf:
+              - { $ref: '#/components/schemas/RosaryGlobalLeaderboardEntry' }
+              - { $ref: '#/components/schemas/CountryLeaderboardEntry' }
         currentUserEntry:
           description: >-
             The authenticated user's entry for the selected period and scope,
             returned even when it is outside the requested page. Null when the
-            user has no entry for that period and scope.
+            user has no entry for that period and scope, including when they
+            have no qualifying Rosaries in a global period.
           anyOf:
-            - { $ref: '#/components/schemas/GlobalLeaderboardEntry' }
+            - { $ref: '#/components/schemas/RosaryGlobalLeaderboardEntry' }
+            - { $ref: '#/components/schemas/CountryLeaderboardEntry' }
             - { type: 'null' }
     LeaderboardResponse:
       type: object

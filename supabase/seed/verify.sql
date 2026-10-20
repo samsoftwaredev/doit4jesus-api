@@ -66,13 +66,21 @@ end
 $$;
 
 do $$
+declare
+  leaderboard_function text := pg_get_functiondef(
+    'competition.refresh_leaderboard_period(uuid)'::regprocedure
+  );
 begin
   if position(
-    'legacy_balance' in pg_get_functiondef(
-      'competition.refresh_leaderboard_period(uuid)'::regprocedure
-    )
+    'legacy_balance' in leaderboard_function
   ) = 0 then
     raise exception 'Legacy XP balances are not excluded from period leaderboards';
+  end if;
+
+  if position(
+    'order by totals.rosaries_count desc' in leaderboard_function
+  ) = 0 then
+    raise exception 'Global leaderboards are not ranked by Rosary quantity';
   end if;
 end
 $$;
