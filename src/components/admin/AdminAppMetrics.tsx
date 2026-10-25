@@ -15,6 +15,7 @@ import type {
   AdminAppMetricsTrend,
   AdminMetricTrendSeries,
 } from './adminMetricTypes';
+import { calculateTrendAverage, formatTrendAverage } from './adminMetricUtils';
 
 export type AdminAppMetricsData = {
   generatedAt: string;
@@ -205,6 +206,11 @@ function TrendChart({
     );
   }
 
+  const seriesAverages = series.map((item) => ({
+    ...item,
+    average: calculateTrendAverage(chartData, item.key) ?? 0,
+  }));
+
   return (
     <Paper component="figure" variant="outlined" sx={{ m: 0, p: 2.5 }}>
       <Stack spacing={1.5}>
@@ -220,7 +226,7 @@ function TrendChart({
         <AdminTrendChart data={chartData} series={series} />
 
         <Stack direction="row" spacing={2} useFlexGap flexWrap="wrap">
-          {series.map((item) => (
+          {seriesAverages.map((item) => (
             <Stack
               key={item.key}
               direction="row"
@@ -237,7 +243,8 @@ function TrendChart({
                 }}
               />
               <Typography variant="caption" color="text.secondary">
-                {item.label}
+                {item.label} — 30-day avg: {formatTrendAverage(item.average)}
+                /day
               </Typography>
             </Stack>
           ))}

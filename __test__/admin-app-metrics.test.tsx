@@ -138,4 +138,47 @@ describe('AdminAppMetrics', () => {
     );
     expect(container.querySelector('[aria-label^="About "]')).toBeNull();
   });
+
+  it('labels each chart series with its 30-day daily average', async () => {
+    const trends = [
+      {
+        date: '2026-10-20',
+        signups: 0,
+        newlyActiveUsers: 1,
+        dailyActiveUsers: 2,
+        rosariesStarted: 3,
+        rosariesCompleted: 1,
+      },
+      {
+        date: '2026-10-21',
+        signups: 3,
+        newlyActiveUsers: 2,
+        dailyActiveUsers: 4,
+        rosariesStarted: 5,
+        rosariesCompleted: 3,
+      },
+    ];
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ data: { ...metrics, trends } }),
+    }) as typeof fetch;
+
+    await act(async () => {
+      root.render(<AdminAppMetrics accessToken="admin-token" />);
+    });
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    expect(container.textContent).toContain('Signups — 30-day avg: 1.5/day');
+    expect(container.textContent).toContain(
+      'First practice — 30-day avg: 1.5/day',
+    );
+    expect(container.textContent).toContain(
+      'Spiritually active users — 30-day avg: 3.0/day',
+    );
+    expect(container.textContent).toContain('Started — 30-day avg: 4.0/day');
+    expect(container.textContent).toContain('Completed — 30-day avg: 2.0/day');
+  });
 });
