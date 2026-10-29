@@ -17,6 +17,7 @@ const mockedRequireUser = jest.mocked(requireUser);
 const mockedErrorResponse = jest.mocked(errorResponse);
 const userId = '9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002';
 const saintAvatarId = 'a1000000-0000-4000-8000-000000000002';
+const acceptedAt = '2026-10-27T06:00:00.000Z';
 
 const profile = {
   user_id: userId,
@@ -44,6 +45,18 @@ function countryQuery(country = { name: 'United States' }) {
     .fn()
     .mockResolvedValue({ data: country, error: null });
   return query;
+}
+
+function apiSchema() {
+  return {
+    rpc: jest.fn().mockResolvedValue({
+      data: {
+        accountCreatedAt: '2026-10-27T05:00:00.000Z',
+        acceptedAt,
+      },
+      error: null,
+    }),
+  };
 }
 
 describe('/api/v1/me', () => {
@@ -74,7 +87,10 @@ describe('/api/v1/me', () => {
       .fn()
       .mockReturnValueOnce(profileQuery)
       .mockReturnValueOnce(resolvedCountryQuery);
-    const supabase = { schema: jest.fn(() => ({ from })) };
+    const api = apiSchema();
+    const supabase = {
+      schema: jest.fn((name: string) => (name === 'api' ? api : { from })),
+    };
     mockedRequireUser.mockResolvedValue({ supabase, userId } as never);
 
     const response = await GET({
@@ -91,6 +107,15 @@ describe('/api/v1/me', () => {
           missingFields: [],
           nextStep: null,
           completedAt: '2026-08-22T00:00:00.000Z',
+        },
+        legalAcceptance: {
+          required: false,
+          accepted: true,
+          grandfathered: false,
+          termsVersion: '2026-10-28',
+          privacyVersion: '2026-10-28',
+          communityGuidelinesVersion: '2026-10-28',
+          acceptedAt,
         },
       }),
     });
@@ -115,7 +140,10 @@ describe('/api/v1/me', () => {
       .fn()
       .mockReturnValueOnce(profileQuery)
       .mockReturnValueOnce(countryQuery());
-    const supabase = { schema: jest.fn(() => ({ from })) };
+    const api = apiSchema();
+    const supabase = {
+      schema: jest.fn((name: string) => (name === 'api' ? api : { from })),
+    };
     mockedRequireUser.mockResolvedValue({ supabase, userId } as never);
 
     const response = await PATCH({

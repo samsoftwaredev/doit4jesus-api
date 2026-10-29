@@ -4,12 +4,16 @@ import { readJson } from '@/lib/api/validation';
 import { requireUser } from '@/lib/auth/require-user';
 import {
   loadCurrentProfile,
+  loadLegalAcceptance,
   loadProfileLocation,
   toCurrentProfile,
 } from '@/lib/profiles/current-profile';
 import { updateProfileSchema } from '@/lib/schemas/profile';
 import type { Database } from '@/lib/supabase/types';
-import { assertUsernameAllowed } from '@/lib/usernames/moderation';
+import {
+  assertDisplayNameAllowed,
+  assertUsernameAllowed,
+} from '@/lib/usernames/moderation';
 
 export const dynamic = 'force-dynamic';
 
@@ -29,6 +33,9 @@ export async function PATCH(request: Request) {
 
     if (input.username !== undefined && input.username !== null) {
       assertUsernameAllowed(input.username);
+    }
+    if (input.displayName !== undefined) {
+      assertDisplayNameAllowed(input.displayName);
     }
 
     const sanitized: Database['app']['Tables']['user_profiles']['Update'] = {};
@@ -62,7 +69,8 @@ export async function PATCH(request: Request) {
 
     throwDatabaseError(error, 'Unable to update the profile.');
     const location = await loadProfileLocation(supabase, data.country_code);
-    return ok(toCurrentProfile(data, location));
+    const legalAcceptance = await loadLegalAcceptance(supabase);
+    return ok(toCurrentProfile(data, location, legalAcceptance));
   } catch (error) {
     return errorResponse(error, request);
   }

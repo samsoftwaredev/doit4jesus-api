@@ -1488,7 +1488,7 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/CurrentProfileResponse' }
               example:
-                data: { userId: 9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002, displayName: Test User, username: testuser, avatarUrl: 'https://example.com/avatars/testuser.png', title: Faithful Beginner, gender: male, saintAvatarId: null, preferredLanguage: en, timezone: America/Chicago, countryCode: US, countryName: United States, leaderboardVisibility: public, prayerMapVisibility: aggregated, profileSetup: { complete: true, missingFields: [], nextStep: null, completedAt: '2026-08-17T12:00:00Z' }, createdAt: '2026-06-01T12:00:00Z', updatedAt: '2026-08-17T12:00:00Z' }
+                data: { userId: 9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002, displayName: Test User, username: testuser, avatarUrl: 'https://example.com/avatars/testuser.png', title: Faithful Beginner, gender: male, saintAvatarId: null, preferredLanguage: en, timezone: America/Chicago, countryCode: US, countryName: United States, leaderboardVisibility: public, prayerMapVisibility: aggregated, profileSetup: { complete: true, missingFields: [], nextStep: null, completedAt: '2026-08-17T12:00:00Z' }, legalAcceptance: { required: false, accepted: false, grandfathered: true, termsVersion: '2026-10-28', privacyVersion: '2026-10-28', communityGuidelinesVersion: '2026-10-28', acceptedAt: null }, createdAt: '2026-06-01T12:00:00Z', updatedAt: '2026-08-17T12:00:00Z' }
         '401': { $ref: '#/components/responses/Unauthorized' }
     patch:
       summary: Update current profile
@@ -1508,7 +1508,7 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/CurrentProfileResponse' }
               example:
-                data: { userId: 9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002, displayName: Test User, username: testuser, avatarUrl: 'https://example.com/avatars/testuser.png', title: Prayer Warrior, gender: male, saintAvatarId: null, preferredLanguage: en, timezone: America/Chicago, countryCode: US, countryName: United States, leaderboardVisibility: public, prayerMapVisibility: aggregated, profileSetup: { complete: true, missingFields: [], nextStep: null, completedAt: '2026-08-17T12:00:00Z' }, createdAt: '2026-06-01T12:00:00Z', updatedAt: '2026-08-17T12:00:00Z' }
+                data: { userId: 9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002, displayName: Test User, username: testuser, avatarUrl: 'https://example.com/avatars/testuser.png', title: Prayer Warrior, gender: male, saintAvatarId: null, preferredLanguage: en, timezone: America/Chicago, countryCode: US, countryName: United States, leaderboardVisibility: public, prayerMapVisibility: aggregated, profileSetup: { complete: true, missingFields: [], nextStep: null, completedAt: '2026-08-17T12:00:00Z' }, legalAcceptance: { required: false, accepted: true, grandfathered: false, termsVersion: '2026-10-28', privacyVersion: '2026-10-28', communityGuidelinesVersion: '2026-10-28', acceptedAt: '2026-10-27T06:00:00Z' }, createdAt: '2026-10-27T05:00:00Z', updatedAt: '2026-10-27T06:00:00Z' }
         '409': { description: Username conflict }
         '422': { $ref: '#/components/responses/ValidationError' }
     delete:
@@ -1520,6 +1520,40 @@ paths:
       responses:
         '204': { description: Account permanently deleted. The successful response body is empty. }
         '401': { $ref: '#/components/responses/Unauthorized' }
+  /api/v1/me/legal-acceptance:
+    post:
+      summary: Accept the current legal documents
+      description: >-
+        Records append-only evidence for the authenticated account. Terms,
+        Privacy, and Community Guidelines versions and the acceptance timestamp
+        are server-owned. Repeating the same current-version submission is
+        idempotent. No IP address, device fingerprint, or birth date is stored.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AcceptLegalDocuments' }
+            example:
+              locale: en
+              adultConfirmed: true
+              usResidentConfirmed: true
+      responses:
+        '200':
+          description: Current legal acceptance status
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/LegalAcceptanceResponse' }
+              example:
+                data:
+                  required: false
+                  accepted: true
+                  grandfathered: false
+                  termsVersion: '2026-10-28'
+                  privacyVersion: '2026-10-28'
+                  communityGuidelinesVersion: '2026-10-28'
+                  acceptedAt: '2026-10-27T06:00:00Z'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '422': { $ref: '#/components/responses/ValidationError' }
   /api/v1/me/notification-preferences:
     get:
       summary: Get the current user's reminder preferences
@@ -2374,6 +2408,112 @@ paths:
           schema: { type: string, format: uuid }
       responses:
         '204': { description: Marked as read. The successful response body is empty. }
+  /api/v1/me/reports:
+    post:
+      summary: Report a user, prayer intention, or event
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateSafetyReport' }
+      responses:
+        '201':
+          description: Report accepted for administrator review
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SafetyReportCreatedResponse' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+  /api/v1/me/apple-credential-revocation:
+    post:
+      summary: Revoke an Apple credential before permanent account deletion
+      description: >-
+        Exchanges a fresh Apple authorization code and revokes the resulting
+        token. Requires APPLE_CLIENT_ID and a current APPLE_CLIENT_SECRET.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [authorizationCode]
+              properties:
+                authorizationCode: { type: string, minLength: 1, maxLength: 4096 }
+      responses:
+        '204': { description: Apple credential revoked }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+        '502': { description: Apple rejected the token exchange or revocation }
+        '503': { description: Apple revocation is not configured }
+  /api/v1/me/blocks:
+    get:
+      summary: List accounts blocked by the current user
+      responses:
+        '200':
+          description: Blocked accounts
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data: { type: array, items: { $ref: '#/components/schemas/BlockedAccount' } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+  /api/v1/me/blocks/{userId}:
+    parameters:
+      - in: path
+        name: userId
+        required: true
+        schema: { type: string, format: uuid }
+    post:
+      summary: Block an account and remove friendship state
+      responses:
+        '201': { description: Account blocked }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+    delete:
+      summary: Unblock an account
+      responses:
+        '204': { description: Account unblocked }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+  /api/v1/admin/reports:
+    get:
+      summary: List safety reports for administrator review
+      parameters:
+        - in: query
+          name: status
+          schema: { type: string, enum: [open, reviewing, resolved, dismissed, all], default: open }
+        - { $ref: '#/components/parameters/Limit' }
+        - { $ref: '#/components/parameters/Offset' }
+      responses:
+        '200': { description: Safety report review queue }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { description: Administrator access required }
+  /api/v1/admin/reports/{reportId}:
+    parameters:
+      - in: path
+        name: reportId
+        required: true
+        schema: { type: string, format: uuid }
+    patch:
+      summary: Update the administrator review state of a safety report
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [status]
+              properties:
+                status: { type: string, enum: [reviewing, resolved, dismissed] }
+                adminNotes: { type: [string, 'null'], maxLength: 2000 }
+      responses:
+        '200': { description: Updated safety report }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { description: Administrator access required }
+        '404': { $ref: '#/components/responses/NotFound' }
 components:
   securitySchemes:
     supabaseBearer:
@@ -3439,6 +3579,7 @@ components:
         - leaderboardVisibility
         - prayerMapVisibility
         - profileSetup
+        - legalAcceptance
         - createdAt
         - updatedAt
       properties:
@@ -3481,6 +3622,7 @@ components:
         leaderboardVisibility: { type: string, enum: [public, friends, private] }
         prayerMapVisibility: { type: string, enum: [aggregated, hidden] }
         profileSetup: { $ref: '#/components/schemas/ProfileSetupStatus' }
+        legalAcceptance: { $ref: '#/components/schemas/LegalAcceptanceStatus' }
         createdAt: { type: string, format: date-time }
         updatedAt: { type: string, format: date-time }
     CurrentProfileResponse:
@@ -3489,6 +3631,46 @@ components:
       required: [data]
       properties:
         data: { $ref: '#/components/schemas/CurrentProfile' }
+    LegalAcceptanceStatus:
+      type: object
+      additionalProperties: false
+      required:
+        - required
+        - accepted
+        - grandfathered
+        - termsVersion
+        - privacyVersion
+        - communityGuidelinesVersion
+        - acceptedAt
+      properties:
+        required:
+          type: boolean
+          description: True only for post-cutoff accounts missing current-version acceptance.
+        accepted: { type: boolean }
+        grandfathered:
+          type: boolean
+          description: True when the account was created before 2026-10-27T05:00:00Z.
+        termsVersion: { type: string, const: '2026-10-28' }
+        privacyVersion: { type: string, const: '2026-10-28' }
+        communityGuidelinesVersion: { type: string, const: '2026-10-28' }
+        acceptedAt:
+          anyOf:
+            - { type: string, format: date-time }
+            - { type: 'null' }
+    AcceptLegalDocuments:
+      type: object
+      additionalProperties: false
+      required: [locale, adultConfirmed, usResidentConfirmed]
+      properties:
+        locale: { type: string, enum: [en, es] }
+        adultConfirmed: { type: boolean, const: true }
+        usResidentConfirmed: { type: boolean, const: true }
+    LegalAcceptanceResponse:
+      type: object
+      additionalProperties: false
+      required: [data]
+      properties:
+        data: { $ref: '#/components/schemas/LegalAcceptanceStatus' }
     ProfileSetupStatus:
       type: object
       additionalProperties: false
@@ -4174,3 +4356,37 @@ components:
       properties:
         data: { $ref: '#/components/schemas/LeaderboardData' }
         meta: { $ref: '#/components/schemas/LeaderboardMeta' }
+    SafetyReportReason:
+      type: string
+      enum: [harassment, threats_hate, sexual_exploitative, privacy, scam_impersonation, infringement, spam_manipulation, other]
+    CreateSafetyReport:
+      type: object
+      additionalProperties: false
+      required: [targetType, targetId, reason]
+      properties:
+        targetType: { type: string, enum: [user, prayer_intention, event] }
+        targetId: { type: string, format: uuid }
+        reason: { $ref: '#/components/schemas/SafetyReportReason' }
+        details: { type: [string, 'null'], minLength: 1, maxLength: 2000 }
+    SafetyReportCreatedResponse:
+      type: object
+      additionalProperties: false
+      required: [data]
+      properties:
+        data:
+          type: object
+          required: [id, status, createdAt]
+          properties:
+            id: { type: string, format: uuid }
+            status: { type: string, const: open }
+            createdAt: { type: string, format: date-time }
+    BlockedAccount:
+      type: object
+      additionalProperties: false
+      required: [userId, displayName, username, avatarUrl, blockedAt]
+      properties:
+        userId: { type: string, format: uuid }
+        displayName: { type: string }
+        username: { type: [string, 'null'] }
+        avatarUrl: { type: [string, 'null'], format: uri }
+        blockedAt: { type: string, format: date-time }

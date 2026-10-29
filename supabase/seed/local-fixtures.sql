@@ -223,6 +223,30 @@ set
   leaderboard_visibility = excluded.leaderboard_visibility,
   prayer_map_visibility = excluded.prayer_map_visibility;
 
+-- All local accounts have accepted the current legal documents so normal
+-- development sessions can proceed past the legal-acceptance gate.
+insert into app.user_legal_acceptances (
+  user_id,
+  terms_version,
+  privacy_version,
+  community_guidelines_version,
+  accepted_locale,
+  adult_confirmed,
+  us_resident_confirmed,
+  accepted_at
+)
+values
+  ('9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002', '2026-10-28', '2026-10-28', '2026-10-28', 'en', true, true, now() - interval '90 days'),
+  ('33333333-3333-4333-8333-333333333333', '2026-10-28', '2026-10-28', '2026-10-28', 'en', true, true, now() - interval '14 days'),
+  ('11111111-1111-4111-8111-111111111111', '2026-10-28', '2026-10-28', '2026-10-28', 'es', true, true, now() - interval '60 days'),
+  ('22222222-2222-4222-8222-222222222222', '2026-10-28', '2026-10-28', '2026-10-28', 'en', true, true, now() - interval '30 days')
+on conflict (
+  user_id,
+  terms_version,
+  privacy_version,
+  community_guidelines_version
+) do nothing;
+
 -- ---------------------------------------------------------------------------
 -- Prayer intention moderation examples
 -- ---------------------------------------------------------------------------
@@ -373,6 +397,84 @@ set
   status = excluded.status,
   responded_at = excluded.responded_at,
   cancelled_at = excluded.cancelled_at;
+
+-- ---------------------------------------------------------------------------
+-- Community safety examples
+-- ---------------------------------------------------------------------------
+
+insert into app.user_blocks (blocker_id, blocked_user_id, created_at)
+values (
+  '11111111-1111-4111-8111-111111111111',
+  '22222222-2222-4222-8222-222222222222',
+  now() - interval '12 hours'
+)
+on conflict (blocker_id, blocked_user_id) do update
+set created_at = excluded.created_at;
+
+insert into app.content_reports (
+  id,
+  reporter_id,
+  target_type,
+  target_user_id,
+  prayer_intention_id,
+  event_id,
+  target_owner_id,
+  reason,
+  details,
+  status,
+  admin_notes,
+  reviewed_by,
+  reviewed_at,
+  created_at
+)
+values
+  (
+    'fa000000-0000-4000-8000-000000000001',
+    '9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002',
+    'prayer_intention',
+    null,
+    'd9000000-0000-4000-8000-000000000001',
+    null,
+    '11111111-1111-4111-8111-111111111111',
+    'other',
+    'Local fixture for exercising the open report queue.',
+    'open',
+    null,
+    null,
+    null,
+    now() - interval '6 hours'
+  ),
+  (
+    'fa000000-0000-4000-8000-000000000002',
+    '11111111-1111-4111-8111-111111111111',
+    'user',
+    '22222222-2222-4222-8222-222222222222',
+    null,
+    null,
+    '22222222-2222-4222-8222-222222222222',
+    'spam_manipulation',
+    'Local fixture for exercising reviewed reports.',
+    'resolved',
+    'Resolved as a local development example.',
+    '33333333-3333-4333-8333-333333333333',
+    now() - interval '1 hour',
+    now() - interval '1 day'
+  )
+on conflict (id) do update
+set
+  reporter_id = excluded.reporter_id,
+  target_type = excluded.target_type,
+  target_user_id = excluded.target_user_id,
+  prayer_intention_id = excluded.prayer_intention_id,
+  event_id = excluded.event_id,
+  target_owner_id = excluded.target_owner_id,
+  reason = excluded.reason,
+  details = excluded.details,
+  status = excluded.status,
+  admin_notes = excluded.admin_notes,
+  reviewed_by = excluded.reviewed_by,
+  reviewed_at = excluded.reviewed_at,
+  created_at = excluded.created_at;
 
 -- ---------------------------------------------------------------------------
 -- Church directory, personal links, and moderation examples

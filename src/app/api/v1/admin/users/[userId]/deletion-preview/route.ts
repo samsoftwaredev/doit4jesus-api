@@ -27,6 +27,28 @@ export async function GET(request: Request, context: Context) {
       });
 
     throwDatabaseError(error, 'Unable to load the account deletion preview.');
+    const { data: legalAcceptances, error: legalAcceptanceError } =
+      await supabase
+        .schema('api')
+        .rpc('get_admin_user_legal_acceptances', { p_user_id: userId });
+    throwDatabaseError(
+      legalAcceptanceError,
+      'Unable to load legal acceptance records.',
+    );
+    const [blocksResult, reportsResult] = await Promise.all([
+      supabase
+        .schema('app')
+        .from('user_blocks')
+        .select('*')
+        .or(`blocker_id.eq.${userId},blocked_user_id.eq.${userId}`),
+      supabase
+        .schema('app')
+        .from('content_reports')
+        .select('*')
+        .or(`reporter_id.eq.${userId},target_owner_id.eq.${userId}`),
+    ]);
+    throwDatabaseError(blocksResult.error, 'Unable to load block records.');
+    throwDatabaseError(reportsResult.error, 'Unable to load safety reports.');
     const preview = (data ?? {}) as {
       recordCount?: number;
       [key: string]: unknown;
@@ -35,7 +57,12 @@ export async function GET(request: Request, context: Context) {
     const hasMore = query.offset + query.limit < recordCount;
 
     return ok(
-      preview,
+      {
+        ...preview,
+        legalAcceptances: legalAcceptances ?? [],
+        userBlocks: blocksResult.data ?? [],
+        safetyReports: reportsResult.data ?? [],
+      },
       { headers: { 'Cache-Control': 'no-store' } },
       {
         limit: query.limit,

@@ -25,7 +25,7 @@
     "import:usccb-calendar": "node scripts/import-usccb-calendar-text.mjs",
     "import:legacy-user-data": "node scripts/import-legacy-user-data.mjs",
     "db:audit:development-accounts": "node scripts/audit-development-accounts.mjs",
-    "db:reset:local-fixtures": "supabase db reset --local --sql-paths ./seed.sql --sql-paths ./seed/local-fixtures.sql --sql-paths ./seed/verify.sql --sql-paths ./seed/verify-local-fixtures.sql",
+    "db:reset:local-fixtures": "node scripts/reset-local-database.mjs",
     "build:username-profanity": "node scripts/build-username-profanity-data.mjs",
     "export": "next export",
     "prepare": "husky",

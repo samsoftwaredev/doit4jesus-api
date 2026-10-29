@@ -60,12 +60,24 @@ describe('administrator user-deletion review routes', () => {
   });
 
   it('loads a paginated preview and returns matching pagination metadata', async () => {
-    const rpc = jest.fn().mockResolvedValue({
-      data: { recordCount: 26, records: [] },
-      error: null,
-    });
+    const rpc = jest
+      .fn()
+      .mockResolvedValueOnce({
+        data: { recordCount: 26, records: [] },
+        error: null,
+      })
+      .mockResolvedValueOnce({
+        data: [{ terms_version: '2026-10-28' }],
+        error: null,
+      });
+    const or = jest.fn().mockResolvedValue({ data: [], error: null });
+    const select = jest.fn(() => ({ or }));
     mockedRequireAdmin.mockResolvedValue({
-      supabase: { schema: jest.fn(() => ({ rpc })) },
+      supabase: {
+        schema: jest.fn((name: string) =>
+          name === 'api' ? { rpc } : { from: jest.fn(() => ({ select })) },
+        ),
+      },
     } as never);
 
     const response = await preview(
@@ -81,8 +93,16 @@ describe('administrator user-deletion review routes', () => {
       p_limit: 25,
       p_offset: 0,
     });
+    expect(rpc).toHaveBeenCalledWith('get_admin_user_legal_acceptances', {
+      p_user_id: USER_ID,
+    });
     expect(await response.json()).toEqual(
       expect.objectContaining({
+        data: expect.objectContaining({
+          legalAcceptances: [{ terms_version: '2026-10-28' }],
+          userBlocks: [],
+          safetyReports: [],
+        }),
         meta: { limit: 25, offset: 0, hasMore: true, nextOffset: 25 },
       }),
     );

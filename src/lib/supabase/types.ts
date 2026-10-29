@@ -153,6 +153,21 @@ export type Database = {
         Update: never;
         Relationships: [];
       };
+      user_legal_acceptances: {
+        Row: {
+          user_id: string;
+          terms_version: string;
+          privacy_version: string;
+          community_guidelines_version: string;
+          accepted_locale: 'en' | 'es';
+          adult_confirmed: boolean;
+          us_resident_confirmed: boolean;
+          accepted_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
       email_test_recipients: {
         Row: {
           id: string;
@@ -334,6 +349,72 @@ export type Database = {
         Update: Partial<{
           singleton: boolean;
           rosaries_prayed: number;
+        }>;
+        Relationships: [];
+      };
+      user_blocks: {
+        Row: {
+          blocker_id: string;
+          blocked_user_id: string;
+          created_at: string;
+        };
+        Insert: {
+          blocker_id: string;
+          blocked_user_id: string;
+          created_at?: string;
+        };
+        Update: never;
+        Relationships: [];
+      };
+      content_reports: {
+        Row: {
+          id: string;
+          reporter_id: string;
+          target_type: 'user' | 'prayer_intention' | 'event';
+          target_user_id: string | null;
+          prayer_intention_id: string | null;
+          event_id: string | null;
+          target_owner_id: string;
+          reason:
+            | 'harassment'
+            | 'threats_hate'
+            | 'sexual_exploitative'
+            | 'privacy'
+            | 'scam_impersonation'
+            | 'infringement'
+            | 'spam_manipulation'
+            | 'other';
+          details: string | null;
+          status: 'open' | 'reviewing' | 'resolved' | 'dismissed';
+          admin_notes: string | null;
+          reviewed_by: string | null;
+          reviewed_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          reporter_id: string;
+          target_type: 'user' | 'prayer_intention' | 'event';
+          target_user_id?: string | null;
+          prayer_intention_id?: string | null;
+          event_id?: string | null;
+          target_owner_id?: string;
+          reason:
+            | 'harassment'
+            | 'threats_hate'
+            | 'sexual_exploitative'
+            | 'privacy'
+            | 'scam_impersonation'
+            | 'infringement'
+            | 'spam_manipulation'
+            | 'other';
+          details?: string | null;
+        };
+        Update: Partial<{
+          status: 'reviewing' | 'resolved' | 'dismissed';
+          admin_notes: string | null;
+          reviewed_by: string;
+          reviewed_at: string;
         }>;
         Relationships: [];
       };
@@ -661,6 +742,7 @@ export type Database = {
       event_cards: {
         Row: {
           id: string;
+          creator_id: string;
           title: string;
           description: string;
           image_url: string | null;
@@ -1290,6 +1372,7 @@ export type Database = {
       prayer_intention_cards: {
         Row: {
           id: string;
+          creator_id: string;
           title: string;
           description: string;
           symbol: 'candle' | 'cross' | 'dove' | 'olive_branch' | null;
@@ -1419,6 +1502,22 @@ export type Database = {
           p_limit?: number | null;
           p_offset?: number | null;
         };
+        Returns: Json;
+      };
+      get_current_user_legal_status: {
+        Args: Record<PropertyKey, never>;
+        Returns: Json;
+      };
+      accept_current_user_legal_documents: {
+        Args: {
+          p_accepted_locale: 'en' | 'es';
+          p_adult_confirmed: boolean;
+          p_us_resident_confirmed: boolean;
+        };
+        Returns: Json;
+      };
+      get_admin_user_legal_acceptances: {
+        Args: { p_user_id: string };
         Returns: Json;
       };
       search_admin_users: {

@@ -4,7 +4,10 @@ import { readJson } from '@/lib/api/validation';
 import { requireUser } from '@/lib/auth/require-user';
 import { loadCurrentProfile } from '@/lib/profiles/current-profile';
 import { completeProfileSetupSchema } from '@/lib/schemas/onboarding';
-import { assertUsernameAllowed } from '@/lib/usernames/moderation';
+import {
+  assertDisplayNameAllowed,
+  assertUsernameAllowed,
+} from '@/lib/usernames/moderation';
 
 export const dynamic = 'force-dynamic';
 
@@ -14,6 +17,7 @@ export async function POST(request: Request) {
     const input = completeProfileSetupSchema.parse(await readJson(request));
 
     if (input.username !== null) assertUsernameAllowed(input.username);
+    assertDisplayNameAllowed(input.displayName);
 
     const { error } = await supabase
       .schema('api')

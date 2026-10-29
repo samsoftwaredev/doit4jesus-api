@@ -270,3 +270,7 @@ This scaffold is the correct API foundation, not the entire game backend. Before
 ## Catholic Resources
 
 https://github.com/servusdei2018/awesome-catholic
+
+# Apple credential revocation
+
+Permanent deletion of an account linked to Apple calls the Apple token-revocation endpoint before deleting local data. Configure `APPLE_CLIENT_ID` with the iOS Services/App ID and `APPLE_CLIENT_SECRET` with a current Apple client-secret JWT. Rotate the secret before it expires and verify revocation on a physical iPhone before App Review.

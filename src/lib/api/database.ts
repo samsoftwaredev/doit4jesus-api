@@ -18,6 +18,14 @@ export function throwDatabaseError(
     throw new ApiError(422, 'VALIDATION_ERROR', error.message);
   }
 
+  if (error.code === '23514') {
+    throw new ApiError(422, 'VALIDATION_ERROR', error.message);
+  }
+
+  if (error.code === 'P0002') {
+    throw ApiError.notFound('The reported content was not found.');
+  }
+
   if (error.code === '42501') {
     throw ApiError.forbidden();
   }

@@ -1,5 +1,6 @@
 import { throwDatabaseError } from '@/lib/api/database';
 import type { AuthenticatedContext } from '@/lib/auth/require-user';
+import { toLegalAcceptanceStatus } from '@/lib/legal/policies';
 import { getProfileSetup } from '@/lib/profiles/setup';
 import type { Database } from '@/lib/supabase/types';
 
@@ -13,6 +14,20 @@ type ProfileCountry = Pick<
 export type ProfileLocation = {
   country: ProfileCountry | null;
 };
+
+type LegalStatusRpc = {
+  accountCreatedAt: string;
+  acceptedAt: string | null;
+};
+
+export async function loadLegalAcceptance(supabase: Supabase) {
+  const { data, error } = await supabase
+    .schema('api')
+    .rpc('get_current_user_legal_status');
+  throwDatabaseError(error, 'Unable to load legal acceptance.');
+  const status = data as LegalStatusRpc;
+  return toLegalAcceptanceStatus(status.accountCreatedAt, status.acceptedAt);
+}
 
 export async function loadProfileLocation(
   supabase: Supabase,
@@ -37,6 +52,7 @@ export async function loadProfileLocation(
 export function toCurrentProfile(
   row: UserProfile,
   { country }: ProfileLocation,
+  legalAcceptance: Awaited<ReturnType<typeof loadLegalAcceptance>>,
 ) {
   return {
     userId: row.user_id,
@@ -59,6 +75,7 @@ export function toCurrentProfile(
       countryExists: country !== null,
       completedAt: row.profile_setup_completed_at,
     }),
+    legalAcceptance,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -74,5 +91,6 @@ export async function loadCurrentProfile(supabase: Supabase, userId: string) {
 
   throwDatabaseError(error, 'Unable to load the current profile.');
   const location = await loadProfileLocation(supabase, data.country_code);
-  return toCurrentProfile(data, location);
+  const legalAcceptance = await loadLegalAcceptance(supabase);
+  return toCurrentProfile(data, location, legalAcceptance);
 }

@@ -83,3 +83,16 @@ export function assertUsernameAllowed(value: string) {
     });
   }
 }
+
+export function assertDisplayNameAllowed(value: string) {
+  if (containsProhibitedTerm(value)) {
+    throw new ApiError(
+      422,
+      'VALIDATION_ERROR',
+      'Display name is not allowed.',
+      {
+        reason: 'PROHIBITED_TERM',
+      },
+    );
+  }
+}

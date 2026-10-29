@@ -11,6 +11,7 @@ export const dynamic = 'force-dynamic';
 
 function toCard(row: {
   id: string;
+  creator_id: string;
   title: string;
   description: string;
   symbol: string | null;
@@ -32,6 +33,7 @@ function toCard(row: {
     createdAt: row.created_at,
     prayerCount: row.prayer_count,
     creator: {
+      userId: row.creator_id,
       displayName: row.creator_display_name,
       avatarUrl: row.creator_avatar_url,
       countryCode: row.creator_country_code,

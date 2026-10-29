@@ -1300,6 +1300,9 @@ function UserDeletionPanel({
     };
     profile: Record<string, unknown> | null;
     notificationPreferences: Record<string, unknown> | null;
+    legalAcceptances: Record<string, unknown>[];
+    userBlocks: Record<string, unknown>[];
+    safetyReports: Record<string, unknown>[];
     isProtectedAdmin: boolean;
     anonymousRosaryContribution: number;
     sections: Record<'account' | 'community' | 'progress' | 'prayer', number>;
@@ -1596,6 +1599,47 @@ function UserDeletionPanel({
                           )}
                         </Box>
                       </Box>
+                      <Box>
+                        <Typography fontWeight={700}>
+                          Legal acceptances
+                        </Typography>
+                        <Box
+                          component="pre"
+                          sx={{
+                            whiteSpace: 'pre-wrap',
+                            overflowWrap: 'anywhere',
+                            m: 0,
+                          }}
+                        >
+                          {JSON.stringify(preview.legalAcceptances, null, 2)}
+                        </Box>
+                      </Box>
+                      <Box>
+                        <Typography fontWeight={700}>User blocks</Typography>
+                        <Box
+                          component="pre"
+                          sx={{
+                            whiteSpace: 'pre-wrap',
+                            overflowWrap: 'anywhere',
+                            m: 0,
+                          }}
+                        >
+                          {JSON.stringify(preview.userBlocks, null, 2)}
+                        </Box>
+                      </Box>
+                      <Box>
+                        <Typography fontWeight={700}>Safety reports</Typography>
+                        <Box
+                          component="pre"
+                          sx={{
+                            whiteSpace: 'pre-wrap',
+                            overflowWrap: 'anywhere',
+                            m: 0,
+                          }}
+                        >
+                          {JSON.stringify(preview.safetyReports, null, 2)}
+                        </Box>
+                      </Box>
                     </Stack>
                   ) : (
                     <Stack spacing={1}>
@@ -1684,6 +1728,147 @@ function UserDeletionPanel({
   );
 }
 
+type SafetyReport = {
+  id: string;
+  reporter_id: string;
+  target_type: 'user' | 'prayer_intention' | 'event';
+  target_user_id: string | null;
+  prayer_intention_id: string | null;
+  event_id: string | null;
+  target_owner_id: string;
+  reason: string;
+  details: string | null;
+  status: 'open' | 'reviewing' | 'resolved' | 'dismissed';
+  admin_notes: string | null;
+  created_at: string;
+};
+
+function SafetyReportsPanel({
+  token,
+  onClose,
+}: {
+  token: string;
+  onClose: () => void;
+}) {
+  const [status, setStatus] = useState<
+    'open' | 'reviewing' | 'resolved' | 'dismissed' | 'all'
+  >('open');
+  const [state, setState] = useState<ListState<SafetyReport>>(initialList());
+
+  const load = useCallback(async () => {
+    setState((current) => ({ ...current, loading: true, error: null }));
+    try {
+      const body = await adminFetch<SafetyReport[]>(
+        token,
+        `/api/v1/admin/reports?status=${status}&limit=100&offset=0`,
+      );
+      setState({
+        items: body.data ?? [],
+        meta: body.meta ?? {},
+        loading: false,
+        error: null,
+      });
+    } catch (error) {
+      setState((current) => ({
+        ...current,
+        loading: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : 'Unable to load safety reports.',
+      }));
+    }
+  }, [status, token]);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  async function review(
+    reportId: string,
+    nextStatus: 'reviewing' | 'resolved' | 'dismissed',
+  ) {
+    try {
+      await adminFetch(token, `/api/v1/admin/reports/${reportId}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ status: nextStatus }),
+      });
+      await load();
+    } catch (error) {
+      setState((current) => ({
+        ...current,
+        error:
+          error instanceof Error
+            ? error.message
+            : 'Unable to update the report.',
+      }));
+    }
+  }
+
+  return (
+    <Panel title="Safety Reports" onClose={onClose}>
+      <TextField
+        select
+        label="Status"
+        value={status}
+        onChange={(event) => setStatus(event.target.value as typeof status)}
+        sx={{ minWidth: 220, mb: 2 }}
+      >
+        {['open', 'reviewing', 'resolved', 'dismissed', 'all'].map((value) => (
+          <MenuItem key={value} value={value}>
+            {value}
+          </MenuItem>
+        ))}
+      </TextField>
+      <ListFeedback state={state}>
+        <Stack spacing={2}>
+          {state.items.map((report) => (
+            <Card variant="outlined" key={report.id}>
+              <CardContent>
+                <Stack spacing={1}>
+                  <Typography fontWeight={700}>
+                    {report.reason} · {report.target_type}
+                  </Typography>
+                  <Typography variant="body2">
+                    Target:{' '}
+                    {report.target_user_id ??
+                      report.prayer_intention_id ??
+                      report.event_id}
+                  </Typography>
+                  <Typography variant="body2">
+                    Reporter: {report.reporter_id}
+                  </Typography>
+                  {report.details && <Typography>{report.details}</Typography>}
+                  <Typography variant="caption">
+                    {formatDate(report.created_at)} · {report.status}
+                  </Typography>
+                  <Stack direction="row" spacing={1} flexWrap="wrap">
+                    <Button onClick={() => void review(report.id, 'reviewing')}>
+                      Reviewing
+                    </Button>
+                    <Button
+                      color="success"
+                      onClick={() => void review(report.id, 'resolved')}
+                    >
+                      Resolve
+                    </Button>
+                    <Button
+                      color="inherit"
+                      onClick={() => void review(report.id, 'dismissed')}
+                    >
+                      Dismiss
+                    </Button>
+                  </Stack>
+                </Stack>
+              </CardContent>
+            </Card>
+          ))}
+        </Stack>
+      </ListFeedback>
+    </Panel>
+  );
+}
+
 export default function AdminManagementCards({
   accessToken,
 }: {
@@ -1696,6 +1881,7 @@ export default function AdminManagementCards({
     | 'email'
     | 'contacts'
     | 'events'
+    | 'reports'
     | 'prayers'
     | 'examination'
     | 'churches'
@@ -1709,6 +1895,7 @@ export default function AdminManagementCards({
       requestedPanel === 'email' ||
       requestedPanel === 'contacts' ||
       requestedPanel === 'events' ||
+      requestedPanel === 'reports' ||
       requestedPanel === 'prayers' ||
       requestedPanel === 'examination' ||
       requestedPanel === 'churches' ||
@@ -1737,6 +1924,7 @@ export default function AdminManagementCards({
         <Tab label="Email Center" value="email" />
         <Tab label="Contact Requests" value="contacts" />
         <Tab label="Events" value="events" />
+        <Tab label="Safety Reports" value="reports" />
         <Tab label="Prayer Intentions" value="prayers" />
         <Tab label="Examination Content" value="examination" />
         <Tab label="Church Changes" value="churches" />
@@ -1757,6 +1945,9 @@ export default function AdminManagementCards({
       )}
       {active === 'events' && (
         <AdminEventsPanel token={accessToken} onClose={closeActivePanel} />
+      )}
+      {active === 'reports' && (
+        <SafetyReportsPanel token={accessToken} onClose={closeActivePanel} />
       )}
       {active === 'prayers' && (
         <PrayerIntentionsPanel token={accessToken} onClose={closeActivePanel} />
