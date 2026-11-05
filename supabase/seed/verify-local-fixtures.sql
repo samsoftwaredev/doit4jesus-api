@@ -39,6 +39,38 @@ end
 $$;
 
 do $$
+begin
+  if not exists (
+    select 1
+    from app.postal_codes postal
+    join app.postal_code_cities city on city.postal_code = postal.postal_code and city.is_primary
+    join app.postal_code_dioceses postal_diocese on postal_diocese.postal_code = postal.postal_code
+    where postal.postal_code = '78701'
+      and postal.timezone = 'America/Chicago'
+      and city.city_name = 'Austin'
+      and postal_diocese.diocese_id = 'c5000000-0000-4000-8000-000000000001'
+  ) then
+    raise exception 'The local postal-code discovery fixture is incomplete';
+  end if;
+
+  if (
+    select count(*) from app.church_subscriptions
+    where user_id = '9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002'
+  ) <> 2 then
+    raise exception 'The local church subscription fixtures are incomplete';
+  end if;
+
+  if not exists (
+    select 1 from app.church_schedule_review_tasks
+    where church_id = 'c6000000-0000-4000-8000-000000000005'
+      and status = 'pending'
+  ) then
+    raise exception 'The local church schedule review fixture is missing';
+  end if;
+end
+$$;
+
+do $$
 declare
   fixture_account_count integer;
 begin

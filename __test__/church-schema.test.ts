@@ -28,7 +28,30 @@ describe('church directory schemas', () => {
 
   it('requires at least one church search filter', () => {
     expect(() => churchSearchQuerySchema.parse({})).toThrow(
-      'At least one of countryCode, city, or diocese is required.',
+      'At least one church search filter is required.',
+    );
+  });
+
+  it('accepts postal, radius, diocese ID, and name or address searches', () => {
+    expect(
+      churchSearchQuerySchema.parse({
+        postalCode: '78701',
+        radiusMiles: '15',
+        dioceseId: 'c5000000-0000-4000-8000-000000000001',
+        q: 'St. Mary',
+      }),
+    ).toEqual(
+      expect.objectContaining({
+        postalCode: '78701',
+        radiusMiles: 15,
+        q: 'St. Mary',
+      }),
+    );
+  });
+
+  it('allows a global church name or address search', () => {
+    expect(churchSearchQuerySchema.parse({ q: 'Guadalupe' }).q).toBe(
+      'Guadalupe',
     );
   });
 

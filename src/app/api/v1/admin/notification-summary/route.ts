@@ -14,6 +14,7 @@ export async function GET(request: Request) {
       contactCountResult,
       prayerCountResult,
       churchCountResult,
+      churchScheduleCountResult,
       eventCountResult,
     ] = await Promise.all([
       supabase
@@ -33,6 +34,11 @@ export async function GET(request: Request) {
         .eq('status', 'pending'),
       supabase
         .schema('app')
+        .from('church_schedule_review_tasks')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'pending'),
+      supabase
+        .schema('app')
         .from('events')
         .select('*', { count: 'exact', head: true })
         .eq('status', 'pending'),
@@ -47,12 +53,17 @@ export async function GET(request: Request) {
       churchCountResult.error,
       'Unable to count church change requests.',
     );
+    throwDatabaseError(
+      churchScheduleCountResult.error,
+      'Unable to count church schedule reviews.',
+    );
     throwDatabaseError(eventCountResult.error, 'Unable to count events.');
 
     const [
       contactPreviewResult,
       prayerPreviewResult,
       churchPreviewResult,
+      churchSchedulePreviewResult,
       eventPreviewResult,
     ] = await Promise.all([
       supabase
@@ -81,6 +92,14 @@ export async function GET(request: Request) {
         .limit(previewLimit),
       supabase
         .schema('app')
+        .from('church_schedule_review_tasks')
+        .select('id, church_id, created_at')
+        .eq('status', 'pending')
+        .order('created_at', { ascending: false })
+        .order('id', { ascending: false })
+        .limit(previewLimit),
+      supabase
+        .schema('app')
         .from('events')
         .select('id, title, starts_at, created_at')
         .eq('status', 'pending')
@@ -100,6 +119,10 @@ export async function GET(request: Request) {
     throwDatabaseError(
       churchPreviewResult.error,
       'Unable to load church change request previews.',
+    );
+    throwDatabaseError(
+      churchSchedulePreviewResult.error,
+      'Unable to load church schedule review previews.',
     );
     throwDatabaseError(
       eventPreviewResult.error,
@@ -132,6 +155,14 @@ export async function GET(request: Request) {
         createdAt: changeRequest.created_at,
       })),
     };
+    const churchScheduleReviews = {
+      count: churchScheduleCountResult.count ?? 0,
+      items: (churchSchedulePreviewResult.data ?? []).map((review) => ({
+        id: review.id,
+        churchId: review.church_id,
+        createdAt: review.created_at,
+      })),
+    };
     const events = {
       count: eventCountResult.count ?? 0,
       items: (eventPreviewResult.data ?? []).map((event) => ({
@@ -148,10 +179,12 @@ export async function GET(request: Request) {
           contacts.count +
           prayerIntentions.count +
           churchChangeRequests.count +
+          churchScheduleReviews.count +
           events.count,
         contacts,
         prayerIntentions,
         churchChangeRequests,
+        churchScheduleReviews,
         events,
       },
       { headers: { 'Cache-Control': 'no-store' } },

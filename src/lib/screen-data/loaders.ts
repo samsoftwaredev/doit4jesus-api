@@ -223,6 +223,7 @@ export async function loadPrayerIntentions(context: Context) {
       createdAt: row.created_at,
       prayerCount: row.prayer_count,
       creator: {
+        userId: row.creator_id,
         displayName: row.creator_display_name,
         avatarUrl: row.creator_avatar_url,
         countryCode: row.creator_country_code,

@@ -82,12 +82,28 @@ export const churchSearchQuerySchema = z
     countryCode: countryCodeSchema.optional(),
     city: z.string().trim().min(1).max(150).optional(),
     diocese: z.string().trim().min(1).max(160).optional(),
+    postalCode: z
+      .string()
+      .trim()
+      .regex(/^\d{5}$/)
+      .optional(),
+    dioceseId: z.uuid().optional(),
+    q: z.string().trim().min(2).max(200).optional(),
+    radiusMiles: z.coerce.number().finite().min(1).max(100).default(25),
     limit: z.coerce.number().int().min(1).max(100).default(20),
     offset: z.coerce.number().int().min(0).default(0),
   })
   .refine(
-    (query) => Boolean(query.countryCode || query.city || query.diocese),
-    'At least one of countryCode, city, or diocese is required.',
+    (query) =>
+      Boolean(
+        query.countryCode ||
+          query.city ||
+          query.diocese ||
+          query.postalCode ||
+          query.dioceseId ||
+          query.q,
+      ),
+    'At least one church search filter is required.',
   );
 
 export const createUserChurchLinkSchema = z.object({

@@ -185,6 +185,11 @@ Never send the service-role key to a browser or native application.
 | GET              | `/api/v1/progress`                           | XP and current/next level                               |
 | GET              | `/api/v1/levels`                             | Level definitions                                       |
 | GET              | `/api/v1/locations/countries`                | Country list and autocomplete                           |
+| GET              | `/api/v1/locations/postal-codes/:postalCode` | ZIP map center, cities, timezone, and dioceses          |
+| GET              | `/api/v1/churches`                           | Nearby or global church name/address search             |
+| GET/POST         | `/api/v1/me/church-subscriptions`            | Church reminder subscriptions (maximum three)           |
+| PATCH/DELETE     | `/api/v1/me/church-subscriptions/:churchId`  | Update preferences or unsubscribe                       |
+| GET              | `/api/v1/me/church-services/upcoming`        | Dated services for subscribed churches                  |
 | GET              | `/api/v1/examination-of-conscience`          | Public question list or random selection                |
 | GET              | `/api/v1/examination-of-conscience/daily`    | Deterministic public daily question                     |
 | GET/POST         | `/api/v1/activities`                         | Activity history and transactional recording            |

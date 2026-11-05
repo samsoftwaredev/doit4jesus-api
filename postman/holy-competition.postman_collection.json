@@ -52,6 +52,11 @@
       "description": "UUID of a church change request. The default is the seeded pending request."
     },
     {
+      "key": "churchScheduleReviewId",
+      "value": "cc000000-0000-4000-8000-000000000001",
+      "description": "UUID of a subscription-triggered church schedule review."
+    },
+    {
       "key": "prayerIntentionId",
       "value": "d9000000-0000-4000-8000-000000000002",
       "description": "UUID of a prayer intention for administrator review. The default is the seeded pending intention."
@@ -817,6 +822,19 @@
               "body": "{\n  \"data\": [\n    {\n      \"code\": \"US\",\n      \"name\": \"United States\",\n      \"latitude\": 39.8283,\n      \"longitude\": -98.5795\n    }\n  ],\n  \"meta\": {\n    \"limit\": 20,\n    \"offset\": 0,\n    \"hasMore\": false,\n    \"nextOffset\": null\n  }\n}"
             }
           ]
+        },
+        {
+          "name": "Resolve postal code for church discovery",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/locations/postal-codes/78701",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "locations", "postal-codes", "78701"]
+            },
+            "description": "Returns the ZIP map center, primary and alternate cities, timezone, and optional diocese filters."
+          }
         }
       ]
     },
@@ -830,24 +848,24 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/churches?countryCode=US&city=Austin&diocese=Diocese%20of%20Austin&limit=20&offset=0",
+              "raw": "{{baseUrl}}/api/v1/churches?postalCode=78701&radiusMiles=25&q=Saint&limit=20&offset=0",
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "churches"],
               "query": [
                 {
-                  "key": "countryCode",
-                  "value": "US",
-                  "description": "Optional two-letter country code. If multiple filters are supplied, each must match the same church."
+                  "key": "postalCode",
+                  "value": "78701",
+                  "description": "Optional five-digit ZIP used as the center of a nearby search."
                 },
                 {
-                  "key": "city",
-                  "value": "Austin",
-                  "description": "Optional church-city name used only for directory search and display. If multiple filters are supplied, each must match the same church."
+                  "key": "radiusMiles",
+                  "value": "25",
+                  "description": "Nearby radius from 1 to 100 miles; defaults to 25."
                 },
                 {
-                  "key": "diocese",
-                  "value": "Diocese of Austin",
-                  "description": "Optional canonical diocese name. If multiple filters are supplied, each must match the same church."
+                  "key": "q",
+                  "value": "Saint",
+                  "description": "Optional church-name or address substring. It may be used without a ZIP for an anywhere search."
                 },
                 {
                   "key": "limit",
@@ -861,7 +879,7 @@
                 }
               ]
             },
-            "description": "Returns approved churches. Supply at least one country, city, or diocese filter; when multiple filters are supplied, they must all match the same church. Results include latitude and longitude; retrieve one church for its full address, weekly schedule, and live availability."
+            "description": "Returns active verified or candidate churches. Search near a ZIP, optionally narrow by diocese, or search church name/address anywhere. Results include distance, verification state, and schedule readiness."
           }
         },
         {
@@ -943,6 +961,107 @@
               "path": ["api", "v1", "me", "churches", "{{churchId}}"]
             },
             "description": "Removes a church link for the authenticated user. Returns 204."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Church Subscriptions",
+      "description": "Subscribe to at most three churches and retrieve upcoming verified worship times.",
+      "item": [
+        {
+          "name": "List my church subscriptions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/me/church-subscriptions",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "me", "church-subscriptions"]
+            },
+            "description": "Returns subscribed churches, service types, notification weekdays, and schedule readiness."
+          }
+        },
+        {
+          "name": "Subscribe to a church",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"churchId\": \"{{churchId}}\",\n  \"serviceTypes\": [\"mass\", \"confession\"],\n  \"notificationWeekdays\": [\"sunday\", \"wednesday\"]\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/me/church-subscriptions",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "me", "church-subscriptions"]
+            },
+            "description": "Creates a subscription. A fourth church or duplicate subscription returns 409; an unverified schedule queues one deduplicated admin review."
+          }
+        },
+        {
+          "name": "Update church reminder preferences",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"serviceTypes\": [\"mass\", \"adoration\"],\n  \"notificationWeekdays\": [\"friday\"]\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/me/church-subscriptions/{{churchId}}",
+              "host": ["{{baseUrl}}"],
+              "path": [
+                "api",
+                "v1",
+                "me",
+                "church-subscriptions",
+                "{{churchId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List upcoming subscribed-church services",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/me/church-services/upcoming?days=7&limit=50&offset=0",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "me", "church-services", "upcoming"],
+              "query": [
+                {
+                  "key": "days",
+                  "value": "7",
+                  "description": "Occurrence window from 1 to 31 days."
+                },
+                { "key": "limit", "value": "50" },
+                { "key": "offset", "value": "0" }
+              ]
+            },
+            "description": "Expands verified recurring schedules into concrete UTC and church-local occurrences."
+          }
+        },
+        {
+          "name": "Unsubscribe from a church",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/me/church-subscriptions/{{churchId}}",
+              "host": ["{{baseUrl}}"],
+              "path": [
+                "api",
+                "v1",
+                "me",
+                "church-subscriptions",
+                "{{churchId}}"
+              ]
+            },
+            "description": "Deletes the subscription and returns 204."
           }
         }
       ]
@@ -1075,6 +1194,57 @@
               ]
             },
             "description": "Approves a pending request. A new-church request creates the church and its schedule; a schedule-update request atomically replaces the existing church schedule and awards the submitting user a repeatable Church Schedule Steward badge."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin · Church Schedule Reviews",
+      "description": "Administrator verification queue created by subscriptions to churches without verified schedules.",
+      "item": [
+        {
+          "name": "List pending schedule reviews",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/church-schedule-reviews?status=pending&limit=20&offset=0",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "admin", "church-schedule-reviews"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "pending",
+                  "description": "pending | completed | all"
+                },
+                { "key": "limit", "value": "20" },
+                { "key": "offset", "value": "0" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Verify a church schedule",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"decision\": \"verified\",\n  \"serviceTimes\": [\n    {\n      \"serviceType\": \"mass\",\n      \"weekday\": \"sunday\",\n      \"startTime\": \"09:00\",\n      \"endTime\": null\n    }\n  ]\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/church-schedule-reviews/{{churchScheduleReviewId}}",
+              "host": ["{{baseUrl}}"],
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "church-schedule-reviews",
+                "{{churchScheduleReviewId}}"
+              ]
+            },
+            "description": "Atomically verifies the directory entry, replaces the full recurring schedule, completes the review, and notifies subscribers. Use decision=closed with a reason to deactivate and unsubscribe users."
           }
         }
       ]

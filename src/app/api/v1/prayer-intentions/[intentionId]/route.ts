@@ -34,6 +34,7 @@ export async function GET(request: Request, context: Context) {
       createdAt: data.created_at,
       prayerCount: data.prayer_count,
       creator: {
+        userId: data.creator_id,
         displayName: data.creator_display_name,
         avatarUrl: data.creator_avatar_url,
         countryCode: data.creator_country_code,

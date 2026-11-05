@@ -312,7 +312,8 @@ paths:
       description: >-
         Returns exact counts and up to three newest previews for open contact
         requests, pending prayer intentions, pending events, and pending church
-        change requests. Used by the administrator queue notification bell.
+        change requests and schedule reviews. Used by the administrator queue
+        notification bell.
       responses:
         '200':
           description: Administrator queue summary
@@ -877,13 +878,43 @@ paths:
                 meta: { limit: 20, offset: 0, hasMore: false, nextOffset: null }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '422': { $ref: '#/components/responses/ValidationError' }
+  /api/v1/locations/postal-codes/{postalCode}:
+    get:
+      summary: Resolve a U.S. postal code for church discovery
+      parameters:
+        - in: path
+          name: postalCode
+          required: true
+          schema: { type: string, pattern: '^\d{5}$' }
+      responses:
+        '200':
+          description: Postal-code map center, cities, timezone, and diocese filters
+          content:
+            application/json:
+              example:
+                data:
+                  postalCode: '78701'
+                  primaryCity: Austin
+                  regionCodes: [TX]
+                  latitude: 30.271129
+                  longitude: -97.7437
+                  timezone: America/Chicago
+                  dioceseStatus: approximate_centroid
+                  cities:
+                    - { name: Austin, label: Austin city, regionCode: TX, overlapPercent: 100, status: current_census_place, isPrimary: true }
+                  dioceses:
+                    - { id: c5000000-0000-4000-8000-000000000001, name: Diocese of Austin, matchStatus: approximate_centroid }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { description: Postal code is not supported }
+        '422': { $ref: '#/components/responses/ValidationError' }
   /api/v1/churches:
     get:
-      summary: Search approved churches
+      summary: Search active churches
       description: >-
-        Requires at least one country, city, or diocese filter. When more than
-        one is supplied, all supplied filters must match the same church. City
-        is a church-city name used only for directory search and display.
+        Requires at least one location, diocese, or text filter. Postal searches
+        are distance-ranked from the ZIP centroid. q searches church names and
+        addresses and may be used alone for an anywhere search. Candidate
+        churches remain visibly unverified until administrator review.
       parameters:
         - in: query
           name: countryCode
@@ -894,6 +925,19 @@ paths:
         - in: query
           name: diocese
           schema: { type: string, maxLength: 160 }
+        - in: query
+          name: postalCode
+          schema: { type: string, pattern: '^\d{5}$' }
+        - in: query
+          name: dioceseId
+          schema: { type: string, format: uuid }
+        - in: query
+          name: q
+          schema: { type: string, minLength: 2, maxLength: 200 }
+        - in: query
+          name: radiusMiles
+          description: Search radius used with postalCode.
+          schema: { type: number, minimum: 1, maximum: 100, default: 25 }
         - in: query
           name: limit
           schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
@@ -909,6 +953,7 @@ paths:
                 data:
                   - id: c6000000-0000-4000-8000-000000000001
                     name: St. Mary Cathedral
+                    address: { line1: 203 E 10th St, line2: null, city: Austin, regionName: Texas, postalCode: '78701', countryCode: US }
                     city: Austin
                     regionName: Texas
                     countryCode: US
@@ -916,6 +961,9 @@ paths:
                     timezone: America/Chicago
                     latitude: 30.270833
                     longitude: -97.743057
+                    distanceMiles: 0.3
+                    directoryVerificationStatus: verified
+                    scheduleStatus: verified
                 meta: { limit: 20, offset: 0, hasMore: false, nextOffset: null }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '422': { $ref: '#/components/responses/ValidationError' }
@@ -985,6 +1033,9 @@ paths:
                   timezone: America/Chicago
                   latitude: 30.270833
                   longitude: -97.743057
+                  directoryVerificationStatus: verified
+                  scheduleStatus: verified
+                  scheduleVerifiedAt: '2026-10-30T12:00:00Z'
                   schedule:
                     - { id: c7000000-0000-4000-8000-000000000001, serviceType: mass, weekday: sunday, startTime: '09:00', endTime: '10:00', usesDefaultOneHourDuration: false }
                   liveStatus: { isOpenNow: false, services: [] }
@@ -1077,6 +1128,144 @@ paths:
       responses:
         '204': { description: Church unlinked. The successful response body is empty. }
         '404': { description: Church is not linked to the current user }
+  /api/v1/me/church-subscriptions:
+    get:
+      summary: List the current user's church reminder subscriptions
+      responses:
+        '200':
+          description: Subscription preferences and schedule readiness
+          content:
+            application/json:
+              example:
+                data:
+                  - id: cb000000-0000-4000-8000-000000000001
+                    church:
+                      id: c6000000-0000-4000-8000-000000000001
+                      name: St. Mary Cathedral
+                      address: { line1: 203 E 10th St, line2: null, city: Austin, regionName: Texas, postalCode: '78701', countryCode: US }
+                      timezone: America/Chicago
+                      latitude: 30.270833
+                      longitude: -97.743057
+                      directoryVerificationStatus: verified
+                    serviceTypes: [mass, confession]
+                    notificationWeekdays: [sunday, wednesday]
+                    notificationTime: '08:00'
+                    scheduleStatus: verified
+                    scheduleVerifiedAt: '2026-10-30T12:00:00Z'
+                    createdAt: '2026-10-30T12:00:00Z'
+                    updatedAt: '2026-10-30T12:00:00Z'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+    post:
+      summary: Subscribe to church reminders
+      description: Atomically enforces a maximum of three churches per user.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [churchId, serviceTypes, notificationWeekdays]
+              properties:
+                churchId: { type: string, format: uuid }
+                serviceTypes:
+                  type: array
+                  minItems: 1
+                  maxItems: 3
+                  uniqueItems: true
+                  items: { type: string, enum: [mass, confession, adoration] }
+                notificationWeekdays:
+                  type: array
+                  minItems: 1
+                  maxItems: 7
+                  uniqueItems: true
+                  items: { type: string, enum: [sunday, monday, tuesday, wednesday, thursday, friday, saturday] }
+      responses:
+        '201': { description: Subscription created; an admin review may also be queued }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { description: Church not found or inactive }
+        '409': { description: Duplicate subscription or three-church limit reached }
+        '422': { $ref: '#/components/responses/ValidationError' }
+  /api/v1/me/church-subscriptions/{churchId}:
+    parameters:
+      - in: path
+        name: churchId
+        required: true
+        schema: { type: string, format: uuid }
+    patch:
+      summary: Update church reminder preferences
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              minProperties: 1
+              properties:
+                serviceTypes:
+                  type: array
+                  minItems: 1
+                  maxItems: 3
+                  uniqueItems: true
+                  items: { type: string, enum: [mass, confession, adoration] }
+                notificationWeekdays:
+                  type: array
+                  minItems: 1
+                  maxItems: 7
+                  uniqueItems: true
+                  items: { type: string, enum: [sunday, monday, tuesday, wednesday, thursday, friday, saturday] }
+      responses:
+        '200': { description: Subscription updated }
+        '404': { description: Subscription not found }
+        '422': { $ref: '#/components/responses/ValidationError' }
+    delete:
+      summary: Unsubscribe from a church
+      responses:
+        '204': { description: Subscription deleted; the successful body is empty }
+        '404': { description: Subscription not found }
+  /api/v1/me/church-services/upcoming:
+    get:
+      summary: List dated service occurrences for subscribed churches
+      parameters:
+        - in: query
+          name: from
+          schema: { type: string, format: date-time }
+        - in: query
+          name: days
+          schema: { type: integer, minimum: 1, maximum: 31, default: 7 }
+        - in: query
+          name: churchId
+          schema: { type: string, format: uuid }
+        - in: query
+          name: serviceType
+          schema: { type: string, enum: [mass, confession, adoration] }
+        - in: query
+          name: limit
+          schema: { type: integer, minimum: 1, maximum: 100, default: 50 }
+        - in: query
+          name: offset
+          schema: { type: integer, minimum: 0, default: 0 }
+      responses:
+        '200':
+          description: Concrete occurrences expanded from verified weekly schedules
+          content:
+            application/json:
+              example:
+                data:
+                  - occurrenceId: 'c7000000-0000-4000-8000-000000000001:2026-11-01'
+                    serviceTimeId: c7000000-0000-4000-8000-000000000001
+                    church: { id: c6000000-0000-4000-8000-000000000001, name: St. Mary Cathedral }
+                    serviceType: mass
+                    startsAt: '2026-11-01T14:00:00Z'
+                    endsAt: '2026-11-01T15:00:00Z'
+                    localDate: '2026-11-01'
+                    localStartTime: '08:00'
+                    localEndTime: null
+                    timezone: America/Chicago
+                meta: { days: 7, limit: 50, offset: 0, hasMore: false, nextOffset: null }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '422': { $ref: '#/components/responses/ValidationError' }
   /api/v1/church-change-requests:
     get:
       summary: List the current user's church change requests
@@ -1194,6 +1383,71 @@ paths:
         '403': { description: Administrator role required }
         '404': { description: Church change request not found }
         '409': { description: Church change request was already reviewed }
+  /api/v1/admin/church-schedule-reviews:
+    get:
+      summary: List subscription-triggered church schedule reviews
+      parameters:
+        - in: query
+          name: status
+          schema: { type: string, enum: [pending, completed, all], default: pending }
+        - in: query
+          name: limit
+          schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+        - in: query
+          name: offset
+          schema: { type: integer, minimum: 0, default: 0 }
+      responses:
+        '200':
+          description: Admin schedule-verification queue with church source, subscribers, and current schedule
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { description: Administrator role required }
+  /api/v1/admin/church-schedule-reviews/{reviewId}:
+    patch:
+      summary: Verify a church schedule or close the church
+      parameters:
+        - in: path
+          name: reviewId
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - type: object
+                  additionalProperties: false
+                  required: [decision, serviceTimes]
+                  properties:
+                    decision: { type: string, const: verified }
+                    church: { type: object, description: Optional corrected church directory fields }
+                    serviceTimes:
+                      type: array
+                      minItems: 1
+                      maxItems: 100
+                      items:
+                        type: object
+                        additionalProperties: false
+                        required: [serviceType, weekday, startTime]
+                        properties:
+                          serviceType: { type: string, enum: [mass, confession, adoration] }
+                          weekday: { type: string, enum: [sunday, monday, tuesday, wednesday, thursday, friday, saturday] }
+                          startTime: { type: string, pattern: '^(?:[01]\d|2[0-3]):[0-5]\d$' }
+                          endTime: { type: [string, 'null'], pattern: '^(?:[01]\d|2[0-3]):[0-5]\d$' }
+                    reason: { type: [string, 'null'], maxLength: 2000 }
+                - type: object
+                  additionalProperties: false
+                  required: [decision, reason]
+                  properties:
+                    decision: { type: string, const: closed }
+                    reason: { type: string, minLength: 1, maxLength: 2000 }
+      responses:
+        '200': { description: Review completed and subscribers notified }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { description: Administrator role required }
+        '404': { description: Review or church not found }
+        '409': { description: Review already completed }
+        '422': { $ref: '#/components/responses/ValidationError' }
   /api/v1/me/friend-requests:
     get:
       summary: List the current user's friend requests
@@ -2967,8 +3221,9 @@ components:
     PrayerIntentionCreator:
       type: object
       additionalProperties: false
-      required: [displayName, avatarUrl, countryCode]
+      required: [userId, displayName, avatarUrl, countryCode]
       properties:
+        userId: { type: string, format: uuid }
         displayName: { type: string }
         avatarUrl:
           anyOf:
@@ -3101,7 +3356,7 @@ components:
         data:
           type: object
           additionalProperties: false
-          required: [total, contacts, prayerIntentions, churchChangeRequests, events]
+          required: [total, contacts, prayerIntentions, churchChangeRequests, churchScheduleReviews, events]
           properties:
             total: { type: integer, minimum: 0 }
             contacts:
@@ -3110,6 +3365,23 @@ components:
               $ref: '#/components/schemas/AdminPrayerIntentionQueueSummary'
             churchChangeRequests:
               $ref: '#/components/schemas/AdminChurchChangeQueueSummary'
+            churchScheduleReviews:
+              type: object
+              additionalProperties: false
+              required: [count, items]
+              properties:
+                count: { type: integer, minimum: 0 }
+                items:
+                  type: array
+                  maxItems: 3
+                  items:
+                    type: object
+                    additionalProperties: false
+                    required: [id, churchId, createdAt]
+                    properties:
+                      id: { type: string, format: uuid }
+                      churchId: { type: string, format: uuid }
+                      createdAt: { type: string, format: date-time }
             events:
               $ref: '#/components/schemas/AdminEventQueueSummary'
     AdminContactQueueSummary:

@@ -14,10 +14,14 @@ export async function GET(request: Request) {
     );
     const { data, error } = await supabase
       .schema('api')
-      .rpc('search_churches', {
+      .rpc('search_churches_v2', {
         p_country_code: query.countryCode ?? null,
         p_city: query.city ?? null,
         p_diocese: query.diocese ?? null,
+        p_postal_code: query.postalCode ?? null,
+        p_diocese_id: query.dioceseId ?? null,
+        p_query: query.q ?? null,
+        p_radius_miles: query.radiusMiles,
         p_limit: query.limit + 1,
         p_offset: query.offset,
       });
@@ -31,13 +35,25 @@ export async function GET(request: Request) {
       items.map((church) => ({
         id: church.id,
         name: church.name,
+        address: {
+          line1: church.address_line_1,
+          line2: church.address_line_2,
+          city: church.city,
+          regionName: church.region_name,
+          postalCode: church.postal_code,
+          countryCode: church.country_code,
+        },
         city: church.city,
         regionName: church.region_name,
         countryCode: church.country_code,
+        dioceseId: church.diocese_id,
         dioceseName: church.diocese_name,
         timezone: church.timezone,
         latitude: church.latitude,
         longitude: church.longitude,
+        distanceMiles: church.distance_miles,
+        directoryVerificationStatus: church.directory_verification_status,
+        scheduleStatus: church.schedule_status,
       })),
       {},
       {

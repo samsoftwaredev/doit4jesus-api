@@ -25,6 +25,24 @@ begin
   end if;
 end
 $$;
+
+do $$
+begin
+  if to_regclass('app.postal_codes') is null
+    or to_regclass('app.church_subscriptions') is null
+    or to_regclass('app.church_schedule_review_tasks') is null
+    or to_regprocedure('app.process_due_church_reminders()') is null
+  then
+    raise exception 'Church discovery and reminder schema is incomplete';
+  end if;
+
+  if not exists (
+    select 1 from cron.job where jobname = 'process-church-reminder-digests'
+  ) then
+    raise exception 'Church reminder digest cron job is missing';
+  end if;
+end
+$$;
 do $$
 begin
   if to_regclass('prayer.prayer_events') is not null then

@@ -87,6 +87,9 @@ export async function GET(request: Request, context: Context) {
       timezone: church.timezone,
       latitude: church.latitude,
       longitude: church.longitude,
+      directoryVerificationStatus: church.directory_verification_status,
+      scheduleStatus: church.schedule_verified_at ? 'verified' : 'pending',
+      scheduleVerifiedAt: church.schedule_verified_at,
       schedule,
       liveStatus: getChurchLiveStatus(
         serviceTimes.map((serviceTime) => ({

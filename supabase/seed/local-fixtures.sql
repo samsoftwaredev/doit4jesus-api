@@ -497,6 +497,49 @@ set
   country_code = excluded.country_code,
   name = excluded.name;
 
+insert into app.postal_codes (
+  postal_code, primary_city, region_codes, latitude, longitude, timezone,
+  diocese_status, zcta_source_year, city_source_year, diocese_source_year,
+  timezone_source_release
+)
+values
+  ('78701', 'Austin', array['TX'], 30.271129, -97.743700, 'America/Chicago', 'approximate_centroid', 2026, 2026, 2022, '2026d'),
+  ('78726', 'Austin', array['TX'], 30.430000, -97.840000, 'America/Chicago', 'approximate_centroid', 2026, 2026, 2022, '2026d')
+on conflict (postal_code) do update set
+  primary_city = excluded.primary_city,
+  region_codes = excluded.region_codes,
+  latitude = excluded.latitude,
+  longitude = excluded.longitude,
+  timezone = excluded.timezone,
+  diocese_status = excluded.diocese_status,
+  zcta_source_year = excluded.zcta_source_year,
+  city_source_year = excluded.city_source_year,
+  diocese_source_year = excluded.diocese_source_year,
+  timezone_source_release = excluded.timezone_source_release;
+
+insert into app.postal_code_cities (
+  postal_code, city_name, city_label, city_geoid, region_code,
+  overlap_percent, city_status, is_primary
+)
+values
+  ('78701', 'Austin', 'Austin city', '4805000', 'TX', 100, 'current_census_place', true),
+  ('78701', 'Downtown Austin', 'Downtown Austin', null, 'TX', 25, 'current_census_place', false),
+  ('78726', 'Austin', 'Austin city', '4805000', 'TX', 100, 'current_census_place', true)
+on conflict (postal_code, city_name, region_code) do update set
+  city_label = excluded.city_label,
+  city_geoid = excluded.city_geoid,
+  overlap_percent = excluded.overlap_percent,
+  city_status = excluded.city_status,
+  is_primary = excluded.is_primary;
+
+insert into app.postal_code_dioceses (postal_code, diocese_id, label, match_status)
+values
+  ('78701', 'c5000000-0000-4000-8000-000000000001', 'Austin', 'approximate_centroid'),
+  ('78726', 'c5000000-0000-4000-8000-000000000001', 'Austin', 'approximate_centroid')
+on conflict (postal_code, label) do update set
+  diocese_id = excluded.diocese_id,
+  match_status = excluded.match_status;
+
 insert into app.churches (
   id,
   diocese_id,
@@ -531,6 +574,53 @@ set
   latitude = excluded.latitude,
   longitude = excluded.longitude,
   is_active = excluded.is_active;
+
+insert into app.churches (
+  id, diocese_id, name, address_line_1, city, region_name, postal_code,
+  country_code, timezone, latitude, longitude, is_active, source, source_id,
+  source_release, source_confidence, directory_verification_status,
+  directory_verified_at, schedule_verified_at
+)
+values (
+  'c6000000-0000-4000-8000-000000000005',
+  'c5000000-0000-4000-8000-000000000001',
+  'Holy Family Catholic Church',
+  '100 Candidate Way',
+  'Austin',
+  'Texas',
+  '78701',
+  'US',
+  'America/Chicago',
+  30.274000,
+  -97.746000,
+  true,
+  'Overture Maps',
+  'local-candidate-1',
+  '2026-10-21.0',
+  0.95,
+  'candidate',
+  null,
+  null
+)
+on conflict (id) do update set
+  name = excluded.name,
+  address_line_1 = excluded.address_line_1,
+  city = excluded.city,
+  region_name = excluded.region_name,
+  postal_code = excluded.postal_code,
+  timezone = excluded.timezone,
+  latitude = excluded.latitude,
+  longitude = excluded.longitude,
+  is_active = true,
+  source = excluded.source,
+  source_id = excluded.source_id,
+  source_release = excluded.source_release,
+  source_confidence = excluded.source_confidence,
+  directory_verification_status = 'candidate',
+  directory_verified_at = null,
+  directory_verified_by = null,
+  schedule_verified_at = null,
+  schedule_verified_by = null;
 
 insert into app.church_service_times (
   id,
@@ -573,6 +663,65 @@ values
   ('11111111-1111-4111-8111-111111111111', 'c6000000-0000-4000-8000-000000000004', true)
 on conflict (user_id, church_id) do update
 set is_primary = excluded.is_primary;
+
+insert into app.church_subscriptions (id, user_id, church_id)
+values
+  ('cb000000-0000-4000-8000-000000000001', '9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002', 'c6000000-0000-4000-8000-000000000001'),
+  ('cb000000-0000-4000-8000-000000000002', '9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002', 'c6000000-0000-4000-8000-000000000005')
+on conflict (id) do update set
+  user_id = excluded.user_id,
+  church_id = excluded.church_id,
+  notification_time = '08:00';
+
+insert into app.church_subscription_service_types (subscription_id, service_type)
+values
+  ('cb000000-0000-4000-8000-000000000001', 'mass'),
+  ('cb000000-0000-4000-8000-000000000001', 'confession'),
+  ('cb000000-0000-4000-8000-000000000002', 'mass')
+on conflict (subscription_id, service_type) do nothing;
+
+insert into app.church_subscription_weekdays (subscription_id, weekday)
+values
+  ('cb000000-0000-4000-8000-000000000001', 0),
+  ('cb000000-0000-4000-8000-000000000001', 3),
+  ('cb000000-0000-4000-8000-000000000002', 6)
+on conflict (subscription_id, weekday) do nothing;
+
+insert into app.church_schedule_review_tasks (
+  id, church_id, requested_by, status
+)
+values (
+  'cc000000-0000-4000-8000-000000000001',
+  'c6000000-0000-4000-8000-000000000005',
+  '9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002',
+  'pending'
+)
+on conflict (id) do update set
+  church_id = excluded.church_id,
+  requested_by = excluded.requested_by,
+  status = 'pending',
+  outcome = null,
+  completion_reason = null,
+  completed_by = null,
+  completed_at = null;
+
+insert into app.church_reminder_deliveries (
+  subscription_id, local_delivery_date, outcome, notification_id,
+  window_starts_at, window_ends_at
+)
+values (
+  'cb000000-0000-4000-8000-000000000001',
+  current_date - 1,
+  'no_events',
+  null,
+  (current_date - 1 + time '08:00') at time zone 'America/Chicago',
+  (current_date + 6 + time '08:00') at time zone 'America/Chicago'
+)
+on conflict (subscription_id, local_delivery_date) do update set
+  outcome = excluded.outcome,
+  notification_id = excluded.notification_id,
+  window_starts_at = excluded.window_starts_at,
+  window_ends_at = excluded.window_ends_at;
 
 insert into app.church_change_requests (
   id,

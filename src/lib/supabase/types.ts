@@ -496,6 +496,7 @@ export type Database = {
           id: string;
           country_code: string;
           name: string;
+          search_key: string;
           created_at: string;
           updated_at: string;
         };
@@ -518,6 +519,15 @@ export type Database = {
           latitude: number;
           longitude: number;
           is_active: boolean;
+          source: string | null;
+          source_id: string | null;
+          source_release: string | null;
+          source_confidence: number | null;
+          directory_verification_status: 'candidate' | 'verified' | 'closed';
+          directory_verified_at: string | null;
+          directory_verified_by: string | null;
+          schedule_verified_at: string | null;
+          schedule_verified_by: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -535,6 +545,110 @@ export type Database = {
           ends_at: string | null;
           created_at: string;
           updated_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      postal_codes: {
+        Row: {
+          postal_code: string;
+          primary_city: string | null;
+          region_codes: string[];
+          latitude: number;
+          longitude: number;
+          timezone: string;
+          diocese_status: string;
+          zcta_source_year: number;
+          city_source_year: number;
+          diocese_source_year: number;
+          timezone_source_release: string;
+          imported_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      postal_code_cities: {
+        Row: {
+          postal_code: string;
+          city_name: string;
+          city_label: string | null;
+          city_geoid: string | null;
+          region_code: string;
+          overlap_percent: number | null;
+          city_status: string;
+          is_primary: boolean;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      postal_code_dioceses: {
+        Row: {
+          postal_code: string;
+          diocese_id: string | null;
+          label: string;
+          match_status: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      church_subscriptions: {
+        Row: {
+          id: string;
+          user_id: string;
+          church_id: string;
+          notification_time: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      church_subscription_service_types: {
+        Row: {
+          subscription_id: string;
+          service_type: 'mass' | 'confession' | 'adoration';
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      church_subscription_weekdays: {
+        Row: { subscription_id: string; weekday: number };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      church_schedule_review_tasks: {
+        Row: {
+          id: string;
+          church_id: string;
+          requested_by: string | null;
+          status: 'pending' | 'completed';
+          outcome: 'verified' | 'closed' | null;
+          completion_reason: string | null;
+          completed_by: string | null;
+          completed_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      church_reminder_deliveries: {
+        Row: {
+          subscription_id: string;
+          local_delivery_date: string;
+          outcome: 'processing' | 'sent' | 'no_events';
+          notification_id: string | null;
+          window_starts_at: string;
+          window_ends_at: string;
+          created_at: string;
         };
         Insert: never;
         Update: never;
@@ -1597,6 +1711,90 @@ export type Database = {
           latitude: number;
           longitude: number;
         }>;
+      };
+      search_churches_v2: {
+        Args: {
+          p_country_code?: string | null;
+          p_city?: string | null;
+          p_diocese?: string | null;
+          p_postal_code?: string | null;
+          p_diocese_id?: string | null;
+          p_query?: string | null;
+          p_radius_miles?: number | null;
+          p_limit?: number | null;
+          p_offset?: number | null;
+        };
+        Returns: Array<{
+          id: string;
+          name: string;
+          address_line_1: string;
+          address_line_2: string | null;
+          city: string;
+          region_name: string | null;
+          postal_code: string | null;
+          country_code: string;
+          diocese_id: string | null;
+          diocese_name: string | null;
+          timezone: string;
+          latitude: number;
+          longitude: number;
+          distance_miles: number | null;
+          directory_verification_status: 'candidate' | 'verified' | 'closed';
+          schedule_status: 'pending' | 'verified';
+        }>;
+      };
+      create_church_subscription: {
+        Args: {
+          p_church_id: string;
+          p_service_types: string[];
+          p_notification_weekdays: number[];
+        };
+        Returns: Json;
+      };
+      update_church_subscription: {
+        Args: {
+          p_church_id: string;
+          p_service_types?: string[] | null;
+          p_notification_weekdays?: number[] | null;
+        };
+        Returns: Json;
+      };
+      delete_church_subscription: {
+        Args: { p_church_id: string };
+        Returns: Json;
+      };
+      get_my_upcoming_church_services: {
+        Args: {
+          p_from?: string | null;
+          p_days?: number | null;
+          p_church_id?: string | null;
+          p_service_type?: string | null;
+          p_limit?: number | null;
+          p_offset?: number | null;
+        };
+        Returns: Array<{
+          occurrence_id: string;
+          service_time_id: string;
+          church_id: string;
+          church_name: string;
+          service_type: 'mass' | 'confession' | 'adoration';
+          starts_at: string;
+          ends_at: string;
+          local_date: string;
+          local_start_time: string;
+          local_end_time: string | null;
+          timezone: string;
+        }>;
+      };
+      review_church_schedule_task: {
+        Args: {
+          p_review_id: string;
+          p_decision: string;
+          p_church?: Json | null;
+          p_service_times?: Json | null;
+          p_reason?: string | null;
+        };
+        Returns: Json;
       };
       link_current_user_church: {
         Args: { p_church_id: string; p_is_primary?: boolean | null };

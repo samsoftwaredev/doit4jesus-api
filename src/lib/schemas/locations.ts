@@ -9,3 +9,5 @@ export const countrySearchQuerySchema = z.object({
   q: z.string().trim().min(1).max(120).optional(),
   ...paginationSchema,
 });
+
+export const postalCodeSchema = z.string().regex(/^\d{5}$/);

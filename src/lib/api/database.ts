@@ -42,15 +42,31 @@ export function throwDatabaseError(
         throw ApiError.forbidden();
       case 'CHURCH_NOT_FOUND':
         throw ApiError.notFound('The church was not found.');
+      case 'POSTAL_CODE_NOT_FOUND':
+        throw ApiError.notFound('The postal code is not supported.');
       case 'CHURCH_NOT_LINKED':
         throw ApiError.notFound(
           'The church is not linked to the current user.',
         );
+      case 'CHURCH_SUBSCRIPTION_NOT_FOUND':
+        throw ApiError.notFound('The church subscription was not found.');
+      case 'CHURCH_SCHEDULE_REVIEW_NOT_FOUND':
+        throw ApiError.notFound('The church schedule review was not found.');
       case 'CHURCH_CHANGE_REQUEST_NOT_FOUND':
         throw ApiError.notFound('The church change request was not found.');
       case 'CHURCH_CHANGE_REQUEST_NOT_PENDING':
         throw ApiError.conflict(
           'The church change request has already been reviewed.',
+        );
+      case 'CHURCH_SCHEDULE_REVIEW_NOT_PENDING':
+        throw ApiError.conflict(
+          'The church schedule review has already been completed.',
+        );
+      case 'CHURCH_SUBSCRIPTION_EXISTS':
+        throw ApiError.conflict('The user already subscribes to this church.');
+      case 'CHURCH_SUBSCRIPTION_LIMIT':
+        throw ApiError.conflict(
+          'A user may subscribe to at most three churches.',
         );
       case 'PRAYER_INTENTION_NOT_FOUND':
         throw ApiError.notFound('The prayer intention was not found.');
@@ -132,6 +148,10 @@ export function throwDatabaseError(
       case 'USER_TIMEZONE_INVALID':
       case 'INVALID_CHURCH_CHANGE_DECISION':
       case 'INVALID_CHURCH_SERVICE_TIMES':
+      case 'INVALID_CHURCH_SEARCH_QUERY':
+      case 'INVALID_CHURCH_SUBSCRIPTION':
+      case 'INVALID_CHURCH_SERVICE_QUERY':
+      case 'INVALID_CHURCH_SCHEDULE_DECISION':
       case 'INVALID_PRAYER_INTENTION_DECISION':
       case 'INVALID_EVENT_DECISION':
       case 'INVALID_FRIEND_USERNAME':

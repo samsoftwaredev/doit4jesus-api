@@ -24,6 +24,7 @@
     "import:usccb-lectionary": "node scripts/import-usccb-lectionary.mjs",
     "import:usccb-calendar": "node scripts/import-usccb-calendar-text.mjs",
     "import:legacy-user-data": "node scripts/import-legacy-user-data.mjs",
+    "import:church-directory": "node scripts/import-church-directory.mjs",
     "db:audit:development-accounts": "node scripts/audit-development-accounts.mjs",
     "db:reset:local-fixtures": "node scripts/reset-local-database.mjs",
     "build:username-profanity": "node scripts/build-username-profanity-data.mjs",

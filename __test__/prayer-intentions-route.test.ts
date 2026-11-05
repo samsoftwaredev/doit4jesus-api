@@ -63,6 +63,7 @@ describe('prayer intention routes', () => {
   it('returns only card-ready fields for approved public intentions', async () => {
     const card = {
       id: INTENTION_ID,
+      creator_id: USER_ID,
       title: 'Praying for my brother',
       description: 'He is currently having back pain.',
       symbol: 'candle',
@@ -99,6 +100,7 @@ describe('prayer intention routes', () => {
           createdAt: '2026-08-23T12:00:00.000Z',
           prayerCount: 4,
           creator: {
+            userId: USER_ID,
             displayName: 'Michael R.',
             avatarUrl: 'https://example.com/michael.png',
             countryCode: 'US',
@@ -169,6 +171,7 @@ describe('prayer intention routes', () => {
   it('gets one approved, unexpired intention by ID', async () => {
     const card = {
       id: INTENTION_ID,
+      creator_id: USER_ID,
       title: 'Praying for my brother',
       description: 'He is currently having back pain.',
       symbol: 'olive_branch',
@@ -198,7 +201,7 @@ describe('prayer intention routes', () => {
       id: INTENTION_ID,
       symbol: 'olive_branch',
       prayerCount: 4,
-      creator: { countryCode: 'US' },
+      creator: { countryCode: 'US', userId: USER_ID },
     });
   });
 
