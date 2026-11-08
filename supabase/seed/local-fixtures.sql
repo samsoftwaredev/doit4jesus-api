@@ -688,17 +688,19 @@ values
 on conflict (subscription_id, weekday) do nothing;
 
 insert into app.church_schedule_review_tasks (
-  id, church_id, requested_by, status
+  id, church_id, requested_by, status, request_reason
 )
 values (
   'cc000000-0000-4000-8000-000000000001',
   'c6000000-0000-4000-8000-000000000005',
   '9629e3e7-72dc-4bb1-94d3-b5a2bdd9f002',
-  'pending'
+  'pending',
+  'missing_schedule'
 )
 on conflict (id) do update set
   church_id = excluded.church_id,
   requested_by = excluded.requested_by,
+  request_reason = excluded.request_reason,
   status = 'pending',
   outcome = null,
   completion_reason = null,

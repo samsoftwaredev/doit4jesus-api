@@ -311,9 +311,9 @@ paths:
       summary: Get actionable administrator queue notification summary
       description: >-
         Returns exact counts and up to three newest previews for open contact
-        requests, pending prayer intentions, pending events, and pending church
-        change requests and schedule reviews. Used by the administrator queue
-        notification bell.
+        requests, pending prayer intentions, pending events, open safety
+        reports, and pending church change requests and schedule reviews. Used
+        by the administrator queue notification bell.
       responses:
         '200':
           description: Administrator queue summary
@@ -1398,7 +1398,7 @@ paths:
           schema: { type: integer, minimum: 0, default: 0 }
       responses:
         '200':
-          description: Admin schedule-verification queue with church source, subscribers, and current schedule
+          description: Admin schedule-verification queue with missing/stale review reason, last verification time, church source, subscribers, and current schedule
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { description: Administrator role required }
   /api/v1/admin/church-schedule-reviews/{reviewId}:
@@ -1423,8 +1423,9 @@ paths:
                     church: { type: object, description: Optional corrected church directory fields }
                     serviceTimes:
                       type: array
-                      minItems: 1
+                      minItems: 3
                       maxItems: 100
+                      description: Must contain at least one Mass, confession, and adoration time.
                       items:
                         type: object
                         additionalProperties: false
@@ -3356,7 +3357,7 @@ components:
         data:
           type: object
           additionalProperties: false
-          required: [total, contacts, prayerIntentions, churchChangeRequests, churchScheduleReviews, events]
+          required: [total, contacts, prayerIntentions, churchChangeRequests, churchScheduleReviews, events, safetyReports]
           properties:
             total: { type: integer, minimum: 0 }
             contacts:
@@ -3384,6 +3385,24 @@ components:
                       createdAt: { type: string, format: date-time }
             events:
               $ref: '#/components/schemas/AdminEventQueueSummary'
+            safetyReports:
+              type: object
+              additionalProperties: false
+              required: [count, items]
+              properties:
+                count: { type: integer, minimum: 0 }
+                items:
+                  type: array
+                  maxItems: 3
+                  items:
+                    type: object
+                    additionalProperties: false
+                    required: [id, targetType, reason, createdAt]
+                    properties:
+                      id: { type: string, format: uuid }
+                      targetType: { type: string, enum: [user, prayer_intention, event] }
+                      reason: { type: string }
+                      createdAt: { type: string, format: date-time }
     AdminContactQueueSummary:
       type: object
       additionalProperties: false

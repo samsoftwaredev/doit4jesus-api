@@ -20,12 +20,19 @@ import Tabs from '@mui/material/Tabs';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { type ReactNode, useCallback, useEffect, useState } from 'react';
+import {
+  type ReactNode,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 
 import { contactSubjectValues } from '@/lib/schemas/contact';
 
 import AdminAppMetrics from './AdminAppMetrics';
 import AdminEventsPanel from './AdminEventsPanel';
+import ChurchesAdminPanel from './ChurchesAdminPanel';
 import EmailCenter from './EmailCenter';
 
 type Meta = { hasMore?: boolean; nextOffset?: number | null };
@@ -1038,7 +1045,7 @@ function ExaminationPanel({
   );
 }
 
-function ChurchRequestsPanel({
+export function ChurchRequestsPanel({
   token,
   onClose,
 }: {
@@ -1051,14 +1058,19 @@ function ChurchRequestsPanel({
   const [selected, setSelected] = useState<ChurchChangeRequest | null>(null);
   const [reason, setReason] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  // Lets a load ignore its response when a newer load (e.g. a quick filter
+  // change) has started since, so stale results never overwrite fresh ones.
+  const latestLoad = useRef(0);
   const load = useCallback(
     async (nextOffset = offset) => {
+      const loadId = ++latestLoad.current;
       setState((current) => ({ ...current, loading: true, error: null }));
       try {
         const body = await adminFetch<ChurchChangeRequest[]>(
           token,
           `/api/v1/admin/church-change-requests?status=${status}&limit=20&offset=${nextOffset}`,
         );
+        if (loadId !== latestLoad.current) return;
         setState({
           items: body.data ?? [],
           meta: body.meta ?? {},
@@ -1067,6 +1079,7 @@ function ChurchRequestsPanel({
         });
         setOffset(nextOffset);
       } catch (error) {
+        if (loadId !== latestLoad.current) return;
         setState((current) => ({
           ...current,
           loading: false,
@@ -1079,9 +1092,10 @@ function ChurchRequestsPanel({
     },
     [offset, status, token],
   );
+  // Reload from the first page whenever the status filter changes (and on mount).
   useEffect(() => {
     void load(0);
-  }, []);
+  }, [status]);
   async function review(decision: 'approved' | 'rejected') {
     if (
       !selected ||
@@ -1135,9 +1149,6 @@ function ChurchRequestsPanel({
               </MenuItem>
             ))}
           </TextField>
-          <Button variant="contained" onClick={() => void load(0)}>
-            Apply
-          </Button>
         </Stack>
         <ListFeedback state={state}>
           <Stack spacing={1}>
@@ -1927,7 +1938,7 @@ export default function AdminManagementCards({
         <Tab label="Safety Reports" value="reports" />
         <Tab label="Prayer Intentions" value="prayers" />
         <Tab label="Examination Content" value="examination" />
-        <Tab label="Church Changes" value="churches" />
+        <Tab label="Churches" value="churches" />
         <Tab label="User Deletion" value="deletion" />
       </Tabs>
       {active === 'analytics' && (
@@ -1956,7 +1967,16 @@ export default function AdminManagementCards({
         <ExaminationPanel token={accessToken} onClose={closeActivePanel} />
       )}
       {active === 'churches' && (
-        <ChurchRequestsPanel token={accessToken} onClose={closeActivePanel} />
+        <ChurchesAdminPanel
+          token={accessToken}
+          onClose={closeActivePanel}
+          changeRequests={
+            <ChurchRequestsPanel
+              token={accessToken}
+              onClose={closeActivePanel}
+            />
+          }
+        />
       )}
       {active === 'deletion' && (
         <UserDeletionPanel token={accessToken} onClose={closeActivePanel} />

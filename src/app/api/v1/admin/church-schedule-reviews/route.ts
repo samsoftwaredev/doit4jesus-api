@@ -95,6 +95,7 @@ export async function GET(request: Request) {
               sourceId: church.source_id,
               sourceRelease: church.source_release,
               sourceConfidence: church.source_confidence,
+              scheduleVerifiedAt: church.schedule_verified_at,
             },
             subscriberCount: (subscriptionsResult.data ?? []).filter(
               (subscription) => subscription.church_id === church.id,
@@ -109,6 +110,7 @@ export async function GET(request: Request) {
                 endTime: serviceTime.ends_at?.slice(0, 5) ?? null,
               })),
             requestedBy: task.requested_by,
+            reviewReason: task.request_reason,
             createdAt: task.created_at,
             completedBy: task.completed_by,
             completedAt: task.completed_at,

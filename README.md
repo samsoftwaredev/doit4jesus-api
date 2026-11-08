@@ -102,7 +102,23 @@ RESEND_PHYSICAL_ADDRESS
 RESEND_SEGMENT_ID
 RESEND_WEBHOOK_SECRET
 APP_URL
+ADMIN_NOTIFICATION_WORKER_SECRET
 ```
+
+Administrator queue emails are transactional and are sent to the email on
+every active account in `app.user_roles` with the `admin` role. Before enabling
+the minute worker in production, create these Supabase Vault secrets:
+
+```text
+admin_notification_app_url
+admin_notification_worker_secret
+```
+
+`admin_notification_app_url` is the deployed API origin without a trailing
+slash. `admin_notification_worker_secret` must equal
+`ADMIN_NOTIFICATION_WORKER_SECRET`. PostgreSQL queues one delivery per active
+administrator and calls the protected worker every minute; failed provider
+requests are retried without blocking the original user submission.
 
 Configure Resend to deliver `email.sent`, `email.delivered`,
 `email.bounced`, `email.complained`, `email.opened`, `email.clicked`,

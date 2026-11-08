@@ -93,7 +93,17 @@ export const reviewChurchScheduleSchema = z.discriminatedUnion('decision', [
     .object({
       decision: z.literal('verified'),
       church: adminChurchCorrectionSchema.optional(),
-      serviceTimes: z.array(churchServiceTimeSchema).min(1).max(100),
+      serviceTimes: z
+        .array(churchServiceTimeSchema)
+        .min(3)
+        .max(100)
+        .refine(
+          (serviceTimes) =>
+            churchServiceTypes.every((serviceType) =>
+              serviceTimes.some((item) => item.serviceType === serviceType),
+            ),
+          'Mass, confession, and adoration must each have at least one service time.',
+        ),
       reason: z.string().trim().max(2_000).nullable().optional(),
     })
     .strict(),

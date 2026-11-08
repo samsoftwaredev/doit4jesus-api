@@ -47,6 +47,7 @@ describe('GET /api/v1/admin/notification-summary', () => {
     const churchCount = countQuery({ count: 1, error: null }, 'eq');
     const churchScheduleCount = countQuery({ count: 2, error: null }, 'eq');
     const eventCount = countQuery({ count: 3, error: null }, 'eq');
+    const safetyReportCount = countQuery({ count: 1, error: null }, 'in');
     const contactPreview = previewQuery(
       {
         data: [
@@ -115,6 +116,20 @@ describe('GET /api/v1/admin/notification-summary', () => {
       },
       'eq',
     );
+    const safetyReportPreview = previewQuery(
+      {
+        data: [
+          {
+            id: 'cf000000-0000-4000-8000-000000000001',
+            target_type: 'event',
+            reason: 'spam_manipulation',
+            created_at: '2026-10-05T06:30:00.000Z',
+          },
+        ],
+        error: null,
+      },
+      'in',
+    );
     const from = jest
       .fn()
       .mockReturnValueOnce(contactCount)
@@ -122,11 +137,13 @@ describe('GET /api/v1/admin/notification-summary', () => {
       .mockReturnValueOnce(churchCount)
       .mockReturnValueOnce(churchScheduleCount)
       .mockReturnValueOnce(eventCount)
+      .mockReturnValueOnce(safetyReportCount)
       .mockReturnValueOnce(contactPreview)
       .mockReturnValueOnce(prayerPreview)
       .mockReturnValueOnce(churchPreview)
       .mockReturnValueOnce(churchSchedulePreview)
-      .mockReturnValueOnce(eventPreview);
+      .mockReturnValueOnce(eventPreview)
+      .mockReturnValueOnce(safetyReportPreview);
     const schema = jest.fn(() => ({ from }));
     mockedRequireAdmin.mockResolvedValue({ supabase: { schema } } as never);
 
@@ -150,15 +167,20 @@ describe('GET /api/v1/admin/notification-summary', () => {
       'pending',
     );
     expect(eventCount.query.eq).toHaveBeenCalledWith('status', 'pending');
+    expect(safetyReportCount.query.in).toHaveBeenCalledWith('status', [
+      'open',
+      'reviewing',
+    ]);
     expect(contactPreview.limit).toHaveBeenCalledWith(3);
     expect(prayerPreview.limit).toHaveBeenCalledWith(3);
     expect(churchPreview.limit).toHaveBeenCalledWith(3);
     expect(churchSchedulePreview.limit).toHaveBeenCalledWith(3);
     expect(eventPreview.limit).toHaveBeenCalledWith(3);
+    expect(safetyReportPreview.limit).toHaveBeenCalledWith(3);
     expect(response.headers.get('Cache-Control')).toBe('no-store');
     expect(await response.json()).toEqual({
       data: {
-        total: 12,
+        total: 13,
         contacts: {
           count: 4,
           items: [
@@ -209,6 +231,17 @@ describe('GET /api/v1/admin/notification-summary', () => {
               title: 'Catholic Youth Night',
               startsAt: '2026-11-01T00:00:00.000Z',
               createdAt: '2026-10-05T07:00:00.000Z',
+            },
+          ],
+        },
+        safetyReports: {
+          count: 1,
+          items: [
+            {
+              id: 'cf000000-0000-4000-8000-000000000001',
+              targetType: 'event',
+              reason: 'spam_manipulation',
+              createdAt: '2026-10-05T06:30:00.000Z',
             },
           ],
         },

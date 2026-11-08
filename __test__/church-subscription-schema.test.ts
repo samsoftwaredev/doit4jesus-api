@@ -51,7 +51,7 @@ describe('church subscription schemas', () => {
         serviceTimes: [],
       }),
     ).toThrow();
-    expect(
+    expect(() =>
       reviewChurchScheduleSchema.parse({
         decision: 'verified',
         serviceTimes: [
@@ -59,6 +59,24 @@ describe('church subscription schemas', () => {
             serviceType: 'mass',
             weekday: 'sunday',
             startTime: '09:00',
+          },
+        ],
+      }),
+    ).toThrow(/Mass, confession, and adoration/);
+    expect(
+      reviewChurchScheduleSchema.parse({
+        decision: 'verified',
+        serviceTimes: [
+          { serviceType: 'mass', weekday: 'sunday', startTime: '09:00' },
+          {
+            serviceType: 'confession',
+            weekday: 'saturday',
+            startTime: '16:00',
+          },
+          {
+            serviceType: 'adoration',
+            weekday: 'friday',
+            startTime: '18:00',
           },
         ],
       }),

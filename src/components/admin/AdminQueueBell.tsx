@@ -27,6 +27,17 @@ type ChurchChangePreview = {
   churchId: string | null;
   createdAt: string;
 };
+type ChurchSchedulePreview = {
+  id: string;
+  churchId: string;
+  createdAt: string;
+};
+type SafetyReportPreview = {
+  id: string;
+  targetType: string;
+  reason: string;
+  createdAt: string;
+};
 type EventPreview = {
   id: string;
   title: string;
@@ -39,7 +50,9 @@ type Summary = {
   contacts: Queue<ContactPreview>;
   prayerIntentions: Queue<PrayerIntentionPreview>;
   churchChangeRequests: Queue<ChurchChangePreview>;
+  churchScheduleReviews: Queue<ChurchSchedulePreview>;
   events: Queue<EventPreview>;
+  safetyReports: Queue<SafetyReportPreview>;
 };
 type SummaryResponse = {
   data?: Summary;
@@ -57,12 +70,14 @@ function QueueSection<T>({
   title,
   queue,
   panel,
+  extraQuery,
   itemLabel,
   onNavigate,
 }: {
   title: string;
   queue: Queue<T>;
-  panel: 'contacts' | 'events' | 'prayers' | 'churches';
+  panel: 'contacts' | 'events' | 'prayers' | 'churches' | 'reports';
+  extraQuery?: string;
   itemLabel: (item: T) => string;
   onNavigate: () => void;
 }) {
@@ -91,7 +106,7 @@ function QueueSection<T>({
         queue.items.map((item) => (
           <MenuItem
             component={NextLink}
-            href={`/dashboard?tab=admin&panel=${panel}`}
+            href={`/dashboard?tab=admin&panel=${panel}${extraQuery ? `&${extraQuery}` : ''}`}
             key={(item as { id: string }).id}
             onClick={onNavigate}
             sx={{ alignItems: 'flex-start', py: 1 }}
@@ -109,7 +124,7 @@ function QueueSection<T>({
       )}
       <MenuItem
         component={NextLink}
-        href={`/dashboard?tab=admin&panel=${panel}`}
+        href={`/dashboard?tab=admin&panel=${panel}${extraQuery ? `&${extraQuery}` : ''}`}
         onClick={onNavigate}
         sx={{
           color: 'primary.main',
@@ -195,6 +210,20 @@ export default function AdminQueueBell() {
         { event: '*', schema: 'app', table: 'events' },
         scheduleRefresh,
       )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'app',
+          table: 'church_schedule_review_tasks',
+        },
+        scheduleRefresh,
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'app', table: 'content_reports' },
+        scheduleRefresh,
+      )
       .subscribe();
 
     function scheduleRefresh() {
@@ -275,6 +304,25 @@ export default function AdminQueueBell() {
           panel="churches"
           queue={summary.churchChangeRequests}
           title="Church Change Requests"
+        />
+        <Divider />
+        <QueueSection
+          extraQuery="churchView=schedules"
+          itemLabel={(item) => `Church ${item.churchId}`}
+          onNavigate={closeMenu}
+          panel="churches"
+          queue={summary.churchScheduleReviews}
+          title="Church Schedule Reviews"
+        />
+        <Divider />
+        <QueueSection
+          itemLabel={(item) =>
+            `${item.targetType.replaceAll('_', ' ')} · ${item.reason.replaceAll('_', ' ')}`
+          }
+          onNavigate={closeMenu}
+          panel="reports"
+          queue={summary.safetyReports}
+          title="Safety Reports"
         />
       </Menu>
     </>

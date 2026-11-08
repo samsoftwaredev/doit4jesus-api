@@ -256,7 +256,8 @@ export type Database = {
           campaign_id: string | null;
           test_run_id: string | null;
           contact_request_id: string | null;
-          kind: 'campaign' | 'test' | 'reply';
+          admin_notification_email_job_id: string | null;
+          kind: 'campaign' | 'test' | 'reply' | 'admin_notification';
           recipient_email: string;
           resend_email_id: string | null;
           resend_broadcast_id: string | null;
@@ -275,7 +276,8 @@ export type Database = {
           campaign_id?: string | null;
           test_run_id?: string | null;
           contact_request_id?: string | null;
-          kind: 'campaign' | 'test' | 'reply';
+          admin_notification_email_job_id?: string | null;
+          kind: 'campaign' | 'test' | 'reply' | 'admin_notification';
           recipient_email: string;
           resend_email_id?: string | null;
           resend_broadcast_id?: string | null;
@@ -299,6 +301,44 @@ export type Database = {
           bounced_at: string | null;
           complained_at: string | null;
           suppressed_at: string | null;
+        }>;
+        Relationships: [];
+      };
+      admin_notification_email_jobs: {
+        Row: {
+          id: string;
+          category:
+            | 'contact_request'
+            | 'event'
+            | 'safety_report'
+            | 'prayer_intention'
+            | 'church_change_request'
+            | 'church_schedule_review';
+          source_id: string;
+          recipient_user_id: string;
+          recipient_email: string;
+          subject: string;
+          body: string;
+          action_url: string;
+          payload: Json;
+          status: 'pending' | 'processing' | 'sent' | 'failed';
+          attempt_count: number;
+          available_at: string;
+          locked_at: string | null;
+          sent_at: string | null;
+          resend_email_id: string | null;
+          last_error: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: never;
+        Update: Partial<{
+          status: 'pending' | 'processing' | 'sent' | 'failed';
+          available_at: string;
+          locked_at: string | null;
+          sent_at: string | null;
+          resend_email_id: string | null;
+          last_error: string | null;
         }>;
         Relationships: [];
       };
@@ -628,6 +668,7 @@ export type Database = {
           id: string;
           church_id: string;
           requested_by: string | null;
+          request_reason: 'missing_schedule' | 'stale_schedule';
           status: 'pending' | 'completed';
           outcome: 'verified' | 'closed' | null;
           completion_reason: string | null;
@@ -939,6 +980,16 @@ export type Database = {
       is_current_user_admin: {
         Args: Record<string, never>;
         Returns: boolean;
+      };
+      claim_admin_notification_email_jobs: {
+        Args: { p_limit?: number | null };
+        Returns: Array<
+          Database['app']['Tables']['admin_notification_email_jobs']['Row']
+        >;
+      };
+      enqueue_stale_church_schedule_reviews: {
+        Args: Record<string, never>;
+        Returns: number;
       };
     };
   };

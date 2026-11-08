@@ -1,7 +1,7 @@
 /** @jest-environment node */
 import { NextRequest } from 'next/server';
 
-import { GET } from '../src/auth/callback/route';
+import { GET } from '../src/app/auth/callback/route';
 import { createClient } from '../src/lib/supabase/server';
 
 jest.mock('../src/lib/supabase/server', () => ({

@@ -8,6 +8,8 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const CONFIRMATION = 'IMPORT_CHURCH_DIRECTORY';
+const LOCAL_DATABASE_URL =
+  'postgresql://postgres:postgres@127.0.0.1:54322/postgres';
 const SCRIPT_DIRECTORY = dirname(fileURLToPath(import.meta.url));
 const REPOSITORY_ROOT = resolve(SCRIPT_DIRECTORY, '..');
 const SQL_TEMPLATE = resolve(SCRIPT_DIRECTORY, 'import-church-directory.sql');
@@ -34,7 +36,8 @@ function usage() {
   npm run import:church-directory -- --apply --confirm=${CONFIRMATION} [--database-url=...]
 
 Preview is the default and rolls back the import transaction. The database URL
-may instead be supplied through CHURCH_DIRECTORY_DATABASE_URL.`;
+may instead be supplied through CHURCH_DIRECTORY_DATABASE_URL (also read from
+.env). When neither is set, the local Supabase database is used.`;
 }
 
 function parseArguments(values) {
@@ -113,8 +116,14 @@ if (apply && options.get('confirm') !== CONFIRMATION) {
   throw new Error(`Apply mode requires --confirm=${CONFIRMATION}`);
 }
 const databaseUrl =
-  options.get('database-url') ?? process.env.CHURCH_DIRECTORY_DATABASE_URL;
-if (!databaseUrl) throw new Error(`A database URL is required.\n\n${usage()}`);
+  options.get('database-url') ||
+  process.env.CHURCH_DIRECTORY_DATABASE_URL ||
+  LOCAL_DATABASE_URL;
+console.log(
+  databaseUrl === LOCAL_DATABASE_URL
+    ? 'Using the local Supabase database.'
+    : 'Using the configured database URL.',
+);
 
 await Promise.all(Object.values(INPUTS).map(validateInput));
 const template = await readFile(SQL_TEMPLATE, 'utf8');

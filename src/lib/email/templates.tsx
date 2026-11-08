@@ -164,6 +164,113 @@ function ContactReplyEmail({ message }: { message: string }) {
   );
 }
 
+function AdminNotificationEmail({
+  category,
+  message,
+  actionUrl,
+  createdAt,
+}: {
+  category: string;
+  message: string;
+  actionUrl: string;
+  createdAt: string;
+}) {
+  const categoryLabel = category
+    .split('_')
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ');
+  return (
+    <Html lang="en" dir="ltr">
+      <Head>
+        <title>{`${categoryLabel} requires administrator review`}</title>
+      </Head>
+      <Preview>{message}</Preview>
+      <Body
+        style={{ backgroundColor: background, fontFamily: 'Arial, sans-serif' }}
+      >
+        <Container
+          lang="en"
+          dir="ltr"
+          style={{
+            backgroundColor: '#ffffff',
+            margin: '24px auto',
+            maxWidth: '600px',
+            padding: '32px',
+          }}
+        >
+          <Text
+            style={{
+              color: brand,
+              fontSize: '13px',
+              fontWeight: 700,
+              letterSpacing: '1px',
+              margin: '0 0 8px',
+            }}
+          >
+            DO IT 4 JESUS · ADMIN CENTER
+          </Text>
+          <Heading
+            as="h1"
+            style={{
+              color: '#1f1b24',
+              fontSize: '24px',
+              lineHeight: '32px',
+              margin: '0 0 16px',
+            }}
+          >
+            {categoryLabel} requires review
+          </Heading>
+          <Text
+            style={{ color: '#38313f', fontSize: '16px', lineHeight: '24px' }}
+          >
+            {message}
+          </Text>
+          <Text
+            style={{ color: '#6d6574', fontSize: '14px', lineHeight: '21px' }}
+          >
+            Submitted {createdAt}
+          </Text>
+          <Section style={{ margin: '28px 0' }}>
+            <Button
+              href={actionUrl}
+              style={{
+                backgroundColor: brand,
+                borderRadius: '4px',
+                boxSizing: 'border-box',
+                color: '#ffffff',
+                display: 'inline-block',
+                minHeight: '44px',
+                padding: '13px 18px',
+                textDecoration: 'none',
+              }}
+            >
+              Review in Admin Center
+            </Button>
+          </Section>
+          <Hr
+            style={{
+              borderColor: '#ded9e5',
+              borderStyle: 'solid',
+              margin: '28px 0 18px',
+            }}
+          />
+          <Text
+            style={{
+              color: '#6d6574',
+              fontSize: '12px',
+              lineHeight: '18px',
+              margin: 0,
+            }}
+          >
+            This operational email was sent because your account is an active Do
+            It 4 Jesus administrator.
+          </Text>
+        </Container>
+      </Body>
+    </Html>
+  );
+}
+
 export const emailTemplateRegistry = {
   update: { label: 'General update' },
   announcement: { label: 'Announcement' },
@@ -190,6 +297,20 @@ export async function renderCampaignEmail(
 
 export async function renderContactReplyEmail(message: string) {
   const node = createElement(ContactReplyEmail, { message });
+  const [html, text] = await Promise.all([
+    render(node),
+    render(node, { plainText: true }),
+  ]);
+  return { html, text };
+}
+
+export async function renderAdminNotificationEmail(input: {
+  category: string;
+  message: string;
+  actionUrl: string;
+  createdAt: string;
+}) {
+  const node = createElement(AdminNotificationEmail, input);
   const [html, text] = await Promise.all([
     render(node),
     render(node, { plainText: true }),

@@ -16,6 +16,7 @@ export async function GET(request: Request) {
       churchCountResult,
       churchScheduleCountResult,
       eventCountResult,
+      safetyReportCountResult,
     ] = await Promise.all([
       supabase
         .schema('app')
@@ -42,6 +43,11 @@ export async function GET(request: Request) {
         .from('events')
         .select('*', { count: 'exact', head: true })
         .eq('status', 'pending'),
+      supabase
+        .schema('app')
+        .from('content_reports')
+        .select('*', { count: 'exact', head: true })
+        .in('status', ['open', 'reviewing']),
     ]);
 
     throwDatabaseError(contactCountResult.error, 'Unable to count contacts.');
@@ -58,6 +64,10 @@ export async function GET(request: Request) {
       'Unable to count church schedule reviews.',
     );
     throwDatabaseError(eventCountResult.error, 'Unable to count events.');
+    throwDatabaseError(
+      safetyReportCountResult.error,
+      'Unable to count safety reports.',
+    );
 
     const [
       contactPreviewResult,
@@ -65,6 +75,7 @@ export async function GET(request: Request) {
       churchPreviewResult,
       churchSchedulePreviewResult,
       eventPreviewResult,
+      safetyReportPreviewResult,
     ] = await Promise.all([
       supabase
         .schema('app')
@@ -106,6 +117,14 @@ export async function GET(request: Request) {
         .order('created_at', { ascending: false })
         .order('id', { ascending: false })
         .limit(previewLimit),
+      supabase
+        .schema('app')
+        .from('content_reports')
+        .select('id, target_type, reason, created_at')
+        .in('status', ['open', 'reviewing'])
+        .order('created_at', { ascending: false })
+        .order('id', { ascending: false })
+        .limit(previewLimit),
     ]);
 
     throwDatabaseError(
@@ -127,6 +146,10 @@ export async function GET(request: Request) {
     throwDatabaseError(
       eventPreviewResult.error,
       'Unable to load event previews.',
+    );
+    throwDatabaseError(
+      safetyReportPreviewResult.error,
+      'Unable to load safety report previews.',
     );
 
     const contacts = {
@@ -172,6 +195,15 @@ export async function GET(request: Request) {
         createdAt: event.created_at,
       })),
     };
+    const safetyReports = {
+      count: safetyReportCountResult.count ?? 0,
+      items: (safetyReportPreviewResult.data ?? []).map((report) => ({
+        id: report.id,
+        targetType: report.target_type,
+        reason: report.reason,
+        createdAt: report.created_at,
+      })),
+    };
 
     return ok(
       {
@@ -180,12 +212,14 @@ export async function GET(request: Request) {
           prayerIntentions.count +
           churchChangeRequests.count +
           churchScheduleReviews.count +
-          events.count,
+          events.count +
+          safetyReports.count,
         contacts,
         prayerIntentions,
         churchChangeRequests,
         churchScheduleReviews,
         events,
+        safetyReports,
       },
       { headers: { 'Cache-Control': 'no-store' } },
     );

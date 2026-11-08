@@ -34,6 +34,18 @@ describe('PATCH /api/v1/admin/church-schedule-reviews/{reviewId}', () => {
           startTime: '09:00',
           endTime: null,
         },
+        {
+          serviceType: 'confession',
+          weekday: 'saturday',
+          startTime: '16:00',
+          endTime: '16:45',
+        },
+        {
+          serviceType: 'adoration',
+          weekday: 'friday',
+          startTime: '18:00',
+          endTime: null,
+        },
       ],
     });
 
@@ -56,6 +68,18 @@ describe('PATCH /api/v1/admin/church-schedule-reviews/{reviewId}', () => {
           service_type: 'mass',
           weekday: 0,
           starts_at: '09:00',
+          ends_at: null,
+        },
+        {
+          service_type: 'confession',
+          weekday: 6,
+          starts_at: '16:00',
+          ends_at: '16:45',
+        },
+        {
+          service_type: 'adoration',
+          weekday: 5,
+          starts_at: '18:00',
           ends_at: null,
         },
       ],

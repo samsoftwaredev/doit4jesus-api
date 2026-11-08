@@ -1200,7 +1200,7 @@
     },
     {
       "name": "Admin · Church Schedule Reviews",
-      "description": "Administrator verification queue created by subscriptions to churches without verified schedules.",
+      "description": "Administrator verification queue created for subscribed churches with missing schedules or schedules last verified at least six months ago.",
       "item": [
         {
           "name": "List pending schedule reviews",
@@ -1230,7 +1230,7 @@
             "header": [{ "key": "Content-Type", "value": "application/json" }],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"decision\": \"verified\",\n  \"serviceTimes\": [\n    {\n      \"serviceType\": \"mass\",\n      \"weekday\": \"sunday\",\n      \"startTime\": \"09:00\",\n      \"endTime\": null\n    }\n  ]\n}",
+              "raw": "{\n  \"decision\": \"verified\",\n  \"serviceTimes\": [\n    {\n      \"serviceType\": \"mass\",\n      \"weekday\": \"sunday\",\n      \"startTime\": \"09:00\",\n      \"endTime\": null\n    },\n    {\n      \"serviceType\": \"confession\",\n      \"weekday\": \"saturday\",\n      \"startTime\": \"16:00\",\n      \"endTime\": \"16:45\"\n    },\n    {\n      \"serviceType\": \"adoration\",\n      \"weekday\": \"friday\",\n      \"startTime\": \"18:00\",\n      \"endTime\": null\n    }\n  ]\n}",
               "options": { "raw": { "language": "json" } }
             },
             "url": {
@@ -1244,7 +1244,7 @@
                 "{{churchScheduleReviewId}}"
               ]
             },
-            "description": "Atomically verifies the directory entry, replaces the full recurring schedule, completes the review, and notifies subscribers. Use decision=closed with a reason to deactivate and unsubscribe users."
+            "description": "Atomically verifies the directory entry, replaces the full recurring schedule, completes the review, and notifies subscribers. Verification requires at least one Mass, confession, and adoration time. Use decision=closed with a reason to deactivate and unsubscribe users."
           }
         }
       ]
