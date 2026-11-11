@@ -1157,7 +1157,12 @@ paths:
         '401': { $ref: '#/components/responses/Unauthorized' }
     post:
       summary: Subscribe to church reminders
-      description: Atomically enforces a maximum of three churches per user.
+      description: >-
+        Atomically enforces a maximum of three churches per user. Only
+        `churchId` is required; `serviceTypes` defaults to all three services
+        and `notificationWeekdays` to all seven days. Subscribing to a church
+        without a verified schedule queues one administrator schedule review
+        and notifies administrators.
       requestBody:
         required: true
         content:
@@ -1165,7 +1170,7 @@ paths:
             schema:
               type: object
               additionalProperties: false
-              required: [churchId, serviceTypes, notificationWeekdays]
+              required: [churchId]
               properties:
                 churchId: { type: string, format: uuid }
                 serviceTypes:
@@ -1173,18 +1178,21 @@ paths:
                   minItems: 1
                   maxItems: 3
                   uniqueItems: true
+                  default: [mass, confession, adoration]
                   items: { type: string, enum: [mass, confession, adoration] }
                 notificationWeekdays:
                   type: array
                   minItems: 1
                   maxItems: 7
                   uniqueItems: true
+                  default: [sunday, monday, tuesday, wednesday, thursday, friday, saturday]
                   items: { type: string, enum: [sunday, monday, tuesday, wednesday, thursday, friday, saturday] }
       responses:
         '201': { description: Subscription created; an admin review may also be queued }
+        '200': { description: The church is already followed; nothing changed. The body has `alreadySubscribed` true and a `message`. }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '404': { description: Church not found or inactive }
-        '409': { description: Duplicate subscription or three-church limit reached }
+        '409': { description: Three-church limit reached }
         '422': { $ref: '#/components/responses/ValidationError' }
   /api/v1/me/church-subscriptions/{churchId}:
     parameters:
@@ -1383,6 +1391,64 @@ paths:
         '403': { description: Administrator role required }
         '404': { description: Church change request not found }
         '409': { description: Church change request was already reviewed }
+  /api/v1/admin/churches:
+    post:
+      summary: Add a church missing from the directory
+      description: >-
+        Creates an active, directory-verified church with a verified recurring
+        schedule. At least one Mass time is required; confession and adoration
+        times are optional. Repeated service, weekday, and start times are
+        collapsed. An active church with the same name, address line 1, and
+        postal code is rejected as a duplicate.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [church, serviceTimes]
+              properties:
+                church:
+                  type: object
+                  required: [name, addressLine1, city, countryCode, timezone, latitude, longitude]
+                  properties:
+                    dioceseId: { type: [string, 'null'], format: uuid }
+                    name: { type: string, minLength: 2, maxLength: 200 }
+                    addressLine1: { type: string, minLength: 2, maxLength: 200 }
+                    addressLine2: { type: [string, 'null'], maxLength: 200 }
+                    city: { type: string, minLength: 1, maxLength: 150 }
+                    regionName: { type: [string, 'null'], maxLength: 150 }
+                    postalCode: { type: [string, 'null'], maxLength: 32 }
+                    countryCode: { type: string, minLength: 2, maxLength: 2 }
+                    timezone: { type: string, description: IANA time zone, example: America/Chicago }
+                    latitude: { type: number, minimum: -90, maximum: 90 }
+                    longitude: { type: number, minimum: -180, maximum: 180 }
+                serviceTimes:
+                  type: array
+                  minItems: 1
+                  maxItems: 100
+                  description: Must contain at least one Mass time.
+                  items:
+                    type: object
+                    additionalProperties: false
+                    required: [serviceType, weekday, startTime]
+                    properties:
+                      serviceType: { type: string, enum: [mass, confession, adoration] }
+                      weekday: { type: string, enum: [sunday, monday, tuesday, wednesday, thursday, friday, saturday] }
+                      startTime: { type: string, pattern: '^(?:[01]\d|2[0-3]):[0-5]\d$' }
+                      endTime: { type: [string, 'null'], pattern: '^(?:[01]\d|2[0-3]):[0-5]\d$' }
+      responses:
+        '201':
+          description: Church created
+          content:
+            application/json:
+              example:
+                data: { churchId: c6000000-0000-4000-8000-000000000006 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { description: Administrator role required }
+        '409': { description: A church with the same name and address already exists }
+        '422': { $ref: '#/components/responses/ValidationError' }
   /api/v1/admin/church-schedule-reviews:
     get:
       summary: List subscription-triggered church schedule reviews
@@ -1423,9 +1489,9 @@ paths:
                     church: { type: object, description: Optional corrected church directory fields }
                     serviceTimes:
                       type: array
-                      minItems: 3
+                      minItems: 1
                       maxItems: 100
-                      description: Must contain at least one Mass, confession, and adoration time.
+                      description: Must contain at least one Mass time. Confession and adoration times are optional; repeated service, weekday, and start times are collapsed.
                       items:
                         type: object
                         additionalProperties: false

@@ -58,6 +58,16 @@ export function throwDatabaseError(
         throw ApiError.conflict(
           'The church change request has already been reviewed.',
         );
+      case 'INCOMPLETE_CHURCH_SERVICE_TIMES':
+        throw new ApiError(
+          422,
+          'VALIDATION_ERROR',
+          'At least one Mass time is required.',
+        );
+      case 'CHURCH_ALREADY_EXISTS':
+        throw ApiError.conflict(
+          'A church with the same name and address already exists.',
+        );
       case 'CHURCH_SCHEDULE_REVIEW_NOT_PENDING':
         throw ApiError.conflict(
           'The church schedule review has already been completed.',
@@ -147,6 +157,7 @@ export function throwDatabaseError(
       case 'INVALID_SELECTED_MONTH':
       case 'USER_TIMEZONE_INVALID':
       case 'INVALID_CHURCH_CHANGE_DECISION':
+      case 'INVALID_CHURCH_DETAILS':
       case 'INVALID_CHURCH_SERVICE_TIMES':
       case 'INVALID_CHURCH_SEARCH_QUERY':
       case 'INVALID_CHURCH_SUBSCRIPTION':

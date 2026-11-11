@@ -32,10 +32,12 @@ The import loads 33,653 ZIP records and approximately 17,463 geographically assi
 ## Subscription behavior
 
 - A user can subscribe to at most three active churches.
-- Each subscription requires at least one of `mass`, `confession`, or `adoration` and at least one notification weekday.
+- Subscribing again to a church the user already follows is a safe no-op: it returns `200` with `alreadySubscribed: true` and a message, and leaves the saved preferences unchanged. Only a new follow beyond three churches returns `409`.
+- Creating a subscription only requires `churchId`. Omitted `serviceTypes` default to `mass`, `confession`, and `adoration`, and omitted `notificationWeekdays` default to every day. Explicit values must still contain at least one service and one weekday.
 - A church without an administrator-verified schedule creates one deduplicated schedule-review task and administrator notification.
 - A daily job creates a `stale_schedule` review for an active, subscribed church when its last schedule verification is at least six months old. Churches without subscribers are not periodically reverified.
-- Verifying a schedule requires at least one recurring Mass, confession, and Eucharistic adoration time. Additional times and optional end times remain supported.
+- Verifying a schedule requires at least one recurring Mass time. Confession and Eucharistic adoration times are optional, and optional end times remain supported. Repeated service, weekday, and start times are collapsed.
+- Administrators can add a church missing from the directory with `POST /api/v1/admin/churches` (church details plus a schedule with at least one Mass time). The church is created active and verified; an active church with the same name, address line 1, and postal code returns `409`.
 - Completing the task as `verified` replaces the church's full recurring schedule and notifies subscribers. Completing it as `closed` deactivates the church, deletes its subscriptions, and notifies affected users.
 - Every five minutes PostgreSQL checks for subscriptions due at or after 8:00 AM in the user's profile timezone. It creates at most one digest per subscription and local date, covering matching services over the following seven days.
 - Reminder selection is per subscription. The legacy global confession and adoration preferences do not override it.

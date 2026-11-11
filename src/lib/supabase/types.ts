@@ -1837,6 +1837,10 @@ export type Database = {
           timezone: string;
         }>;
       };
+      admin_create_church: {
+        Args: { p_church: Json; p_service_times: Json };
+        Returns: Json;
+      };
       review_church_schedule_task: {
         Args: {
           p_review_id: string;

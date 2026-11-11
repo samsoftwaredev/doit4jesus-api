@@ -125,6 +125,17 @@ export async function POST(request: Request) {
         ),
       });
     throwDatabaseError(error, 'Unable to create the church subscription.');
+    if (
+      data &&
+      typeof data === 'object' &&
+      !Array.isArray(data) &&
+      data.alreadySubscribed === true
+    ) {
+      return ok({
+        ...data,
+        message: 'You already follow this church.',
+      });
+    }
     return created(data);
   } catch (error) {
     return errorResponse(error, request);

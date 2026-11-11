@@ -1224,6 +1224,24 @@
           }
         },
         {
+          "name": "Add a church",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"church\": {\n    \"name\": \"St. Missing Parish\",\n    \"addressLine1\": \"1 Overlooked Way\",\n    \"addressLine2\": null,\n    \"city\": \"Austin\",\n    \"regionName\": \"TX\",\n    \"postalCode\": \"78701\",\n    \"countryCode\": \"US\",\n    \"timezone\": \"America/Chicago\",\n    \"latitude\": 30.270569,\n    \"longitude\": -97.742589\n  },\n  \"serviceTimes\": [\n    {\n      \"serviceType\": \"mass\",\n      \"weekday\": \"sunday\",\n      \"startTime\": \"09:00\",\n      \"endTime\": null\n    },\n    {\n      \"serviceType\": \"mass\",\n      \"weekday\": \"sunday\",\n      \"startTime\": \"11:00\",\n      \"endTime\": null\n    },\n    {\n      \"serviceType\": \"confession\",\n      \"weekday\": \"saturday\",\n      \"startTime\": \"16:00\",\n      \"endTime\": \"16:45\"\n    }\n  ]\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/churches",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "admin", "churches"]
+            },
+            "description": "Administrator-only. Adds a church missing from the directory as active and verified, with its recurring schedule. At least one Mass time is required; confession and adoration are optional. Returns 409 when an active church with the same name, address, and postal code exists."
+          }
+        },
+        {
           "name": "Verify a church schedule",
           "request": {
             "method": "PATCH",
@@ -1244,7 +1262,7 @@
                 "{{churchScheduleReviewId}}"
               ]
             },
-            "description": "Atomically verifies the directory entry, replaces the full recurring schedule, completes the review, and notifies subscribers. Verification requires at least one Mass, confession, and adoration time. Use decision=closed with a reason to deactivate and unsubscribe users."
+            "description": "Atomically verifies the directory entry, replaces the full recurring schedule, completes the review, and notifies subscribers. Verification requires at least one Mass time; confession and adoration are optional. Use decision=closed with a reason to deactivate and unsubscribe users."
           }
         }
       ]

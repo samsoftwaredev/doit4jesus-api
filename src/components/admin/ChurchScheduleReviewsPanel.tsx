@@ -17,26 +17,16 @@ import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-const serviceTypes = ['mass', 'confession', 'adoration'] as const;
-const weekdays = [
-  'sunday',
-  'monday',
-  'tuesday',
-  'wednesday',
-  'thursday',
-  'friday',
-  'saturday',
-] as const;
+import {
+  type ScheduleEntry,
+  dedupeEntries,
+  hasMassTime,
+} from '@/lib/churches/schedule-entry';
 
-type ServiceType = (typeof serviceTypes)[number];
-type Weekday = (typeof weekdays)[number];
-type ServiceTime = {
-  id?: string;
-  serviceType: ServiceType;
-  weekday: Weekday;
-  startTime: string;
-  endTime: string | null;
-};
+import ServiceScheduleEditor from './ServiceScheduleEditor';
+import { AdminFetchError, adminFetch } from './adminFetch';
+
+type ServiceTime = ScheduleEntry & { id?: string };
 type Church = {
   id: string;
   name: string;
@@ -64,11 +54,6 @@ type Review = {
   createdAt: string;
   completedAt: string | null;
 };
-type ApiResponse<T> = {
-  data?: T;
-  meta?: { hasMore?: boolean };
-  error?: { message?: string };
-};
 
 function formatDate(value: string | null) {
   if (!value) return 'Never';
@@ -81,55 +66,19 @@ function formatDate(value: string | null) {
       }).format(date);
 }
 
-async function adminFetch<T>(
-  token: string,
-  url: string,
-  init: RequestInit = {},
-) {
-  const response = await fetch(url, {
-    ...init,
-    headers: {
-      Authorization: `Bearer ${token}`,
-      ...(init.body ? { 'Content-Type': 'application/json' } : {}),
-      ...init.headers,
-    },
-  });
-  const body = (await response.json()) as ApiResponse<T>;
-  if (!response.ok)
-    throw new AdminFetchError(
-      response.status,
-      body.error?.message ?? 'The request could not be completed.',
-    );
-  return body;
-}
-
-class AdminFetchError extends Error {
-  constructor(
-    readonly status: number,
-    message: string,
-  ) {
-    super(message);
-    this.name = 'AdminFetchError';
-  }
-}
-
 function completionLabel(review: Review) {
   return review.outcome ? `Completed · ${review.outcome}` : 'Completed';
 }
 
-function initialRows(review: Review): ServiceTime[] {
-  const rows = review.schedule.map((item) => ({ ...item }));
-  for (const serviceType of serviceTypes) {
-    if (!rows.some((item) => item.serviceType === serviceType)) {
-      rows.push({
-        serviceType,
-        weekday: 'sunday',
-        startTime: '',
-        endTime: null,
-      });
-    }
-  }
-  return rows;
+function initialRows(review: Review): ScheduleEntry[] {
+  return dedupeEntries(
+    review.schedule.map(({ serviceType, weekday, startTime, endTime }) => ({
+      serviceType,
+      weekday,
+      startTime: startTime.slice(0, 5),
+      endTime: endTime ? endTime.slice(0, 5) : null,
+    })),
+  );
 }
 
 export default function ChurchScheduleReviewsPanel({
@@ -146,7 +95,7 @@ export default function ChurchScheduleReviewsPanel({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [selected, setSelected] = useState<Review | null>(null);
-  const [serviceTimes, setServiceTimes] = useState<ServiceTime[]>([]);
+  const [serviceTimes, setServiceTimes] = useState<ScheduleEntry[]>([]);
   const [church, setChurch] = useState<Church | null>(null);
   const [reason, setReason] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -196,29 +145,14 @@ export default function ChurchScheduleReviewsPanel({
     setError('');
   }
 
-  function updateServiceTime(index: number, patch: Partial<ServiceTime>) {
-    setServiceTimes((current) =>
-      current.map((item, itemIndex) =>
-        itemIndex === index ? { ...item, ...patch } : item,
-      ),
-    );
-  }
-
   async function submit(decision: 'verified' | 'closed') {
     if (!selected || !church || readOnly) return;
     if (decision === 'closed' && !reason.trim()) {
       setError('A reason is required when marking a church closed.');
       return;
     }
-    if (
-      decision === 'verified' &&
-      (serviceTypes.some(
-        (serviceType) =>
-          !serviceTimes.some((item) => item.serviceType === serviceType),
-      ) ||
-        serviceTimes.some((item) => !/^\d{2}:\d{2}$/.test(item.startTime)))
-    ) {
-      setError('Enter a valid time for Mass, confession, and adoration.');
+    if (decision === 'verified' && !hasMassTime(serviceTimes)) {
+      setError('Add at least one Mass time before verifying the schedule.');
       return;
     }
     setSubmitting(true);
@@ -251,7 +185,7 @@ export default function ChurchScheduleReviewsPanel({
                   serviceType,
                   weekday,
                   startTime,
-                  endTime: endTime || null,
+                  endTime,
                 }),
               ),
             };
@@ -301,8 +235,8 @@ export default function ChurchScheduleReviewsPanel({
       </Stack>
       <Stack spacing={2}>
         <Alert severity="info">
-          Every verified schedule must include at least one Mass, confession,
-          and Eucharistic adoration time.
+          Every verified schedule needs at least one Mass time. Confession and
+          Eucharistic adoration are optional.
         </Alert>
         <Stack direction="row" spacing={1}>
           <TextField
@@ -544,108 +478,12 @@ export default function ChurchScheduleReviewsPanel({
                   }
                 />
               </Box>
-              <Typography variant="h6">
-                Mass, confession, and adoration times
-              </Typography>
-              {serviceTimes.map((item, index) => (
-                <Box
-                  key={`${index}-${item.id ?? 'new'}`}
-                  display="grid"
-                  gridTemplateColumns={{
-                    xs: '1fr',
-                    md: '2fr 2fr 1.5fr 1.5fr auto',
-                  }}
-                  gap={1}
-                  alignItems="center"
-                >
-                  <TextField
-                    disabled={readOnly}
-                    select
-                    label="Service"
-                    value={item.serviceType}
-                    onChange={(event) =>
-                      updateServiceTime(index, {
-                        serviceType: event.target.value as ServiceType,
-                      })
-                    }
-                  >
-                    {serviceTypes.map((value) => (
-                      <MenuItem key={value} value={value}>
-                        {value}
-                      </MenuItem>
-                    ))}
-                  </TextField>
-                  <TextField
-                    disabled={readOnly}
-                    select
-                    label="Weekday"
-                    value={item.weekday}
-                    onChange={(event) =>
-                      updateServiceTime(index, {
-                        weekday: event.target.value as Weekday,
-                      })
-                    }
-                  >
-                    {weekdays.map((value) => (
-                      <MenuItem key={value} value={value}>
-                        {value}
-                      </MenuItem>
-                    ))}
-                  </TextField>
-                  <TextField
-                    disabled={readOnly}
-                    label="Start"
-                    type="time"
-                    slotProps={{ inputLabel: { shrink: true } }}
-                    value={item.startTime}
-                    onChange={(event) =>
-                      updateServiceTime(index, {
-                        startTime: event.target.value,
-                      })
-                    }
-                  />
-                  <TextField
-                    disabled={readOnly}
-                    label="End (optional)"
-                    type="time"
-                    slotProps={{ inputLabel: { shrink: true } }}
-                    value={item.endTime ?? ''}
-                    onChange={(event) =>
-                      updateServiceTime(index, {
-                        endTime: event.target.value || null,
-                      })
-                    }
-                  />
-                  <Button
-                    color="error"
-                    disabled={readOnly || serviceTimes.length <= 3}
-                    onClick={() =>
-                      setServiceTimes((current) =>
-                        current.filter((_, itemIndex) => itemIndex !== index),
-                      )
-                    }
-                  >
-                    Remove
-                  </Button>
-                </Box>
-              ))}
-              <Button
-                variant="outlined"
+              <Typography variant="h6">Service times</Typography>
+              <ServiceScheduleEditor
+                value={serviceTimes}
+                onChange={setServiceTimes}
                 disabled={readOnly}
-                onClick={() =>
-                  setServiceTimes((current) => [
-                    ...current,
-                    {
-                      serviceType: 'mass',
-                      weekday: 'sunday',
-                      startTime: '',
-                      endTime: null,
-                    },
-                  ])
-                }
-              >
-                Add service time
-              </Button>
+              />
               <TextField
                 disabled={readOnly}
                 label="Review notes / closure reason"

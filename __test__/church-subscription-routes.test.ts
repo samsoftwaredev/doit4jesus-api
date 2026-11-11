@@ -59,6 +59,52 @@ describe('church subscription routes', () => {
     });
   });
 
+  it('defaults a church-only subscription to every service on every day', async () => {
+    const rpc = authenticatedRpc({
+      data: { id: 'cb000000-0000-4000-8000-000000000001', churchId },
+      error: null,
+    });
+    mockedReadJson.mockResolvedValue({ churchId });
+    const response = await POST({
+      url: 'http://localhost/api/v1/me/church-subscriptions',
+      headers: requestHeaders,
+    } as Request);
+
+    expect(response.status).toBe(201);
+    expect(rpc).toHaveBeenCalledWith('create_church_subscription', {
+      p_church_id: churchId,
+      p_service_types: ['mass', 'confession', 'adoration'],
+      p_notification_weekdays: [0, 1, 2, 3, 4, 5, 6],
+    });
+  });
+
+  it('returns success with a message when the church is already followed', async () => {
+    authenticatedRpc({
+      data: {
+        id: 'cb000000-0000-4000-8000-000000000001',
+        churchId,
+        scheduleStatus: 'pending',
+        reviewId: null,
+        alreadySubscribed: true,
+      },
+      error: null,
+    });
+    mockedReadJson.mockResolvedValue({ churchId });
+    const response = await POST({
+      url: 'http://localhost/api/v1/me/church-subscriptions',
+      headers: requestHeaders,
+    } as Request);
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({
+      data: expect.objectContaining({
+        churchId,
+        alreadySubscribed: true,
+        message: 'You already follow this church.',
+      }),
+    });
+  });
+
   it('updates selected preferences without replacing omitted preferences', async () => {
     const rpc = authenticatedRpc({
       data: { churchId, updated: true },

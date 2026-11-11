@@ -1,8 +1,9 @@
 import { z } from 'zod';
 
 import {
-  churchServiceTimeSchema,
+  churchDetailsSchema,
   churchServiceTypes,
+  serviceTimesWithMassSchema,
   weekdayCodes,
 } from '@/lib/schemas/church';
 
@@ -24,11 +25,12 @@ const uniqueWeekdaysSchema = z
     'Notification weekdays must be unique.',
   );
 
+/** Followers choose only a church; reminders default to every service on every day. */
 export const createChurchSubscriptionSchema = z
   .object({
     churchId: z.uuid(),
-    serviceTypes: uniqueServiceTypesSchema,
-    notificationWeekdays: uniqueWeekdaysSchema,
+    serviceTypes: uniqueServiceTypesSchema.default([...churchServiceTypes]),
+    notificationWeekdays: uniqueWeekdaysSchema.default([...weekdayCodes]),
   })
   .strict();
 
@@ -93,17 +95,7 @@ export const reviewChurchScheduleSchema = z.discriminatedUnion('decision', [
     .object({
       decision: z.literal('verified'),
       church: adminChurchCorrectionSchema.optional(),
-      serviceTimes: z
-        .array(churchServiceTimeSchema)
-        .min(3)
-        .max(100)
-        .refine(
-          (serviceTimes) =>
-            churchServiceTypes.every((serviceType) =>
-              serviceTimes.some((item) => item.serviceType === serviceType),
-            ),
-          'Mass, confession, and adoration must each have at least one service time.',
-        ),
+      serviceTimes: serviceTimesWithMassSchema,
       reason: z.string().trim().max(2_000).nullable().optional(),
     })
     .strict(),
@@ -114,6 +106,13 @@ export const reviewChurchScheduleSchema = z.discriminatedUnion('decision', [
     })
     .strict(),
 ]);
+
+export const createAdminChurchSchema = z
+  .object({
+    church: churchDetailsSchema,
+    serviceTimes: serviceTimesWithMassSchema,
+  })
+  .strict();
 
 export const churchScheduleReviewQuerySchema = z
   .object({

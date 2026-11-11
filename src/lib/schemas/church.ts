@@ -43,7 +43,29 @@ export const churchServiceTimeSchema = z.object({
   endTime: localTimeSchema.nullable().optional(),
 });
 
-const churchDetailsSchema = z.object({
+/**
+ * Admin-entered schedules: Mass is mandatory, confession and adoration are
+ * optional, and repeated (service, weekday, start) entries collapse to one.
+ */
+export const serviceTimesWithMassSchema = z
+  .array(churchServiceTimeSchema)
+  .min(1)
+  .max(100)
+  .refine(
+    (serviceTimes) => serviceTimes.some((item) => item.serviceType === 'mass'),
+    'At least one Mass time is required.',
+  )
+  .transform((serviceTimes) => {
+    const seen = new Set<string>();
+    return serviceTimes.filter((item) => {
+      const key = `${item.serviceType}|${item.weekday}|${item.startTime}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  });
+
+export const churchDetailsSchema = z.object({
   dioceseId: z.uuid().nullable().optional(),
   name: z.string().trim().min(2).max(200),
   addressLine1: z.string().trim().min(2).max(200),

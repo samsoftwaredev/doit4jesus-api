@@ -70,7 +70,7 @@ describe('ChurchScheduleReviewsPanel', () => {
     jest.clearAllMocks();
   });
 
-  it('opens missing schedules with all three required service rows and blocks incomplete verification', async () => {
+  it('opens missing schedules with Mass required and blocks verifying without a Mass time', async () => {
     await act(async () =>
       root.render(
         <ChurchScheduleReviewsPanel token="admin-token" onClose={jest.fn()} />,
@@ -89,12 +89,27 @@ describe('ChurchScheduleReviewsPanel', () => {
       reviewButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
     });
 
-    expect(document.body.textContent).toContain(
-      'Mass, confession, and adoration times',
-    );
+    expect(document.body.textContent).toContain('Service times');
+    expect(
+      document.body.querySelector('section[aria-label="Mass times"]')
+        ?.textContent,
+    ).toContain('Required');
+    expect(
+      document.body.querySelector('section[aria-label="Confession times"]')
+        ?.textContent,
+    ).toContain('Optional');
     expect(document.body.querySelectorAll('input[type="time"]')).toHaveLength(
-      6,
+      0,
     );
+
+    const clearMass = Array.from(
+      document.body
+        .querySelector('section[aria-label="Mass times"]')
+        ?.querySelectorAll('button') ?? [],
+    ).find((button) => button.textContent === 'Clear all');
+    await act(async () => {
+      clearMass?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    });
     const verifyButton = Array.from(
       document.body.querySelectorAll('button'),
     ).find((button) => button.textContent === 'Verify schedule');
@@ -103,9 +118,84 @@ describe('ChurchScheduleReviewsPanel', () => {
     });
 
     expect(document.body.textContent).toContain(
-      'Enter a valid time for Mass, confession, and adoration.',
+      'Add at least one Mass time before verifying the schedule.',
     );
     expect(global.fetch).toHaveBeenCalledTimes(1);
+  });
+
+  it('bulk-adds several times at once and verifies with Mass only', async () => {
+    await act(async () =>
+      root.render(
+        <ChurchScheduleReviewsPanel token="admin-token" onClose={jest.fn()} />,
+      ),
+    );
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+    const click = async (element: Element | undefined) =>
+      act(async () => {
+        element?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      });
+    await click(
+      Array.from(container.querySelectorAll('button')).find(
+        (button) => button.textContent === 'Review schedule',
+      ),
+    );
+
+    const massSection = document.body.querySelector(
+      'section[aria-label="Mass times"]',
+    ) as HTMLElement;
+    const timeInput = massSection.querySelector('input') as HTMLInputElement;
+    await act(async () => {
+      Object.getOwnPropertyDescriptor(
+        HTMLInputElement.prototype,
+        'value',
+      )?.set?.call(timeInput, '7, 11:30am');
+      timeInput.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    expect(massSection.textContent).toContain('Will add on Sun');
+    await click(
+      Array.from(massSection.querySelectorAll('button')).find(
+        (button) => button.textContent === 'Add',
+      ),
+    );
+    expect(massSection.textContent).toContain('7:00 AM');
+    expect(massSection.textContent).toContain('9:00 AM');
+    expect(massSection.textContent).toContain('11:30 AM');
+    expect(massSection.textContent).toContain('3 times');
+
+    await click(
+      Array.from(document.body.querySelectorAll('button')).find(
+        (button) => button.textContent === 'Verify schedule',
+      ),
+    );
+
+    const patch = (global.fetch as jest.Mock).mock.calls.find(
+      ([, init]) => init?.method === 'PATCH',
+    );
+    expect(patch?.[0]).toBe(
+      '/api/v1/admin/church-schedule-reviews/cc000000-0000-4000-8000-000000000001',
+    );
+    expect(JSON.parse(patch?.[1].body).serviceTimes).toEqual([
+      {
+        serviceType: 'mass',
+        weekday: 'sunday',
+        startTime: '07:00',
+        endTime: null,
+      },
+      {
+        serviceType: 'mass',
+        weekday: 'sunday',
+        startTime: '09:00',
+        endTime: null,
+      },
+      {
+        serviceType: 'mass',
+        weekday: 'sunday',
+        startTime: '11:30',
+        endTime: null,
+      },
+    ]);
   });
 
   async function renderPanel() {
