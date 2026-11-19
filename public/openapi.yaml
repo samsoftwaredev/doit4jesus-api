@@ -967,6 +967,109 @@ paths:
                 meta: { limit: 20, offset: 0, hasMore: false, nextOffset: null }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '422': { $ref: '#/components/responses/ValidationError' }
+  /api/v1/me/friend-invite:
+    get:
+      summary: Get the current user's friend invite code
+      description: >-
+        Returns the caller's reusable personal invite code, creating it on first
+        use. Share it as `https://www.doitforjesus.com/invite/{code}`.
+      responses:
+        '200':
+          description: Invite code
+          content:
+            application/json:
+              example: { data: { code: 'k3Jf9xQw2LmZ' } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+  /api/v1/friend-invites/{code}:
+    get:
+      summary: Preview a friend invite
+      description: >-
+        Returns the inviter's public identity so the recipient can confirm.
+        Unknown, revoked, own, and blocked codes all return 404.
+      parameters:
+        - in: path
+          name: code
+          required: true
+          schema: { type: string, pattern: '^[A-Za-z0-9_-]{12,64}$' }
+      responses:
+        '200':
+          description: Inviter preview
+          content:
+            application/json:
+              example:
+                data:
+                  inviter: { id: '00000000-0000-4000-8000-000000000001', username: johnpaul, displayName: John Paul, avatarUrl: null, title: null }
+                  relationshipState: none
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /api/v1/friend-invites/{code}/accept:
+    post:
+      summary: Accept a friend invite
+      description: >-
+        Creates the friendship immediately and notifies the inviter. Idempotent:
+        repeating it returns `alreadyFriends`.
+      parameters:
+        - in: path
+          name: code
+          required: true
+          schema: { type: string, pattern: '^[A-Za-z0-9_-]{12,64}$' }
+      responses:
+        '200':
+          description: Friendship created or already existing
+          content:
+            application/json:
+              example:
+                data: { friendshipId: '00000000-0000-4000-8000-000000000002', friendId: '00000000-0000-4000-8000-000000000001', status: accepted }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+  /api/v1/users/{username}:
+    get:
+      summary: Get a user's public profile
+      description: >-
+        Limited profile for any active, non-blocked user (identity, level, XP,
+        Rosary total, badges) plus the caller's relationship state and any
+        pending request id. Rosary streak details remain friends-only.
+      parameters:
+        - in: path
+          name: username
+          required: true
+          schema: { type: string, pattern: '^[A-Za-z0-9_]{3,30}$' }
+      responses:
+        '200':
+          description: Public profile
+          content:
+            application/json:
+              example:
+                data:
+                  user: { id: '00000000-0000-4000-8000-000000000001', username: johnpaul, displayName: John Paul, avatarUrl: null, title: null, countryCode: US }
+                  relationshipState: none
+                  requestId: null
+                  progress: { totalXp: 120, currentLevel: { levelNumber: 2, name: Seeker } }
+                  rosaryTotal: 14
+                  badges: []
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /api/v1/notifications/unread-count:
+    get:
+      summary: Count unread notifications
+      responses:
+        '200':
+          description: Unread count
+          content:
+            application/json:
+              example: { data: { count: 3 } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+  /api/v1/notifications/read-all:
+    post:
+      summary: Mark all notifications as read
+      responses:
+        '200':
+          description: Number of notifications updated
+          content:
+            application/json:
+              example: { data: { updated: 3 } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
   /api/v1/users/search:
     get:
       summary: Search active users by username
@@ -2927,6 +3030,8 @@ components:
   responses:
     Unauthorized:
       description: Missing or invalid Supabase Auth session
+    NotFound:
+      description: The requested resource was not found
     ValidationError:
       description: Request validation failed
   schemas:

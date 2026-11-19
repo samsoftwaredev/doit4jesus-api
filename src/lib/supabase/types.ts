@@ -1895,6 +1895,30 @@ export type Database = {
         Args: { p_intention_id: string };
         Returns: Json;
       };
+      get_current_user_friend_invite: {
+        Args: Record<PropertyKey, never>;
+        Returns: Json;
+      };
+      get_friend_invite_preview: {
+        Args: { p_code: string };
+        Returns: Json;
+      };
+      accept_friend_invite: {
+        Args: { p_code: string };
+        Returns: Json;
+      };
+      get_user_public_profile: {
+        Args: { p_username: string };
+        Returns: Json;
+      };
+      get_current_user_unread_notification_count: {
+        Args: Record<PropertyKey, never>;
+        Returns: number;
+      };
+      mark_all_current_user_notifications_read: {
+        Args: Record<PropertyKey, never>;
+        Returns: number;
+      };
       send_current_user_friend_request: {
         Args: { p_username: string };
         Returns: Json;

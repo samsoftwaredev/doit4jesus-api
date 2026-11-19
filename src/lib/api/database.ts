@@ -95,6 +95,7 @@ export function throwDatabaseError(
           'The event cannot make that status transition.',
         );
       case 'FRIEND_USERNAME_NOT_FOUND':
+      case 'FRIEND_INVITE_NOT_FOUND':
       case 'FRIEND_REQUEST_NOT_FOUND':
       case 'FRIENDSHIP_NOT_FOUND':
       case 'FRIEND_LEADERBOARD_PERIOD_NOT_FOUND':

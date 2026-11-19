@@ -398,6 +398,25 @@ set
   responded_at = excluded.responded_at,
   cancelled_at = excluded.cancelled_at;
 
+-- Personal friend-invite links (shared as /invite/<code>).
+insert into app.friend_invites (id, inviter_id, code)
+values
+  (
+    'fb000000-0000-4000-8000-000000000004',
+    '11111111-1111-4111-8111-111111111111',
+    'maria-local-invite-01'
+  ),
+  (
+    'fb000000-0000-4000-8000-000000000005',
+    '22222222-2222-4222-8222-222222222222',
+    'john-local-invite-01'
+  )
+on conflict (id) do update
+set
+  inviter_id = excluded.inviter_id,
+  code = excluded.code,
+  revoked_at = null;
+
 -- ---------------------------------------------------------------------------
 -- Community safety examples
 -- ---------------------------------------------------------------------------

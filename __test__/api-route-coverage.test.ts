@@ -22,6 +22,8 @@ import {
   GET as getEncounters,
   POST as startEncounter,
 } from '../src/app/api/v1/encounters/route';
+import { POST as acceptFriendInvite } from '../src/app/api/v1/friend-invites/[code]/accept/route';
+import { GET as getFriendInvitePreview } from '../src/app/api/v1/friend-invites/[code]/route';
 import { GET as healthCheck } from '../src/app/api/v1/health/route';
 import { GET as getLevels } from '../src/app/api/v1/levels/route';
 import {
@@ -32,6 +34,7 @@ import {
   GET as getMyChurches,
   POST as linkChurch,
 } from '../src/app/api/v1/me/churches/route';
+import { GET as getMyFriendInvite } from '../src/app/api/v1/me/friend-invite/route';
 import {
   DELETE as cancelFriendRequest,
   PATCH as reviewFriendRequest,
@@ -46,9 +49,12 @@ import { GET as getRosaryReminder } from '../src/app/api/v1/me/rosary/reminder/r
 import { GET as getRosaryStats } from '../src/app/api/v1/me/rosary/stats/route';
 import { GET as getRosaryStreak } from '../src/app/api/v1/me/rosary/streak/route';
 import { PATCH as markNotificationRead } from '../src/app/api/v1/notifications/[notificationId]/read/route';
+import { POST as readAllNotifications } from '../src/app/api/v1/notifications/read-all/route';
 import { GET as getNotifications } from '../src/app/api/v1/notifications/route';
+import { GET as getUnreadNotificationCount } from '../src/app/api/v1/notifications/unread-count/route';
 import { GET as getPrayerMap } from '../src/app/api/v1/prayer-map/route';
 import { GET as getProgress } from '../src/app/api/v1/progress/route';
+import { GET as getUserProfile } from '../src/app/api/v1/users/[username]/route';
 import { GET as searchUsers } from '../src/app/api/v1/users/search/route';
 import { GET as getVirtues } from '../src/app/api/v1/virtues/route';
 import { requireUser } from '../src/lib/auth/require-user';
@@ -698,5 +704,63 @@ describe('previously uncovered API route handlers', () => {
       await searchUsers(request('http://localhost/api/v1/users/search?q=John')),
     );
     expectOk(await getVirtues(request('http://localhost/api/v1/virtues')));
+  });
+
+  it('serves friend invites, public profiles, and notification badge routes', async () => {
+    const { rpc } = createSupabase({
+      rpcResults: {
+        get_current_user_friend_invite: result({ code: 'abcdefghijkl' }),
+        get_friend_invite_preview: result({ inviter: { username: 'mary' } }),
+        accept_friend_invite: result({ status: 'accepted' }),
+        get_user_public_profile: result({ relationshipState: 'none' }),
+        get_current_user_unread_notification_count: result(3),
+        mark_all_current_user_notifications_read: result(3),
+      },
+    });
+
+    expectOk(
+      await getMyFriendInvite(
+        request('http://localhost/api/v1/me/friend-invite'),
+      ),
+    );
+    expectOk(
+      await getFriendInvitePreview(
+        request('http://localhost/api/v1/friend-invites/abcdefghijkl'),
+        context({ code: 'abcdefghijkl' }),
+      ),
+    );
+    expectOk(
+      await acceptFriendInvite(
+        request('http://localhost/api/v1/friend-invites/abcdefghijkl/accept', {
+          method: 'POST',
+        }),
+        context({ code: 'abcdefghijkl' }),
+      ),
+    );
+    expectOk(
+      await getUserProfile(
+        request('http://localhost/api/v1/users/mary_1'),
+        context({ username: 'mary_1' }),
+      ),
+    );
+    const count = await getUnreadNotificationCount(
+      request('http://localhost/api/v1/notifications/unread-count'),
+    );
+    expectOk(count);
+    expect(await count.json()).toEqual({ data: { count: 3 } });
+    expectOk(
+      await readAllNotifications(
+        request('http://localhost/api/v1/notifications/read-all', {
+          method: 'POST',
+        }),
+      ),
+    );
+
+    expect(rpc).toHaveBeenCalledWith('accept_friend_invite', {
+      p_code: 'abcdefghijkl',
+    });
+    expect(rpc).toHaveBeenCalledWith('get_user_public_profile', {
+      p_username: 'mary_1',
+    });
   });
 });

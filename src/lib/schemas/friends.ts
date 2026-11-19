@@ -7,6 +7,15 @@ export const sendFriendRequestSchema = z.object({
   username: z.string().trim().min(3).max(30),
 });
 
+export const friendInviteCodeSchema = z
+  .string()
+  .regex(/^[A-Za-z0-9_-]{12,64}$/u);
+
+export const publicUsernameSchema = z
+  .string()
+  .trim()
+  .regex(/^[A-Za-z0-9_]{3,30}$/u);
+
 export const reviewFriendRequestSchema = z.object({
   decision: z.enum(['accepted', 'rejected']),
 });
