@@ -1,0 +1,59 @@
+{
+  "churches": [
+    {
+      "churchId": "00000000-0000-4000-8000-000000000000",
+      "label": "St. Example Parish, 1 Church St, Austin TX (optional note; not saved)",
+      "serviceTimes": [
+        {
+          "serviceType": "mass",
+          "weekday": "sunday",
+          "startTime": "09:00",
+          "endTime": "10:00"
+        },
+        {
+          "serviceType": "mass",
+          "weekday": "sunday",
+          "startTime": "11:30"
+        },
+        {
+          "serviceType": "confession",
+          "weekday": "saturday",
+          "startTime": "15:00",
+          "endTime": "16:00"
+        },
+        {
+          "serviceType": "adoration",
+          "weekday": "friday",
+          "startTime": "18:00",
+          "endTime": "19:00"
+        }
+      ]
+    },
+    {
+      "church": {
+        "name": "St. Mary Parish",
+        "addressLine1": "123 Main St",
+        "addressLine2": null,
+        "city": "Providence",
+        "regionName": "RI",
+        "postalCode": "02903",
+        "countryCode": "US",
+        "timezone": "America/New_York",
+        "latitude": 41.8236,
+        "longitude": -71.4222
+      },
+      "serviceTimes": [
+        {
+          "serviceType": "mass",
+          "weekday": "saturday",
+          "startTime": "17:00"
+        },
+        {
+          "serviceType": "mass",
+          "weekday": "sunday",
+          "startTime": "08:00"
+        }
+      ]
+    }
+  ]
+}

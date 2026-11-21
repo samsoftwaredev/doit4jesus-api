@@ -16,6 +16,12 @@ jest.mock('../src/components/admin/ChurchScheduleReviewsPanel', () => ({
     return <div>Schedule reviews panel</div>;
   },
 }));
+jest.mock('../src/components/admin/ChurchScheduleImportPanel', () => ({
+  __esModule: true,
+  default: function ImportPanelStub() {
+    return <div>Import panel</div>;
+  },
+}));
 jest.mock('../src/components/admin/AddChurchPanel', () => ({
   __esModule: true,
   default: function AddChurchPanelStub() {
@@ -57,7 +63,7 @@ describe('ChurchesAdminPanel', () => {
     );
   }
 
-  it('shows the change requests view by default with three tabs', async () => {
+  it('shows the change requests view by default with four tabs', async () => {
     mockChurchView = null;
     await renderPanel();
 
@@ -66,7 +72,12 @@ describe('ChurchesAdminPanel', () => {
       Array.from(container.querySelectorAll('[role="tab"]')).map(
         (tab) => tab.textContent,
       ),
-    ).toEqual(['Change Requests', 'Schedule Reviews', 'Add Church']);
+    ).toEqual([
+      'Change Requests',
+      'Schedule Reviews',
+      'Add Church',
+      'Import JSON',
+    ]);
   });
 
   it('renders the Add Church view from the churchView parameter', async () => {
@@ -75,6 +86,13 @@ describe('ChurchesAdminPanel', () => {
 
     expect(container.textContent).toContain('Add church panel');
     expect(container.textContent).not.toContain('Change requests panel');
+  });
+
+  it('renders the Import JSON view from the churchView parameter', async () => {
+    mockChurchView = 'import';
+    await renderPanel();
+
+    expect(container.textContent).toContain('Import panel');
   });
 
   it('navigates to the Add Church view when its tab is selected', async () => {

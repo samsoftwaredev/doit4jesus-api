@@ -3,6 +3,7 @@
 import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
+import ButtonBase from '@mui/material/ButtonBase';
 import Chip from '@mui/material/Chip';
 import Paper from '@mui/material/Paper';
 import Skeleton from '@mui/material/Skeleton';
@@ -11,6 +12,9 @@ import Typography from '@mui/material/Typography';
 import dynamic from 'next/dynamic';
 import { useEffect, useState } from 'react';
 
+import type { AdminMetricKey } from '@/lib/schemas/admin-metrics';
+
+import AdminMetricUsersDialog from './AdminMetricUsersDialog';
 import type {
   AdminAppMetricsTrend,
   AdminMetricTrendSeries,
@@ -45,6 +49,7 @@ type LoadState =
 type MetricDirection = 'higher' | 'lower';
 
 export type Metric = {
+  metricKey: AdminMetricKey;
   label: string;
   rawValue: number;
   value: string;
@@ -95,6 +100,7 @@ export function getMetricStatus(
 }
 
 function MetricCard({
+  onSelect,
   label,
   rawValue,
   value,
@@ -102,43 +108,60 @@ function MetricCard({
   target,
   targetLabel,
   direction,
-}: Metric) {
+}: Metric & { onSelect: () => void }) {
   const status = getMetricStatus(rawValue, target, direction);
 
   return (
     <Paper
       variant="outlined"
-      sx={{ display: 'flex', height: '100%', minWidth: 0, p: 2 }}
+      sx={{ height: '100%', minWidth: 0, overflow: 'hidden' }}
     >
-      <Stack spacing={1.25} width="100%">
-        <Typography variant="body2" color="text.secondary">
-          {label}
-        </Typography>
-        <Typography variant="h4" fontWeight={700}>
-          {value}
-        </Typography>
-        <Stack
-          direction="row"
-          spacing={1}
-          alignItems="center"
-          justifyContent="space-between"
-          useFlexGap
-          flexWrap="wrap"
-        >
-          <Typography variant="caption" color="text.secondary">
-            Target {targetLabel}
+      <ButtonBase
+        aria-label={`${label}: ${value}. View users`}
+        onClick={onSelect}
+        sx={{
+          alignItems: 'stretch',
+          display: 'flex',
+          height: '100%',
+          p: 2,
+          textAlign: 'left',
+          width: '100%',
+          '&:hover': { bgcolor: 'action.hover' },
+        }}
+      >
+        <Stack spacing={1.25} width="100%">
+          <Typography variant="body2" color="text.secondary">
+            {label}
           </Typography>
-          <Chip
-            color={status.color}
-            label={status.label}
-            size="small"
-            variant="outlined"
-          />
+          <Typography variant="h4" fontWeight={700}>
+            {value}
+          </Typography>
+          <Stack
+            direction="row"
+            spacing={1}
+            alignItems="center"
+            justifyContent="space-between"
+            useFlexGap
+            flexWrap="wrap"
+          >
+            <Typography variant="caption" color="text.secondary">
+              Target {targetLabel}
+            </Typography>
+            <Chip
+              color={status.color}
+              label={status.label}
+              size="small"
+              variant="outlined"
+            />
+          </Stack>
+          <Typography variant="body2" color="text.secondary">
+            {description}
+          </Typography>
+          <Typography variant="caption" color="primary">
+            View users →
+          </Typography>
         </Stack>
-        <Typography variant="body2" color="text.secondary">
-          {description}
-        </Typography>
-      </Stack>
+      </ButtonBase>
     </Paper>
   );
 }
@@ -276,6 +299,7 @@ function MetricsSkeleton() {
 export function toMetrics(metrics: AdminAppMetricsData): Metric[] {
   return [
     {
+      metricKey: 'total_users',
       label: 'Total Users',
       rawValue: metrics.totalUsers,
       value: formatNumber(metrics.totalUsers),
@@ -285,6 +309,7 @@ export function toMetrics(metrics: AdminAppMetricsData): Metric[] {
       direction: 'higher',
     },
     {
+      metricKey: 'dau',
       label: 'DAU',
       rawValue: metrics.dailyActiveUsers,
       value: formatNumber(metrics.dailyActiveUsers),
@@ -295,6 +320,7 @@ export function toMetrics(metrics: AdminAppMetricsData): Metric[] {
       direction: 'higher',
     },
     {
+      metricKey: 'wau',
       label: 'WAU',
       rawValue: metrics.weeklyActiveUsers,
       value: formatNumber(metrics.weeklyActiveUsers),
@@ -305,6 +331,7 @@ export function toMetrics(metrics: AdminAppMetricsData): Metric[] {
       direction: 'higher',
     },
     {
+      metricKey: 'mau',
       label: 'MAU',
       rawValue: metrics.monthlyActiveUsers,
       value: formatNumber(metrics.monthlyActiveUsers),
@@ -315,6 +342,7 @@ export function toMetrics(metrics: AdminAppMetricsData): Metric[] {
       direction: 'higher',
     },
     {
+      metricKey: 'signups_7d',
       label: 'Signups (7 d)',
       rawValue: metrics.signups7d,
       value: formatNumber(metrics.signups7d),
@@ -324,6 +352,7 @@ export function toMetrics(metrics: AdminAppMetricsData): Metric[] {
       direction: 'higher',
     },
     {
+      metricKey: 'signups_30d',
       label: 'Signups (30 d)',
       rawValue: metrics.signups30d,
       value: formatNumber(metrics.signups30d),
@@ -333,6 +362,7 @@ export function toMetrics(metrics: AdminAppMetricsData): Metric[] {
       direction: 'higher',
     },
     {
+      metricKey: 'retention_d1',
       label: 'Retention D1',
       rawValue: metrics.retentionD1,
       value: formatPercent(metrics.retentionD1),
@@ -343,6 +373,7 @@ export function toMetrics(metrics: AdminAppMetricsData): Metric[] {
       direction: 'higher',
     },
     {
+      metricKey: 'retention_d7',
       label: 'Retention D7',
       rawValue: metrics.retentionD7,
       value: formatPercent(metrics.retentionD7),
@@ -353,6 +384,7 @@ export function toMetrics(metrics: AdminAppMetricsData): Metric[] {
       direction: 'higher',
     },
     {
+      metricKey: 'retention_d30',
       label: 'Retention D30',
       rawValue: metrics.retentionD30,
       value: formatPercent(metrics.retentionD30),
@@ -363,6 +395,7 @@ export function toMetrics(metrics: AdminAppMetricsData): Metric[] {
       direction: 'higher',
     },
     {
+      metricKey: 'signup_to_active',
       label: 'Signup → Active',
       rawValue: metrics.signupToActiveRate,
       value: formatPercent(metrics.signupToActiveRate),
@@ -373,6 +406,7 @@ export function toMetrics(metrics: AdminAppMetricsData): Metric[] {
       direction: 'higher',
     },
     {
+      metricKey: 'profile_setup',
       label: 'Profile Setup',
       rawValue: metrics.onboardingCompletionRate,
       value: formatPercent(metrics.onboardingCompletionRate),
@@ -383,6 +417,7 @@ export function toMetrics(metrics: AdminAppMetricsData): Metric[] {
       direction: 'higher',
     },
     {
+      metricKey: 'first_practice_7d',
       label: 'First Practice ≤ 7 d',
       rawValue: metrics.firstPracticeWithin7dRate,
       value: formatPercent(metrics.firstPracticeWithin7dRate),
@@ -393,6 +428,7 @@ export function toMetrics(metrics: AdminAppMetricsData): Metric[] {
       direction: 'higher',
     },
     {
+      metricKey: 'churn',
       label: 'Churn Rate',
       rawValue: metrics.churnRate,
       value: formatPercent(metrics.churnRate),
@@ -403,6 +439,7 @@ export function toMetrics(metrics: AdminAppMetricsData): Metric[] {
       direction: 'lower',
     },
     {
+      metricKey: 'rosary_completion',
       label: 'Rosary Completion',
       rawValue: metrics.rosaryCompletionRate,
       value: formatPercent(metrics.rosaryCompletionRate),
@@ -422,6 +459,7 @@ export default function AdminAppMetrics({
 }) {
   const [state, setState] = useState<LoadState>({ status: 'loading' });
   const [refreshCount, setRefreshCount] = useState(0);
+  const [selectedMetric, setSelectedMetric] = useState<Metric | null>(null);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -531,7 +569,11 @@ export default function AdminAppMetrics({
               gap={2}
             >
               {toMetrics(state.metrics).map((metric) => (
-                <MetricCard key={metric.label} {...metric} />
+                <MetricCard
+                  key={metric.label}
+                  {...metric}
+                  onSelect={() => setSelectedMetric(metric)}
+                />
               ))}
             </Box>
 
@@ -586,6 +628,11 @@ export default function AdminAppMetrics({
           </Stack>
         )}
       </Stack>
+      <AdminMetricUsersDialog
+        accessToken={accessToken}
+        metric={selectedMetric}
+        onClose={() => setSelectedMetric(null)}
+      />
     </Paper>
   );
 }

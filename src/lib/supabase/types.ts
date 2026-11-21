@@ -1624,6 +1624,15 @@ export type Database = {
         Args: Record<string, never>;
         Returns: Json;
       };
+      get_admin_metric_users: {
+        Args: {
+          p_metric: string;
+          p_filter?: string;
+          p_limit?: number;
+          p_offset?: number;
+        };
+        Returns: Json;
+      };
       get_my_daily_rosary_reminder: {
         Args: Record<string, never>;
         Returns: Json;
@@ -1836,6 +1845,15 @@ export type Database = {
           local_end_time: string | null;
           timezone: string;
         }>;
+      };
+      admin_import_church_schedule: {
+        Args: {
+          p_church_id: string | null;
+          p_church: Json;
+          p_service_times: Json;
+          p_dry_run?: boolean;
+        };
+        Returns: Json;
       };
       admin_create_church: {
         Args: { p_church: Json; p_service_times: Json };

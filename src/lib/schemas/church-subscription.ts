@@ -56,7 +56,7 @@ export const upcomingChurchServicesQuerySchema = z
   })
   .strict();
 
-const adminChurchCorrectionSchema = z
+export const adminChurchCorrectionSchema = z
   .object({
     dioceseId: z.uuid().nullable().optional(),
     name: z.string().trim().min(2).max(200).optional(),
@@ -119,5 +119,31 @@ export const churchScheduleReviewQuerySchema = z
     status: z.enum(['pending', 'completed', 'all']).default('pending'),
     limit: z.coerce.number().int().min(1).max(100).default(20),
     offset: z.coerce.number().int().min(0).default(0),
+  })
+  .strict();
+
+/** One church in an administrator schedule import file. Matching is by churchId, else name + address + postal code. */
+export const importChurchEntrySchema = z
+  .object({
+    churchId: z.uuid().optional(),
+    /** Free-text note so the admin can tell which church an entry is for; never saved. */
+    label: z.string().trim().max(300).optional(),
+    church: adminChurchCorrectionSchema.optional(),
+    serviceTimes: serviceTimesWithMassSchema,
+  })
+  .strict()
+  .refine(
+    (entry) =>
+      entry.churchId !== undefined ||
+      (entry.church?.name !== undefined &&
+        entry.church?.addressLine1 !== undefined),
+    'Provide churchId, or church.name and church.addressLine1, so the church can be found.',
+  );
+
+/** Envelope for the import request; entries are validated one by one so a single bad church never blocks the rest. */
+export const importAdminChurchesSchema = z
+  .object({
+    dryRun: z.boolean().default(true),
+    churches: z.array(z.unknown()).min(1).max(200),
   })
   .strict();

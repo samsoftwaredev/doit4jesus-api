@@ -7,12 +7,15 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import type { ReactNode } from 'react';
 
 import AddChurchPanel from './AddChurchPanel';
+import ChurchScheduleImportPanel from './ChurchScheduleImportPanel';
 import ChurchScheduleReviewsPanel from './ChurchScheduleReviewsPanel';
 
-type ChurchView = 'changes' | 'schedules' | 'add';
+type ChurchView = 'changes' | 'schedules' | 'add' | 'import';
 
 function parseView(value: string | null): ChurchView {
-  return value === 'schedules' || value === 'add' ? value : 'changes';
+  return value === 'schedules' || value === 'add' || value === 'import'
+    ? value
+    : 'changes';
 }
 
 export default function ChurchesAdminPanel({
@@ -43,12 +46,14 @@ export default function ChurchesAdminPanel({
         <Tab label="Change Requests" value="changes" />
         <Tab label="Schedule Reviews" value="schedules" />
         <Tab label="Add Church" value="add" />
+        <Tab label="Import JSON" value="import" />
       </Tabs>
       {active === 'changes' && changeRequests}
       {active === 'schedules' && (
         <ChurchScheduleReviewsPanel token={token} onClose={onClose} />
       )}
       {active === 'add' && <AddChurchPanel token={token} />}
+      {active === 'import' && <ChurchScheduleImportPanel token={token} />}
     </Box>
   );
 }

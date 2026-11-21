@@ -169,6 +169,7 @@ export function throwDatabaseError(
       case 'INVALID_FRIEND_USERNAME':
       case 'INVALID_USER_SEARCH_QUERY':
       case 'INVALID_ADMIN_USER_SEARCH_QUERY':
+      case 'INVALID_ADMIN_METRIC':
       case 'INVALID_ADMIN_USER_PREVIEW_SECTION':
       case 'CANNOT_FRIEND_SELF':
       case 'INVALID_FRIEND_REQUEST_DECISION':

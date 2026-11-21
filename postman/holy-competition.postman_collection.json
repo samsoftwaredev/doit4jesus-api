@@ -99,13 +99,7 @@
   ],
   "auth": {
     "type": "bearer",
-    "bearer": [
-      {
-        "key": "token",
-        "value": "{{accessToken}}",
-        "type": "string"
-      }
-    ]
+    "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }]
   },
   "item": [
     {
@@ -1264,6 +1258,24 @@
             },
             "description": "Atomically verifies the directory entry, replaces the full recurring schedule, completes the review, and notifies subscribers. Verification requires at least one Mass time; confession and adoration are optional. Use decision=closed with a reason to deactivate and unsubscribe users."
           }
+        },
+        {
+          "name": "Import church schedules (preview)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/churches/import",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "admin", "churches", "import"]
+            },
+            "description": "Administrator-only. Dry run by default: previews which churches would be created or updated from a JSON file. Set dryRun to false to apply. Matching: churchId, else name + addressLine1 + postalCode. Every entry needs at least one Mass time.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dryRun\": true,\n  \"churches\": [\n    {\n      \"churchId\": \"00000000-0000-4000-8000-000000000000\",\n      \"serviceTimes\": [\n        {\n          \"serviceType\": \"mass\",\n          \"weekday\": \"sunday\",\n          \"startTime\": \"09:00\",\n          \"endTime\": \"10:00\"\n        },\n        {\n          \"serviceType\": \"mass\",\n          \"weekday\": \"sunday\",\n          \"startTime\": \"11:30\"\n        },\n        {\n          \"serviceType\": \"confession\",\n          \"weekday\": \"saturday\",\n          \"startTime\": \"15:00\",\n          \"endTime\": \"16:00\"\n        },\n        {\n          \"serviceType\": \"adoration\",\n          \"weekday\": \"friday\",\n          \"startTime\": \"18:00\",\n          \"endTime\": \"19:00\"\n        }\n      ]\n    },\n    {\n      \"church\": {\n        \"name\": \"St. Mary Parish\",\n        \"addressLine1\": \"123 Main St\",\n        \"addressLine2\": null,\n        \"city\": \"Providence\",\n        \"regionName\": \"RI\",\n        \"postalCode\": \"02903\",\n        \"countryCode\": \"US\",\n        \"timezone\": \"America/New_York\",\n        \"latitude\": 41.8236,\n        \"longitude\": -71.4222\n      },\n      \"serviceTimes\": [\n        {\n          \"serviceType\": \"mass\",\n          \"weekday\": \"saturday\",\n          \"startTime\": \"17:00\"\n        },\n        {\n          \"serviceType\": \"mass\",\n          \"weekday\": \"sunday\",\n          \"startTime\": \"08:00\"\n        }\n      ]\n    }\n  ]\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          }
         }
       ]
     },
@@ -2253,10 +2265,7 @@
               "_postman_previewlanguage": "json",
               "header": [
                 { "key": "Content-Type", "value": "application/json" },
-                {
-                  "key": "x-request-id",
-                  "value": "req_activity_validation_01"
-                }
+                { "key": "x-request-id", "value": "req_activity_validation_01" }
               ],
               "cookie": [],
               "body": "{\n  \"error\": {\n    \"code\": \"VALIDATION_ERROR\",\n    \"message\": \"The request payload is invalid.\",\n    \"details\": {\n      \"formErrors\": [],\n      \"fieldErrors\": {\n        \"occurredAt\": [\n          \"Invalid ISO datetime\"\n        ]\n      }\n    },\n    \"requestId\": \"req_activity_validation_01\"\n  }\n}"
@@ -2577,6 +2586,30 @@
               "path": ["api", "v1", "admin", "email", "analytics"]
             },
             "description": "Returns overall and campaign-level Resend event aggregates."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin · Metric Users",
+      "item": [
+        {
+          "name": "Users behind a metric",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/app-metrics/users?metric=signups_7d&filter=all&limit=50&offset=0",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "admin", "app-metrics", "users"],
+              "query": [
+                { "key": "metric", "value": "signups_7d" },
+                { "key": "filter", "value": "all" },
+                { "key": "limit", "value": "50" },
+                { "key": "offset", "value": "0" }
+              ]
+            },
+            "description": "Administrator-only. Lists the accounts counted by an admin metric card. metric: total_users, dau, wau, mau, signups_7d, signups_30d, retention_d1|d7|d30, signup_to_active, profile_setup, first_practice_7d, churn, rosary_completion. filter yes/no applies to rate metrics."
           }
         }
       ]

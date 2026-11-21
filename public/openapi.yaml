@@ -1552,6 +1552,110 @@ paths:
         '403': { description: Administrator role required }
         '409': { description: A church with the same name and address already exists }
         '422': { $ref: '#/components/responses/ValidationError' }
+  /api/v1/admin/churches/import:
+    post:
+      summary: Import church schedules from JSON (preview or apply)
+      description: >-
+        Bulk-updates recurring Mass, confession and adoration times. Each church
+        is matched by `churchId`, else by name + address line 1 + postal code
+        (case-insensitive). A matched church has its service times replaced and
+        any provided church fields updated; an unmatched church is created
+        verified (name, addressLine1, city, countryCode, timezone, latitude and
+        longitude required). Every entry needs at least one Mass time. With
+        `dryRun: true` (default) nothing is saved. Entries are validated and
+        applied independently, so one bad entry never blocks the others. A
+        pending schedule review for an updated church is completed as verified.
+        Example file: docs/church-schedule-import.example.json.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [churches]
+              properties:
+                dryRun: { type: boolean, default: true }
+                churches:
+                  type: array
+                  minItems: 1
+                  maxItems: 200
+                  items:
+                    type: object
+                    required: [serviceTimes]
+                    properties:
+                      churchId: { type: string, format: uuid }
+                      label: { type: string, maxLength: 300, description: Optional note identifying the church for the admin; never saved. }
+                      church:
+                        type: object
+                        description: Same fields as POST /api/v1/admin/churches `church`; all optional when churchId is given.
+                      serviceTimes:
+                        type: array
+                        description: Must contain at least one Mass time.
+                        items:
+                          type: object
+                          required: [serviceType, weekday, startTime]
+                          properties:
+                            serviceType: { type: string, enum: [mass, confession, adoration] }
+                            weekday: { type: string, enum: [sunday, monday, tuesday, wednesday, thursday, friday, saturday] }
+                            startTime: { type: string, pattern: '^(?:[01]\d|2[0-3]):[0-5]\d$' }
+                            endTime: { type: [string, 'null'], pattern: '^(?:[01]\d|2[0-3]):[0-5]\d$' }
+      responses:
+        '200':
+          description: Per-church results
+          content:
+            application/json:
+              example:
+                data:
+                  dryRun: true
+                  summary: { create: 1, update: 1, failed: 0 }
+                  results:
+                    - { index: 0, label: St. Mary Parish, action: update, applied: false }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { description: Administrator role required }
+        '422': { $ref: '#/components/responses/ValidationError' }
+  /api/v1/admin/app-metrics/users:
+    get:
+      summary: List the users behind an admin metric card
+      description: >-
+        Administrators only. Returns the accounts counted by one admin app
+        metric, using the same definitions as the metric itself, with email,
+        name, username and activity details. Rate metrics support filter
+        `yes` / `no` (for example retained vs. not retained).
+      parameters:
+        - in: query
+          name: metric
+          required: true
+          schema:
+            type: string
+            enum: [total_users, dau, wau, mau, signups_7d, signups_30d, retention_d1, retention_d7, retention_d30, signup_to_active, profile_setup, first_practice_7d, churn, rosary_completion]
+        - in: query
+          name: filter
+          schema: { type: string, enum: [all, yes, no], default: all }
+        - in: query
+          name: limit
+          schema: { type: integer, minimum: 1, maximum: 100, default: 50 }
+        - in: query
+          name: offset
+          schema: { type: integer, minimum: 0, default: 0 }
+      responses:
+        '200':
+          description: Users behind the metric
+          content:
+            application/json:
+              example:
+                data:
+                  metric: signups_7d
+                  filter: all
+                  total: 1
+                  scopeTotal: 1
+                  positiveTotal: 0
+                  hasPositiveSplit: false
+                  users:
+                    - { id: 00000000-0000-4000-8000-000000000001, email: person@example.com, displayName: Pat, username: pat, signedUpAt: '2026-11-20T10:00:00Z', lastActivityAt: null, activityCount: 0, rosariesStarted: 0, rosariesCompleted: 0, profileSetupComplete: false, positive: null }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { description: Administrator role required }
+        '422': { $ref: '#/components/responses/ValidationError' }
   /api/v1/admin/church-schedule-reviews:
     get:
       summary: List subscription-triggered church schedule reviews
