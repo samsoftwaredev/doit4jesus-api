@@ -15,8 +15,13 @@ import MenuItem from '@mui/material/MenuItem';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
+import {
+  describeScheduleChanges,
+  parseReviewJson,
+  toReviewJsonText,
+} from '@/lib/churches/review-json';
 import {
   type ScheduleEntry,
   dedupeEntries,
@@ -99,7 +104,29 @@ export default function ChurchScheduleReviewsPanel({
   const [church, setChurch] = useState<Church | null>(null);
   const [reason, setReason] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [jsonText, setJsonText] = useState('');
+  const [jsonError, setJsonError] = useState('');
+  const [jsonEditing, setJsonEditing] = useState(false);
+  const [copied, setCopied] = useState('');
   const readOnly = selected?.status === 'completed';
+  const scheduleChanges = useMemo(
+    () =>
+      selected
+        ? describeScheduleChanges(initialRows(selected), serviceTimes)
+        : [],
+    [selected, serviceTimes],
+  );
+  const currentJson = useMemo(
+    () =>
+      selected
+        ? toReviewJsonText(
+            selected.church.id,
+            selected.church,
+            initialRows(selected),
+          )
+        : '',
+    [selected],
+  );
   // Lets a load ignore its response when a newer load (e.g. a quick filter
   // change) has started since, so stale results never overwrite fresh ones.
   const latestLoad = useRef(0);
@@ -137,7 +164,48 @@ export default function ChurchScheduleReviewsPanel({
     void load(0);
   }, [status]);
 
+  // Keep the Updated JSON in sync with the form unless the admin is typing in it.
+  useEffect(() => {
+    if (!selected || !church || jsonEditing) return;
+    setJsonText(toReviewJsonText(selected.church.id, church, serviceTimes));
+    setJsonError('');
+  }, [selected, church, serviceTimes, jsonEditing]);
+
+  async function copyText(label: string, value: string) {
+    try {
+      await navigator.clipboard.writeText(value);
+      setCopied(label);
+    } catch {
+      setCopied('');
+      setJsonError('Copy failed. Select the text and copy it manually.');
+    }
+  }
+
+  function applyJson() {
+    if (!selected || !church) return;
+    const result = parseReviewJson(jsonText, selected.church.id, church);
+    if (!result.ok) {
+      setJsonError(result.error);
+      return;
+    }
+    setChurch({ ...church, ...result.church });
+    setServiceTimes(result.serviceTimes);
+    setJsonError('');
+    setJsonEditing(false);
+  }
+
+  function resetJson() {
+    if (!selected) return;
+    setChurch({ ...selected.church, address: { ...selected.church.address } });
+    setServiceTimes(initialRows(selected));
+    setJsonError('');
+    setJsonEditing(false);
+  }
+
   function openReview(review: Review) {
+    setJsonEditing(false);
+    setJsonError('');
+    setCopied('');
     setSelected(review);
     setServiceTimes(initialRows(review));
     setChurch({ ...review.church, address: { ...review.church.address } });
@@ -149,6 +217,12 @@ export default function ChurchScheduleReviewsPanel({
     if (!selected || !church || readOnly) return;
     if (decision === 'closed' && !reason.trim()) {
       setError('A reason is required when marking a church closed.');
+      return;
+    }
+    if (decision === 'verified' && jsonEditing) {
+      setError(
+        'You have unapplied JSON edits. Press "Apply JSON to form" or "Reset to current" first.',
+      );
       return;
     }
     if (decision === 'verified' && !hasMassTime(serviceTimes)) {
@@ -484,6 +558,81 @@ export default function ChurchScheduleReviewsPanel({
                 onChange={setServiceTimes}
                 disabled={readOnly}
               />
+              <Typography variant="h6">Import JSON</Typography>
+              <Stack spacing={1.5}>
+                <Typography variant="body2" color="text.secondary">
+                  Copy the current details, edit them (or paste updated JSON),
+                  then apply to the form above. Verify schedule still saves what
+                  the form shows. The format matches the Import JSON tab.
+                </Typography>
+                <Stack spacing={0.5}>
+                  <Stack direction="row" justifyContent="space-between">
+                    <Typography variant="subtitle2">Current JSON</Typography>
+                    <Button
+                      size="small"
+                      onClick={() => void copyText('current', currentJson)}
+                    >
+                      {copied === 'current' ? 'Copied' : 'Copy current JSON'}
+                    </Button>
+                  </Stack>
+                  <Box
+                    component="pre"
+                    aria-label="Current JSON"
+                    sx={{
+                      bgcolor: 'action.hover',
+                      borderRadius: 1,
+                      fontSize: 12,
+                      m: 0,
+                      maxHeight: 220,
+                      overflow: 'auto',
+                      p: 1.5,
+                    }}
+                  >
+                    {currentJson}
+                  </Box>
+                </Stack>
+                {!readOnly && (
+                  <Stack spacing={0.5}>
+                    <Stack direction="row" justifyContent="space-between">
+                      <Typography variant="subtitle2">Updated JSON</Typography>
+                      <Button
+                        size="small"
+                        onClick={() => void copyText('updated', jsonText)}
+                      >
+                        {copied === 'updated' ? 'Copied' : 'Copy updated JSON'}
+                      </Button>
+                    </Stack>
+                    <TextField
+                      multiline
+                      minRows={8}
+                      value={jsonText}
+                      onChange={(event) => {
+                        setJsonText(event.target.value);
+                        setJsonEditing(true);
+                        setJsonError('');
+                      }}
+                      inputProps={{ 'aria-label': 'Updated JSON' }}
+                      error={Boolean(jsonError)}
+                      helperText={jsonError || undefined}
+                    />
+                    <Stack direction="row" spacing={1}>
+                      <Button
+                        variant="outlined"
+                        disabled={!jsonEditing}
+                        onClick={applyJson}
+                      >
+                        Apply JSON to form
+                      </Button>
+                      <Button onClick={resetJson}>Reset to current</Button>
+                    </Stack>
+                    {scheduleChanges.length > 0 && (
+                      <Alert severity="info">
+                        Service time changes: {scheduleChanges.join('; ')}
+                      </Alert>
+                    )}
+                  </Stack>
+                )}
+              </Stack>
               <TextField
                 disabled={readOnly}
                 label="Review notes / closure reason"

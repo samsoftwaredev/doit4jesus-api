@@ -221,6 +221,119 @@ describe('ChurchScheduleReviewsPanel', () => {
     });
   }
 
+  it('syncs the review JSON with the form and verifies pasted values', async () => {
+    const writeText = jest.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, 'clipboard', {
+      value: { writeText },
+      configurable: true,
+    });
+    await act(async () =>
+      root.render(
+        <ChurchScheduleReviewsPanel token="admin-token" onClose={jest.fn()} />,
+      ),
+    );
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+    const click = async (label: string) => {
+      const button = Array.from(document.body.querySelectorAll('button')).find(
+        (item) => item.textContent === label,
+      );
+      await act(async () => {
+        button?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      });
+    };
+    await click('Review schedule');
+
+    const current = document.body.querySelector(
+      'pre[aria-label="Current JSON"]',
+    )?.textContent;
+    expect(JSON.parse(current ?? '{}')).toMatchObject({
+      churchId: review.church.id,
+      church: { name: 'St. Test Parish', city: 'Austin' },
+    });
+    await click('Copy current JSON');
+    expect(writeText).toHaveBeenCalledWith(current);
+
+    const box = document.body.querySelector(
+      'textarea[aria-label="Updated JSON"]',
+    ) as HTMLTextAreaElement;
+    expect(JSON.parse(box.value).serviceTimes).toHaveLength(1);
+
+    const edited = JSON.parse(box.value);
+    edited.church.city = 'Dallas';
+    edited.serviceTimes.push({
+      serviceType: 'confession',
+      weekday: 'saturday',
+      startTime: '15:00',
+    });
+    await act(async () => {
+      const setter = Object.getOwnPropertyDescriptor(
+        HTMLTextAreaElement.prototype,
+        'value',
+      )?.set;
+      setter?.call(box, JSON.stringify(edited));
+      box.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+
+    await click('Verify schedule');
+    expect(document.body.textContent).toContain('unapplied JSON edits');
+
+    await click('Apply JSON to form');
+    expect(document.body.textContent).toContain('+ confession saturday 15:00');
+    const city = Array.from(document.body.querySelectorAll('input')).find(
+      (input) => input.value === 'Dallas',
+    );
+    expect(city).toBeDefined();
+
+    (global.fetch as jest.Mock).mockClear();
+    await click('Verify schedule');
+    const patch = (global.fetch as jest.Mock).mock.calls.find(
+      ([, init]) => init?.method === 'PATCH',
+    );
+    const body = JSON.parse(patch?.[1].body);
+    expect(body.church.city).toBe('Dallas');
+    expect(body.serviceTimes).toHaveLength(2);
+  });
+
+  it('keeps the form unchanged when pasted JSON is invalid', async () => {
+    await act(async () =>
+      root.render(
+        <ChurchScheduleReviewsPanel token="admin-token" onClose={jest.fn()} />,
+      ),
+    );
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+    const click = async (label: string) => {
+      const button = Array.from(document.body.querySelectorAll('button')).find(
+        (item) => item.textContent === label,
+      );
+      await act(async () => {
+        button?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      });
+    };
+    await click('Review schedule');
+    const box = document.body.querySelector(
+      'textarea[aria-label="Updated JSON"]',
+    ) as HTMLTextAreaElement;
+    await act(async () => {
+      const setter = Object.getOwnPropertyDescriptor(
+        HTMLTextAreaElement.prototype,
+        'value',
+      )?.set;
+      setter?.call(box, '{nope');
+      box.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    await click('Apply JSON to form');
+    expect(document.body.textContent).toContain('not valid JSON');
+    expect(
+      Array.from(document.body.querySelectorAll('input')).some(
+        (input) => input.value === 'Austin',
+      ),
+    ).toBe(true);
+  });
+
   it('shows completed reviews as read-only without review actions', async () => {
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
